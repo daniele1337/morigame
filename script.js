@@ -157,13 +157,28 @@ const state =
     gameOver : 3
 }
 
+// Универсальная функция для получения координат относительно canvas
+function getCanvasRelativeCoords(event) {
+    const rect = cvs.getBoundingClientRect();
+    let x, y;
+    if (event.touches && event.touches.length > 0) {
+        x = event.touches[0].clientX - rect.left;
+        y = event.touches[0].clientY - rect.top;
+    } else {
+        x = event.clientX - rect.left;
+        y = event.clientY - rect.top;
+    }
+    // Корректируем на случай, если canvas масштабирован
+    x *= cvs.width / rect.width;
+    y *= cvs.height / rect.height;
+    return { x, y };
+}
+
 // CONTROL THE GAME
 // Control when the player clicks
 cvs.addEventListener("click", function(event) 
 { 
-    let rect = cvs.getBoundingClientRect();
-    let clickX = event.clientX - rect.left;
-    let clickY = event.clientY - rect.top;
+    const { x: clickX, y: clickY } = getCanvasRelativeCoords(event);
 
     switch (state.current) 
     {
@@ -247,6 +262,135 @@ cvs.addEventListener("click", function(event)
                 bird.speedReset();
                 score.scoreReset();
                 gameButtons.restart_button.isPressed = false;
+                gameOver.scoreSaved = false; // Сбрасываем флаг сохранения
+                state.current = state.getReady;
+                if(!mute)
+                {
+                    SWOOSH.currentTime = 0;
+                    SWOOSH.play();
+                }
+                
+                // Скрываем кнопки Telegram
+                if (tg) {
+                    tg.MainButton.hide();
+                    tg.BackButton.hide();
+                }
+            }
+            // Home button
+            else if(clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
+                    clickY >= gameButtons.home_button.y && clickY <= gameButtons.home_button.y + gameButtons.home_button.h)
+            {
+                pipes.pipesReset();
+                bird.speedReset();
+                score.scoreReset();
+                gameButtons.home_button.isPressed = false;
+                state.current = state.home;
+                if(!mute)
+                {
+                    SWOOSH.currentTime = 0;
+                    SWOOSH.play();
+                }
+                
+                // Показываем главную кнопку Telegram
+                if (tg) {
+                    tg.MainButton.setText('🎮 ИГРАТЬ');
+                    tg.MainButton.show();
+                    tg.BackButton.hide();
+                }
+            }
+            break;
+    }        
+});
+
+// Добавляем обработку touch событий для мобильных устройств
+cvs.addEventListener("touchstart", function(event) 
+{ 
+    event.preventDefault(); // Предотвращаем зум
+    const { x: clickX, y: clickY } = getCanvasRelativeCoords(event);
+
+    switch (state.current) 
+    {
+        case state.home:
+            // Mute or Unmute button
+            if (clickX >= gameButtons.x && clickX <= gameButtons.x + gameButtons.w &&
+                clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
+            {
+                mute = !mute;
+                if(!mute)
+                {
+                    SWOOSH.currentTime = 0;
+                    SWOOSH.play();
+                }
+            }
+            // Night or Day button
+            else if (clickX >= gameButtons.night_button.x && clickX <= gameButtons.night_button.x + gameButtons.w &&
+                     clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
+            {
+                night = !night;
+                if(!mute)
+                {
+                    SWOOSH.currentTime = 0;
+                    SWOOSH.play();
+                }
+            }  
+            // Start button
+            else if(clickX >= gameButtons.start_button.x && clickX <= gameButtons.start_button.x + gameButtons.start_button.w &&
+                    clickY >= gameButtons.start_button.y && clickY <= gameButtons.start_button.y + gameButtons.start_button.h)
+            {
+                state.current = state.getReady;
+                if(!mute)
+                {
+                    SWOOSH.currentTime = 0;
+                    SWOOSH.play();
+                }
+                
+                // Скрываем кнопку Telegram при начале игры
+                if (tg) {
+                    tg.MainButton.hide();
+                }
+            }         
+            break;
+        case state.getReady:
+            bird.flap();
+            if(!mute)
+            {
+                FLAP.play();
+            }
+            birdFlapped = true;            
+            state.current = state.game;
+            
+            // Скрываем кнопку Telegram при начале игры
+            if (tg) {
+                tg.MainButton.hide();
+            }
+            break;
+        case state.game:
+            // Pause or Resume button
+            if (clickX >= gameButtons.x && clickX <= gameButtons.x + gameButtons.w &&
+                clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
+            {
+                gamePaused = !gamePaused;
+            }
+            else if(!gamePaused)
+            {
+                bird.flap();
+                if(!mute)
+                {
+                    FLAP.currentTime = 0;
+                    FLAP.play();
+                }
+            }
+            break;
+        case state.gameOver:
+            // Restart button
+            if(clickX >= gameButtons.restart_button.x && clickX <= gameButtons.restart_button.x + gameButtons.restart_button.w &&
+               clickY >= gameButtons.restart_button.y && clickY <= gameButtons.restart_button.y + gameButtons.restart_button.h)
+            {
+                pipes.pipesReset();
+                bird.speedReset();
+                score.scoreReset();
+                gameButtons.restart_button.isPressed = false;
+                gameOver.scoreSaved = false; // Сбрасываем флаг сохранения
                 state.current = state.getReady;
                 if(!mute)
                 {
@@ -346,15 +490,24 @@ document.addEventListener("keyup", function(event)
     else if (event.key === "n" || event.key === "N") 
     {
         nWasPressed = !nWasPressed;
-    }
+        }        
+});
+
+// Добавляем обработку touchmove и touchend для мобильных устройств
+cvs.addEventListener("touchmove", function(event) 
+{ 
+    event.preventDefault(); // Предотвращаем скролл
+});
+
+cvs.addEventListener("touchend", function(event) 
+{ 
+    event.preventDefault(); // Предотвращаем дополнительные события
 });
 
 // Control when the player clicks the left mouse button
 cvs.addEventListener("mousedown", function(event) 
 {
-    let rect = cvs.getBoundingClientRect();
-    let clickX = event.clientX - rect.left;
-    let clickY = event.clientY - rect.top;
+    const { x: clickX, y: clickY } = getCanvasRelativeCoords(event);
 
     switch (state.current) 
     {
@@ -395,16 +548,14 @@ cvs.addEventListener("mousedown", function(event)
         case state.gameOver:
             mouseDown = true;
             // Restart button
-            if(mouseDown &&
-               clickX >= gameButtons.restart_button.x && clickX <= gameButtons.restart_button.x + gameButtons.restart_button.w &&
+            if(clickX >= gameButtons.restart_button.x && clickX <= gameButtons.restart_button.x + gameButtons.restart_button.w &&
                clickY >= gameButtons.restart_button.y && clickY <= gameButtons.restart_button.y + gameButtons.restart_button.h)
             {
                 // If player is clicking on Restart Button
                 gameButtons.restart_button.isPressed = true;
             }
             // Home button
-            else if(mouseDown &&
-                    clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
+            else if(clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
                     clickY >= gameButtons.home_button.y && clickY <= gameButtons.home_button.y + gameButtons.home_button.h)
             {
                 // If player is clicking on Home Button
@@ -417,9 +568,7 @@ cvs.addEventListener("mousedown", function(event)
 // Control when the player stops clicking the left mouse button
 cvs.addEventListener("mouseup", function(event) 
 {
-    let rect = cvs.getBoundingClientRect();
-    let clickX = event.clientX - rect.left;
-    let clickY = event.clientY - rect.top;
+    const { x: clickX, y: clickY } = getCanvasRelativeCoords(event);
 
     switch (state.current) 
     {
@@ -460,16 +609,14 @@ cvs.addEventListener("mouseup", function(event)
         case state.gameOver:
             mouseDown = false;
             // Restart button
-            if(mouseDown &&
-               clickX >= gameButtons.restart_button.x && clickX <= gameButtons.restart_button.x + gameButtons.restart_button.w &&
+            if(clickX >= gameButtons.restart_button.x && clickX <= gameButtons.restart_button.x + gameButtons.restart_button.w &&
                clickY >= gameButtons.restart_button.y && clickY <= gameButtons.restart_button.y + gameButtons.restart_button.h)
             {
                 // If player stops clicking on Restart button
                 gameButtons.restart_button.isPressed = false;
             }
             // Home button
-            else if(mouseDown &&
-                    clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
+            else if(clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
                     clickY >= gameButtons.home_button.y && clickY <= gameButtons.home_button.y + gameButtons.home_button.h)
             {
                 // If player stops clicking on Home button
@@ -482,9 +629,7 @@ cvs.addEventListener("mouseup", function(event)
 // Control when the player moves the mouse away from the buttons
 cvs.addEventListener("mousemove", function(event) 
 {
-    let rect = cvs.getBoundingClientRect();
-    let clickX = event.clientX - rect.left;
-    let clickY = event.clientY - rect.top;
+    const { x: clickX, y: clickY } = getCanvasRelativeCoords(event);
 
     switch (state.current) 
     {
