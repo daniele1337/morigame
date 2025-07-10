@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #7BC5CD;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        
+        #canvas {
+            border: 2px solid #333;
+            max-width: 100%;
+            max-height: 100vh;
+        }
+        
+        /* Стили для Telegram */
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-button-color: #2481cc;
+            --tg-theme-button-text-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <!-- Telegram Mini App инициализация -->
+    <script>
+        // Инициализация Telegram Web App
+        let tg = null;
+        let currentUser = null;
+        
+        function initTelegram() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                
+                // Получаем данные пользователя
+                currentUser = tg.initDataUnsafe?.user;
+                
+                // Применяем тему Telegram
+                if (tg.themeParams) {
+                    document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color);
+                    document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color);
+                    document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color);
+                    document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color);
+                }
+                
+                console.log('Telegram Web App initialized');
+                console.log('User:', currentUser);
+            } else {
+                console.log('Telegram Web App not available - running in browser mode');
+            }
+        }
+        
+        // Инициализируем при загрузке страницы
+        window.addEventListener('load', initTelegram);
+    </script>
+    
+    <script src="script.js"></script>
+</body>
+</html>
