@@ -14,7 +14,7 @@ function initTelegram() {
             tg = window.Telegram.WebApp;
             currentUser = tg.initDataUnsafe?.user;
             
-            console.log('Telegram Web App initialized');
+            console.log('Telegram Web App initialized from script.js');
             console.log('User:', currentUser);
             
             // Настраиваем кнопки Telegram
@@ -25,7 +25,7 @@ function initTelegram() {
         } else {
             console.log('Telegram Web App not available - running in browser mode');
         }
-    }, 100);
+    }, 200); // Увеличиваем задержку
 }
 
 // Настройка кнопок Telegram
@@ -1847,8 +1847,20 @@ window.addEventListener("load", () => {
 function draw() 
 {
     // Проверяем, что canvas и изображения загружены
-    if (!cvs || !sprite_sheet.complete) {
-        console.log('Waiting for resources to load...');
+    if (!cvs) {
+        console.error('Canvas not found!');
+        return;
+    }
+    
+    if (!sprite_sheet.complete) {
+        console.log('Waiting for sprite sheet to load...');
+        // Показываем загрузочный экран
+        ctx.fillStyle = "#7BC5CD";
+        ctx.fillRect(0, 0, cvs.width, cvs.height);
+        ctx.fillStyle = "#000";
+        ctx.font = "20px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Loading...", cvs.width / 2, cvs.height / 2);
         return;
     }
     

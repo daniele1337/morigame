@@ -38,35 +38,32 @@
     <!-- Telegram Mini App инициализация -->
     <script>
         // Инициализация Telegram Web App
-        let tg = null;
-        let currentUser = null;
-        
-        function initTelegram() {
+        function initTelegramFromHTML() {
             if (window.Telegram && window.Telegram.WebApp) {
-                tg = window.Telegram.WebApp;
-                tg.ready();
-                tg.expand();
+                const telegramApp = window.Telegram.WebApp;
+                telegramApp.ready();
+                telegramApp.expand();
                 
                 // Получаем данные пользователя
-                currentUser = tg.initDataUnsafe?.user;
+                const user = telegramApp.initDataUnsafe?.user;
                 
                 // Применяем тему Telegram
-                if (tg.themeParams) {
-                    document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color);
-                    document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color);
-                    document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color);
-                    document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color);
+                if (telegramApp.themeParams) {
+                    document.documentElement.style.setProperty('--tg-theme-bg-color', telegramApp.themeParams.bg_color);
+                    document.documentElement.style.setProperty('--tg-theme-text-color', telegramApp.themeParams.text_color);
+                    document.documentElement.style.setProperty('--tg-theme-button-color', telegramApp.themeParams.button_color);
+                    document.documentElement.style.setProperty('--tg-theme-button-text-color', telegramApp.themeParams.button_text_color);
                 }
                 
-                console.log('Telegram Web App initialized');
-                console.log('User:', currentUser);
+                console.log('Telegram Web App initialized from HTML');
+                console.log('User:', user);
             } else {
                 console.log('Telegram Web App not available - running in browser mode');
             }
         }
         
         // Инициализируем при загрузке страницы
-        window.addEventListener('load', initTelegram);
+        window.addEventListener('load', initTelegramFromHTML);
     </script>
     
     <script src="script.js"></script>
