@@ -8,54 +8,61 @@ let currentUser = null;
 
 // Инициализация Telegram
 function initTelegram() {
-    if (window.Telegram && window.Telegram.WebApp) {
-        tg = window.Telegram.WebApp;
-        currentUser = tg.initDataUnsafe?.user;
-        
-        console.log('Telegram Web App initialized');
-        console.log('User:', currentUser);
-        
-        // Настраиваем кнопки Telegram
-        setupTelegramButtons();
-        
-        // Применяем тему Telegram
-        applyTelegramTheme();
-    } else {
-        console.log('Telegram Web App not available - running in browser mode');
-    }
+    // Ждем загрузки Telegram SDK
+    setTimeout(() => {
+        if (window.Telegram && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
+            currentUser = tg.initDataUnsafe?.user;
+            
+            console.log('Telegram Web App initialized');
+            console.log('User:', currentUser);
+            
+            // Настраиваем кнопки Telegram
+            setupTelegramButtons();
+            
+            // Применяем тему Telegram
+            applyTelegramTheme();
+        } else {
+            console.log('Telegram Web App not available - running in browser mode');
+        }
+    }, 100);
 }
 
 // Настройка кнопок Telegram
 function setupTelegramButtons() {
     if (!tg) return;
     
-    // Показываем главную кнопку на домашнем экране
-    if (state.current === state.home) {
-        tg.MainButton.setText('🎮 ИГРАТЬ');
-        tg.MainButton.show();
-        tg.MainButton.onClick(() => {
-            state.current = state.getReady;
-            tg.MainButton.hide();
-        });
-    }
-    
-    // Настраиваем кнопку "Назад"
-    tg.BackButton.onClick(() => {
-        if (state.current === state.gameOver) {
-            // Показываем диалог поделиться результатом
-            tg.showConfirm(
-                "Поделиться результатом?",
-                (confirmed) => {
-                    if (confirmed) {
-                        tg.shareMessage(`🎮 Я набрал ${score.game_score} очков в Flappy Bird! Попробуй побить мой рекорд!`);
-                    }
-                }
-            );
-        } else {
-            state.current = state.home;
-            tg.BackButton.hide();
+    try {
+        // Показываем главную кнопку на домашнем экране
+        if (state.current === state.home) {
+            tg.MainButton.setText('🎮 ИГРАТЬ');
+            tg.MainButton.show();
+            tg.MainButton.onClick(() => {
+                state.current = state.getReady;
+                tg.MainButton.hide();
+            });
         }
-    });
+        
+        // Настраиваем кнопку "Назад"
+        tg.BackButton.onClick(() => {
+            if (state.current === state.gameOver) {
+                // Показываем диалог поделиться результатом
+                tg.showConfirm(
+                    "Поделиться результатом?",
+                    (confirmed) => {
+                        if (confirmed) {
+                            tg.shareMessage(`🎮 Я набрал ${score.game_score} очков в Flappy Bird! Попробуй побить мой рекорд!`);
+                        }
+                    }
+                );
+            } else {
+                state.current = state.home;
+                tg.BackButton.hide();
+            }
+        });
+    } catch (error) {
+        console.error('Error setting up Telegram buttons:', error);
+    }
 }
 
 // Применение темы Telegram
@@ -116,6 +123,12 @@ const DEGREE = Math.PI/180;
 
 // LOAD SPRITE SHEET
 const sprite_sheet = new Image();
+sprite_sheet.onload = function() {
+    console.log('Sprite sheet loaded successfully');
+};
+sprite_sheet.onerror = function() {
+    console.error('Failed to load sprite sheet');
+};
 sprite_sheet.src = "img/sprite_sheet.png"
 
 // LOAD SOUNDS
@@ -240,6 +253,12 @@ cvs.addEventListener("click", function(event)
                     SWOOSH.currentTime = 0;
                     SWOOSH.play();
                 }
+                
+                // Скрываем кнопки Telegram
+                if (tg) {
+                    tg.MainButton.hide();
+                    tg.BackButton.hide();
+                }
             }
             // Home button
             else if(clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
@@ -255,25 +274,13 @@ cvs.addEventListener("click", function(event)
                     SWOOSH.currentTime = 0;
                     SWOOSH.play();
                 }
-            }
-            
-            // Показываем кнопку "Играть снова" в Telegram
-            if (tg) {
-                tg.MainButton.setText('🔄 ИГРАТЬ СНОВА');
-                tg.MainButton.show();
-                tg.MainButton.onClick(() => {
-                    // Сброс игры
-                    pipes.pipesReset();
-                    bird.speedReset();
-                    score.scoreReset();
-                    gameButtons.restart_button.isPressed = false;
-                    gameButtons.home_button.isPressed = false;
-                    state.current = state.getReady;
-                    tg.MainButton.hide();
-                });
                 
-                // Показываем кнопку "Назад"
-                tg.BackButton.show();
+                // Показываем главную кнопку Telegram
+                if (tg) {
+                    tg.MainButton.setText('🎮 ИГРАТЬ');
+                    tg.MainButton.show();
+                    tg.BackButton.hide();
+                }
             }
             break;
     }        
@@ -1333,6 +1340,25 @@ const gameOver =
                 if (score.game_score >= 20) {
                     GameAPI.showAchievement('🏆 Мастер игры!');
                 }
+                
+                // Показываем кнопки Telegram
+                if (tg) {
+                    tg.MainButton.setText('🔄 ИГРАТЬ СНОВА');
+                    tg.MainButton.show();
+                    tg.MainButton.onClick(() => {
+                        // Сброс игры
+                        pipes.pipesReset();
+                        bird.speedReset();
+                        score.scoreReset();
+                        gameButtons.restart_button.isPressed = false;
+                        gameButtons.home_button.isPressed = false;
+                        state.current = state.getReady;
+                        tg.MainButton.hide();
+                    });
+                    
+                    // Показываем кнопку "Назад"
+                    tg.BackButton.show();
+                }
             }
         }
     }
@@ -1614,9 +1640,16 @@ const medal =
 // CANVAS SCALE
 function canvasScale() 
 {
-    // Получаем размеры экрана Telegram
-    const screenWidth = tg ? tg.viewportStableHeight : window.innerWidth;
-    const screenHeight = tg ? tg.viewportStableHeight : window.innerHeight;
+    // Получаем размеры экрана
+    let screenWidth, screenHeight;
+    
+    if (tg && tg.viewportStableHeight) {
+        screenWidth = tg.viewportStableHeight;
+        screenHeight = tg.viewportStableHeight;
+    } else {
+        screenWidth = window.innerWidth;
+        screenHeight = window.innerHeight;
+    }
     
     // CANVAS HEIGHT & WIDTH
     cvs.height = screenHeight;
@@ -1791,16 +1824,34 @@ function canvasScale()
 
 // When window loads or resizes
 window.addEventListener("load", () => {
+    console.log('Window loaded, initializing game...');
+    
+    // Проверяем canvas
+    if (!cvs) {
+        console.error('Canvas not found!');
+        return;
+    }
+    
+    console.log('Canvas found, scaling...');
     canvasScale();
     window.addEventListener("resize", canvasScale);
     
     // Инициализируем Telegram
+    console.log('Initializing Telegram...');
     initTelegram();
+    
+    console.log('Game initialization complete');
 });
 
 // DRAW
 function draw() 
 {
+    // Проверяем, что canvas и изображения загружены
+    if (!cvs || !sprite_sheet.complete) {
+        console.log('Waiting for resources to load...');
+        return;
+    }
+    
     // Background color of canvas 
     ctx.fillStyle = !night ? "#7BC5CD" : "#12284C"; 
     ctx.fillRect(0, 0, cvs.width, cvs.height); 

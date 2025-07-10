@@ -2,63 +2,141 @@
   <img alt="Flappy Bird" src="img/flappy_bird.png" />
 </p>
 
-# Flappy Bird
-This is a Flappy Bird clone built with HTML5 canvas and vanilla JavaScript. You can play play it [here](https://mmarqs.github.io/FlappyBird/). Additionally, further down in this README is a list of [Game Controls](#game-controls).
+# Flappy Bird - Telegram Mini App
 
+Классическая игра Flappy Bird, адаптированная для Telegram Mini Apps.
 
-## About the game
-Flappy Bird was a side-scrolling game developed by the Vietnamese Dong Nguyen, under his game development company [dotGEARS](https://dotgears.com).
+## 🎮 Описание
 
-The game's goal is to guide a flying bird as it moves to the right, while avoiding sets of pipes. To keep the bird airborne, the player must tap, causing the bird to briefly flap. If the player doesn't tap, the bird falls due to gravity. The player earns one point each time the bird flies through a pair of pipes. 
+Flappy Bird - это популярная игра, где игрок управляет птицей, которая должна пролетать между трубами, не задевая их. Игра адаптирована для работы в Telegram как Mini App.
 
-Medals are awarded based on the player's final score. Scores between 10 and 20 earn a bronze medal, while a silver medal is awarded for scores of 20 or higher. A gold medal is given to those who score above 30 points, and players who achieve a score of 40 or higher receive a planinum medal.
+## ✨ Особенности
 
+- **Telegram интеграция** - работает как Telegram Mini App
+- **Адаптивный дизайн** - подстраивается под размер экрана
+- **Звуковые эффекты** - полный набор звуков игры
+- **Дневной/ночной режим** - переключение темы
+- **Система очков** - подсчет и сохранение результатов
+- **Достижения** - уведомления о достижениях
+- **Поделиться результатом** - возможность поделиться результатом в чате
 
-## Implementations
+## 🚀 Установка и запуск
 
-### Physics & Coordinate Mapping
-The game physics rely on a 2D cartesian coordinate mapping system that correlates directly with pixel vectors relative to the canvas origin. Each object has an instance variable of x,y position coordinates that can be directly associated with a pixel vector in relation to the canvas origin. 
+### Локальный запуск
 
-It is important to mention that since the canvas origin is in the upper left corner, the ```y``` coordinate value increases from top to bottom on the canvas.
+1. Клонируй репозиторий:
+```bash
+git clone https://github.com/daniele1337/morigame.git
+cd morigame
+```
 
-### Main functions
-- ```draw()``` - It's responsible for drawing the game objects on the canvas. It's a method present in all objects in the game, which draws the element of the respective object using its properties.
+2. Открой `index.html` в браузере или запусти локальный сервер:
+```bash
+# Python 3
+python -m http.server 8000
 
-- ```update()``` - It's responsible for updating the game objects on the canvas. It's present in some game objects, wich updates the bird's position in all game states, foreground's positon and pipes' position. It also updates the random position of medal's shining animation on Game Over state.
+# Python 2
+python -m SimpleHTTPServer 8000
 
-- ```loop()``` - This function is used to run the game loop. It runs every 1/75th of a second so that regardless of each player's computer update rate, the game has a fixed update rate of 75FPS. It calls ```update()``` and ```draw()```, thus updating the game state and rendering graphics, respectively. Frames are only incremented if the game isn't paused. This function also calls ```requesteAnimationFrame(loop)``` to continue the loop on the next frame.
+# Node.js
+npx http-server
+```
 
-- ```canvasScale()``` - It's responsible for adjusting the canvas size according to the browser's window size, using the ```clientWidth``` and ```clientHeight``` properties of the document object. In addition, it also sets the canvas scale so that the graphic elements are drawn with the same proportion in different resolutions. This function is called when the window is loaded or resized.
+3. Открой `http://localhost:8000` в браузере
 
-### Collisions
-Explicit hitboxes weren't used to detect collisions. Instead, a check was made to evaluate whether or not the bird's ```x``` and ```y``` coordinates  were overlappinping the pipes or foreground ```x``` and ```y``` coordinates.
+### GitHub Pages
 
-The bird's collision with the pipes or foreground is performed every frame. If the bird's position overlaps any part of the pipes or foreground, a collision is detected. In this case, the game ends.
+Игра доступна по адресу: [https://daniele1337.github.io/morigame](https://daniele1337.github.io/morigame)
 
+## 📱 Telegram Mini App
 
-## Game States
-- **Home** - Game's initial state, where the player can start the game, mute or unmute the sound and activate or deactivate the night mode.
-- **Get Ready** - Where the player is about to start the game.
-- **Game** - Game's main state, where the player flies with the bird. In this state the player must avoid colliding with a set of pipes or with the foreground and try to get the best score.
-- **Game Over** - The game is over because the player collided with a pipe or with the foreground. In this state the player's score and best score are shown with the option to restart the game or to return to Home state.
-<p align="center">
-  <img alt="Game States" src="img/game_states.png" />
-</p>
+### Настройка бота
 
+1. Создай бота через @BotFather
+2. Настрой Menu Button с URL: `https://daniele1337.github.io/morigame`
+3. Установи текст кнопки: `🎮 Играть`
 
-## Game controls
-#### Mouse
-- All buttons in the game can be clicked with the mouse.
-#### Keyboard
-- You can use the ```n``` key at any time to activate/deactivate the site's night mode.
-- During the game state, you can use the following keys:
-    - ```space``` - Make the bird flap
-    - ```p``` - Pause/Resume the game
+### Функции в Telegram
 
+- **Главная кнопка** - "🎮 ИГРАТЬ" для начала игры
+- **Кнопка "Назад"** - для возврата в главное меню
+- **Уведомления** - о результатах и достижениях
+- **Поделиться** - возможность поделиться результатом
 
-## Acknowledgements
-- [Figma](https://www.figma.com): This vector graphic and prototyping design tool was used to create and edit the sprite sheet for the game, and measure the coordinates and dimensions of each object in the sprite sheet.
+## 🎯 Управление
 
-- [flappybird.ee](https://flappybird.ee): This website was used as a reference for scaling most of the elements and the game itself.
+- **Клик/Тап** - прыжок птицы
+- **Пробел** - прыжок (в браузере)
+- **P** - пауза/продолжить
+- **N** - переключение дня/ночи
 
-- [CodeExplainedRepo](https://github.com/CodeExplainedRepo): The structure of the code was inspired by his tutorial provided on GitHub.
+## 🏆 Система очков
+
+- За каждую пройденную трубу +1 очко
+- Лучший результат сохраняется в localStorage
+- Уведомления о новых рекордах
+- Достижения за определенные результаты
+
+## 🎨 Технические детали
+
+- **Canvas API** - для отрисовки игры
+- **Telegram Web App SDK** - для интеграции с Telegram
+- **Адаптивный дизайн** - работает на всех устройствах
+- **Оптимизированная графика** - спрайтшит для быстрой загрузки
+
+## 📁 Структура проекта
+
+```
+morigame/
+├── index.html          # Главная страница
+├── script.js           # Логика игры
+├── style.css           # Стили
+├── README.md           # Документация
+├── audio/              # Звуковые файлы
+│   ├── die.wav
+│   ├── flap.wav
+│   ├── hit.wav
+│   ├── point.wav
+│   └── swooshing.wav
+└── img/                # Изображения
+    ├── sprite_sheet.png
+    ├── flappy_bird.png
+    ├── logo.png
+    └── game_states.png
+```
+
+## 🔧 Настройка для Telegram
+
+### Обязательные требования
+
+- **HTTPS** - Telegram Mini Apps требуют безопасное соединение
+- **Адаптивность** - игра должна работать на мобильных устройствах
+- **Telegram Web App SDK** - для интеграции с Telegram
+
+### Рекомендации
+
+- Тестируй на разных устройствах
+- Проверяй работу в Telegram
+- Оптимизируй загрузку ресурсов
+- Добавляй новые функции постепенно
+
+## 🤝 Вклад в проект
+
+1. Форкни репозиторий
+2. Создай ветку для новой функции
+3. Внеси изменения
+4. Создай Pull Request
+
+## 📄 Лицензия
+
+Этот проект распространяется под лицензией MIT.
+
+## 🙏 Благодарности
+
+- Оригинальная игра Flappy Bird от Dong Nguyen
+- Telegram Web App SDK
+- Сообщество разработчиков Telegram Mini Apps
+
+---
+
+**Играй в Flappy Bird прямо в Telegram! 🎮**
