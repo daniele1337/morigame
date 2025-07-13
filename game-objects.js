@@ -102,13 +102,13 @@ bird = {
 
     update: function() {
         if (state.current == state.getReady) {
-            this.period = isMobile ? 6 : 9;
+            this.period = isMobile ? 12 : 9; // Медленнее на мобильных
         } else if (state.current == state.game) {
             const speedFactor = Math.abs(this.velocityY) / this.maxSpeed;
-            const basePeriod = isMobile ? 3 : 5;
-            this.period = Math.max(1, Math.min(basePeriod, 6 - speedFactor * 3));
+            const basePeriod = isMobile ? 8 : 5; // Медленнее на мобильных
+            this.period = Math.max(3, Math.min(basePeriod, 12 - speedFactor * 3));
         } else {
-            this.period = isMobile ? 4 : 6;
+            this.period = isMobile ? 8 : 6; // Медленнее на мобильных
         }
         
         this.frame += frames % this.period == 0 ? 1 : 0;
@@ -220,7 +220,7 @@ pipes = {
     top: {spriteX: 1001, spriteY: 0, spriteW: 104, spriteH: 800, x: 0, y: 0, w: 0, h: 0},
     bottom: {spriteX: 1105, spriteY: 0, spriteW: 104, spriteH: 800, x: 0, y: 0, w: 0, h: 0},
     helicopterFrame: 0, helicopterFrameCount: 3, helicopterFrameTick: 0,
-    helicopterFrameTickMax: isMobile ? 5 : 7,
+    helicopterFrameTickMax: isMobile ? 14 : 7, // Медленнее на мобильных
     helicopterSpriteW: 256, helicopterSpriteH: 320,
     helicopterDrawW: 96, helicopterDrawH: 48,
     dx: 0, gap: 0, maxYPos: 0, scored: false,
