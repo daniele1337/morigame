@@ -208,8 +208,8 @@ function getCanvasRelativeCoords(event) {
 }
 
 // CONTROL THE GAME
-// Control when the player clicks
-cvs.addEventListener("click", function(event) 
+// Обработчик нажатия ЛКМ (mousedown)
+cvs.addEventListener("mousedown", function(event) 
 { 
     const { x: clickX, y: clickY } = getCanvasRelativeCoords(event);
 
@@ -276,6 +276,16 @@ cvs.addEventListener("click", function(event)
             {
                 gamePaused = !gamePaused;
             }
+            // Управление ракетой - включаем двигатель при нажатии ЛКМ
+            else if (!gamePaused) {
+                engineHeld = true;
+                bird.flap();
+                if(!mute)
+                {
+                    FLAP.currentTime = 0;
+                    FLAP.play();
+                }
+            }
             break;
         case state.gameOver:
             // Restart button
@@ -326,6 +336,24 @@ cvs.addEventListener("click", function(event)
             }
             break;
     }        
+});
+
+// Обработчик отпускания ЛКМ (mouseup)
+cvs.addEventListener("mouseup", function(event) 
+{ 
+    if (state.current === state.game && !gamePaused) {
+        engineHeld = false;
+        bird.release(); // Вызываем функцию спуска при отпускании
+    }
+});
+
+// Обработчик выхода мыши за пределы canvas (mouseleave)
+cvs.addEventListener("mouseleave", function(event) 
+{ 
+    if (state.current === state.game && !gamePaused) {
+        engineHeld = false;
+        bird.release(); // Вызываем функцию спуска при выходе мыши
+    }
 });
 
 // Добавляем обработку touch событий для мобильных устройств
@@ -396,6 +424,16 @@ cvs.addEventListener("touchstart", function(event)
                 clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
             {
                 gamePaused = !gamePaused;
+            }
+            // Управление ракетой - включаем двигатель при нажатии пальца
+            else if (!gamePaused) {
+                engineHeld = true;
+                bird.flap();
+                if(!mute)
+                {
+                    FLAP.currentTime = 0;
+                    FLAP.play();
+                }
             }
             break;
         case state.gameOver:
@@ -963,8 +1001,8 @@ const pipes =
         const frameHeight = 394; // 306 (кадр) + 88 (пустота)
         const spriteW = 360;
         const spriteH = 306;
-        const drawW = Math.round(spriteW / 1.5); // 240
-        const drawH = Math.round(spriteH / 1.5); // 204
+        const drawW = Math.round(spriteW / 1.5) * 0.8 * 1.1; // 192 * 1.1 = 211.2 (увеличено на 10%)
+        const drawH = Math.round(spriteH / 1.5) * 0.8 * 1.1; // 163 * 1.1 = 179.3 (увеличено на 10%)
 
         for(let i = 0; i < this.position.length; i++)
         {
@@ -1839,10 +1877,10 @@ function canvasScale()
 
     // PIPES (helicopter)
     // drawW и drawH должны совпадать с draw() в pipes
-    const pipesDrawW = Math.round(360 / 1.5); // 240
-    const pipesDrawH = Math.round(306 / 1.5); // 204
-    pipes.w = pipesDrawW * 0.8;
-    pipes.h = pipesDrawH * 0.8;
+    const pipesDrawW = Math.round(360 / 1.5) * 0.8 * 1.1; // 192 * 1.1 = 211.2 (увеличено на 10%)
+    const pipesDrawH = Math.round(306 / 1.5) * 0.8 * 1.1; // 163 * 1.1 = 179.3 (увеличено на 10%)
+    pipes.w = pipesDrawW * 0.8; // 211.2 * 0.8 = 169.0 (увеличено на 10% от предыдущего размера)
+    pipes.h = pipesDrawH * 0.8; // 179.3 * 0.8 = 143.4 (увеличено на 10% от предыдущего размера)
     pipes.gap = 120; // или другое подходящее значение
     pipes.maxYPos = -(cvs.height * 0.350);
     pipes.dx = cvs.width * 0.007;
