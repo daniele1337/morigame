@@ -712,7 +712,7 @@ const bird =
                 bird.spriteX, bird.spriteY, 
                 bird.spriteW, bird.spriteH, 
                 -this.w/2, -this.h/2, 
-                this.w, this.h
+                this.w, this.h * 1.452
             );
         }
 
@@ -938,7 +938,7 @@ const pipes =
     helicopterFrame: 0,
     helicopterFrameCount: 3,
     helicopterFrameTick: 0,
-    helicopterFrameTickMax: 6, // чуть менее быстрая анимация
+    helicopterFrameTickMax: 7, // замедлено на 20% (было 6, стало 7)
     helicopterSpriteW: 256, // ширина одного кадра
     helicopterSpriteH: 320, // высота одного кадра (исправлено)
     
@@ -1090,11 +1090,12 @@ const home =
         MAXY: 0, MINY: 0, dy: 0
     },
 
+    // Используем те же параметры нарезки, что и у bird (Mori)
     animation : 
     [
-        {spriteX: 931, spriteY: 429, spriteW: 68, spriteH: 48},
-        {spriteX: 931, spriteY: 478, spriteW: 68, spriteH: 48},
-        {spriteX: 931, spriteY: 527, spriteW: 68, spriteH: 48}
+        {spriteX: 0, spriteY: 0, spriteW: 180, spriteH: 136},
+        {spriteX: 0, spriteY: 174, spriteW: 180, spriteH: 136},
+        {spriteX: 0, spriteY: 342, spriteW: 180, spriteH: 136}
     ],
 
     bird : 
@@ -1127,8 +1128,9 @@ const home =
                             this.logo.x, this.logo.y, 
                             this.logo.w, this.logo.h
                          );
+            // Используем mori_model_sprite вместо sprite_sheet
             ctx.drawImage(
-                            sprite_sheet, 
+                            mori_model_sprite, 
                             bird.spriteX, bird.spriteY, 
                             bird.spriteW, bird.spriteH, 
                             this.bird.x, this.bird.y,
