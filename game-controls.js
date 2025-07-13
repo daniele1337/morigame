@@ -1,7 +1,7 @@
 // CONTROL THE GAME
 
 // Универсальная функция для получения координат относительно canvas
-function getCanvasRelativeCoords(event) {
+getCanvasRelativeCoords = function(event) {
     const rect = cvs.getBoundingClientRect();
     let x, y;
     if (event.touches && event.touches.length > 0) {

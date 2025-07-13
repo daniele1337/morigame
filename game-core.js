@@ -1,19 +1,19 @@
 // Основная логика игры
-const cvs = document.getElementById("canvas");
-const ctx = cvs.getContext("2d");
+cvs = document.getElementById("canvas");
+ctx = cvs.getContext("2d");
 
 // Переменные игры
-let frames = 0;
-let gamePaused = false;
-let mute = false;
-let night = false;
-let engineHeld = false;
+frames = 0;
+gamePaused = false;
+mute = false;
+night = false;
+engineHeld = false;
 
 // Определение устройства
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 // Состояния игры
-const state = {
+state = {
     current: 0,
     home: 0,
     getReady: 1,
@@ -22,16 +22,17 @@ const state = {
 };
 
 // Telegram интеграция
-let tg = null;
-let currentUser = null;
+tg = null;
+currentUser = null;
 
 // Инициализация
-function initGame() {
+initGame = function() {
     if (!cvs) {
         console.error('Canvas not found!');
         return;
     }
     
+    // canvasScale вызывается до gameLoop
     canvasScale();
     window.addEventListener("resize", canvasScale);
     initTelegram();
@@ -39,7 +40,7 @@ function initGame() {
 }
 
 // Telegram инициализация
-function initTelegram() {
+initTelegram = function() {
     setTimeout(() => {
         if (window.Telegram && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
@@ -50,7 +51,7 @@ function initTelegram() {
 }
 
 // Игровой цикл (оптимизированный)
-function gameLoop() {
+gameLoop = function() {
     update();
     draw();
     if (!gamePaused) frames++;
@@ -59,6 +60,18 @@ function gameLoop() {
 
 // Запуск игры
 window.addEventListener("load", () => {
+    state.current = state.home;
+    canvasScale();
     initGame();
     gameLoop();
-}); 
+});
+
+// Добавляю отладку размеров объектов в draw()
+oldDraw = draw;
+draw = function() {
+    oldDraw();
+    console.log('bird:', bird.x, bird.y, bird.w, bird.h);
+    console.log('home.logo:', home.logo.x, home.logo.y, home.logo.w, home.logo.h);
+    console.log('foreground:', foreground.x, foreground.y, foreground.w, foreground.h);
+    console.log('background:', background.x, background.y, background.w, background.h);
+} 

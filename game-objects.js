@@ -1,7 +1,7 @@
 // Игровые объекты (оптимизированные)
 
 // Фон
-const background = {
+background = {
     day_spriteX: 0,
     night_spriteX: 1211,
     spriteY: 392,
@@ -23,7 +23,7 @@ const background = {
 };
 
 // Передний план
-const foreground = {
+foreground = {
     spriteX: 553, spriteY: 576, spriteW: 447, spriteH: 224,
     x: 0, y: 0, w: 0, h: 0, dx: 0,
     draw: function() {
@@ -38,7 +38,7 @@ const foreground = {
 };
 
 // Ракета (оптимизированная)
-const bird = {
+bird = {
     animation: [
         {spriteX: 0, spriteY: 0, spriteW: 180, spriteH: 136},
         {spriteX: 0, spriteY: 174, spriteW: 180, spriteH: 136},
@@ -215,7 +215,7 @@ const bird = {
 };
 
 // Вертолеты (оптимизированные)
-const pipes = {
+pipes = {
     position: [],
     top: {spriteX: 1001, spriteY: 0, spriteW: 104, spriteH: 800, x: 0, y: 0, w: 0, h: 0},
     bottom: {spriteX: 1105, spriteY: 0, spriteW: 104, spriteH: 800, x: 0, y: 0, w: 0, h: 0},

@@ -1,7 +1,7 @@
 // UI элементы игры
 
 // Счет
-const score = {
+score = {
     new_best: {spriteX: 921, spriteY: 349, spriteW: 64, spriteH: 28, x: 0, y: 0, w: 0, h: 0},
     number: [
         {spriteX: 98}, {spriteX: 127}, {spriteX: 156}, {spriteX: 185}, {spriteX: 214},
@@ -48,7 +48,7 @@ const score = {
 };
 
 // Кнопки игры
-const gameButtons = {
+gameButtons = {
     mute_button: {spriteX: 171, spriteY: 63, spriteW: 55, spriteH: 62},
     unmute_button: {spriteX: 171, spriteY: 0, spriteW: 55, spriteH: 62},
     start_button: {spriteX: 227, spriteY: 0, spriteW: 160, spriteH: 56, x: 0, y: 0, w: 0, h: 0, y_pressed: 0, isPressed: false},
@@ -95,7 +95,7 @@ const gameButtons = {
 };
 
 // Главный экран
-const home = {
+home = {
     logo: {spriteX: 552, spriteY: 233, spriteW: 384, spriteH: 87, x: 0, y: 0, w: 0, h: 0, MAXY: 0, MINY: 0, dy: 0},
     animation: [
         {spriteX: 0, spriteY: 0, spriteW: 180, spriteH: 136},
@@ -141,7 +141,7 @@ const home = {
 };
 
 // Экран готовности
-const getReady = {
+getReady = {
     get_ready: {spriteX: 552, spriteY: 321, spriteW: 349, spriteH: 87, x: 0, y: 0, w: 0, h: 0},
     tap: {spriteX: 0, spriteY: 0, spriteW: 155, spriteH: 196, x: 0, y: 0, w: 0, h: 0},
 
@@ -154,7 +154,7 @@ const getReady = {
 };
 
 // Экран окончания игры
-const gameOver = {
+gameOver = {
     game_over: {spriteX: 553, spriteY: 410, spriteW: 376, spriteH: 75, x: 0, y: 0, w: 0, h: 0},
     scoreboard: {spriteX: 548, spriteY: 0, spriteW: 452, spriteH: 232, x: 0, y: 0, w: 0, h: 0},
     scoreSaved: false,
@@ -168,7 +168,7 @@ const gameOver = {
 };
 
 // Функция масштабирования canvas
-function canvasScale() {
+canvasScale = function() {
     let screenWidth, screenHeight;
     
     if (tg && tg.viewportStableHeight) {
