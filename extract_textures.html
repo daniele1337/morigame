@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Извлечение текстур из спрайтшита</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        .texture-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 5px;
+        }
+        .download-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .download-btn:hover {
+            background: #45a049;
+        }
+        .info {
+            font-size: 12px;
+            color: #666;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Извлечение текстур из спрайтшита Flappy Bird</h1>
+    <div id="textures"></div>
+
+    <script>
+        const spriteSheet = new Image();
+        spriteSheet.onload = function() {
+            extractTextures();
+        };
+        spriteSheet.src = 'img/sprite_sheet.png';
+
+        // Определение всех текстур
+        const textures = [
+            // Фон
+            {
+                name: 'background_day',
+                x: 0, y: 392, w: 552, h: 408,
+                description: 'Дневной фон'
+            },
+            {
+                name: 'background_night',
+                x: 1211, y: 392, w: 552, h: 408,
+                description: 'Ночной фон'
+            },
+            {
+                name: 'stars',
+                x: 1211, y: 0, w: 552, h: 392,
+                description: 'Звезды для ночного режима'
+            },
+            
+            // Передний план
+            {
+                name: 'foreground',
+                x: 553, y: 576, w: 447, h: 224,
+                description: 'Передний план (земля)'
+            },
+            
+            // Птица (анимация)
+            {
+                name: 'bird_frame_0',
+                x: 932, y: 429, w: 68, h: 48,
+                description: 'Птица - кадр 1'
+            },
+            {
+                name: 'bird_frame_1',
+                x: 932, y: 478, w: 68, h: 48,
+                description: 'Птица - кадр 2'
+            },
+            {
+                name: 'bird_frame_2',
+                x: 932, y: 527, w: 68, h: 48,
+                description: 'Птица - кадр 3'
+            },
+            
+            // Птица для главного экрана
+            {
+                name: 'bird_home_frame_0',
+                x: 931, y: 429, w: 68, h: 48,
+                description: 'Птица главного экрана - кадр 1'
+            },
+            {
+                name: 'bird_home_frame_1',
+                x: 931, y: 478, w: 68, h: 48,
+                description: 'Птица главного экрана - кадр 2'
+            },
+            {
+                name: 'bird_home_frame_2',
+                x: 931, y: 527, w: 68, h: 48,
+                description: 'Птица главного экрана - кадр 3'
+            },
+            
+            // Трубы
+            {
+                name: 'pipe_top',
+                x: 1001, y: 0, w: 104, h: 800,
+                description: 'Верхняя труба'
+            },
+            {
+                name: 'pipe_bottom',
+                x: 1105, y: 0, w: 104, h: 800,
+                description: 'Нижняя труба'
+            },
+            
+            // Логотип и интерфейс
+            {
+                name: 'logo',
+                x: 552, y: 233, w: 384, h: 87,
+                description: 'Логотип игры'
+            },
+            {
+                name: 'studio_name',
+                x: 172, y: 284, w: 380, h: 28,
+                description: 'Название студии'
+            },
+            
+            // Сообщения
+            {
+                name: 'get_ready',
+                x: 552, y: 321, w: 349, h: 87,
+                description: 'Сообщение "Get Ready"'
+            },
+            {
+                name: 'tap_message',
+                x: 0, y: 0, w: 155, h: 196,
+                description: 'Сообщение "Tap"'
+            },
+            {
+                name: 'game_over',
+                x: 553, y: 410, w: 376, h: 75,
+                description: 'Сообщение "Game Over"'
+            },
+            {
+                name: 'scoreboard',
+                x: 548, y: 0, w: 452, h: 232,
+                description: 'Таблица результатов'
+            },
+            
+            // Кнопки
+            {
+                name: 'button_mute',
+                x: 171, y: 63, w: 55, h: 62,
+                description: 'Кнопка выключения звука'
+            },
+            {
+                name: 'button_unmute',
+                x: 171, y: 0, w: 55, h: 62,
+                description: 'Кнопка включения звука'
+            },
+            {
+                name: 'button_start',
+                x: 227, y: 0, w: 160, h: 56,
+                description: 'Кнопка "Start"'
+            },
+            {
+                name: 'button_pause',
+                x: 280, y: 114, w: 52, h: 56,
+                description: 'Кнопка "Pause"'
+            },
+            {
+                name: 'button_resume',
+                x: 227, y: 114, w: 52, h: 56,
+                description: 'Кнопка "Resume"'
+            },
+            {
+                name: 'button_home',
+                x: 388, y: 171, w: 160, h: 56,
+                description: 'Кнопка "Home"'
+            },
+            {
+                name: 'button_restart',
+                x: 227, y: 57, w: 160, h: 56,
+                description: 'Кнопка "Restart"'
+            },
+            {
+                name: 'button_night',
+                x: 280, y: 171, w: 56, h: 60,
+                description: 'Кнопка ночного режима'
+            },
+            {
+                name: 'button_day',
+                x: 223, y: 171, w: 56, h: 60,
+                description: 'Кнопка дневного режима'
+            },
+            
+            // Цифры для счета
+            {
+                name: 'number_0',
+                x: 98, y: 243, w: 28, h: 40,
+                description: 'Цифра 0'
+            },
+            {
+                name: 'number_1',
+                x: 127, y: 243, w: 28, h: 40,
+                description: 'Цифра 1'
+            },
+            {
+                name: 'number_2',
+                x: 156, y: 243, w: 28, h: 40,
+                description: 'Цифра 2'
+            },
+            {
+                name: 'number_3',
+                x: 185, y: 243, w: 28, h: 40,
+                description: 'Цифра 3'
+            },
+            {
+                name: 'number_4',
+                x: 214, y: 243, w: 28, h: 40,
+                description: 'Цифра 4'
+            },
+            {
+                name: 'number_5',
+                x: 243, y: 243, w: 28, h: 40,
+                description: 'Цифра 5'
+            },
+            {
+                name: 'number_6',
+                x: 272, y: 243, w: 28, h: 40,
+                description: 'Цифра 6'
+            },
+            {
+                name: 'number_7',
+                x: 301, y: 243, w: 28, h: 40,
+                description: 'Цифра 7'
+            },
+            {
+                name: 'number_8',
+                x: 330, y: 243, w: 28, h: 40,
+                description: 'Цифра 8'
+            },
+            {
+                name: 'number_9',
+                x: 359, y: 243, w: 28, h: 40,
+                description: 'Цифра 9'
+            },
+            
+            // Медали
+            {
+                name: 'medal_bronze',
+                x: 554, y: 487, w: 88, h: 87,
+                description: 'Бронзовая медаль'
+            },
+            {
+                name: 'medal_silver',
+                x: 642, y: 487, w: 88, h: 87,
+                description: 'Серебряная медаль'
+            },
+            {
+                name: 'medal_gold',
+                x: 731, y: 487, w: 88, h: 87,
+                description: 'Золотая медаль'
+            },
+            {
+                name: 'medal_platinum',
+                x: 820, y: 487, w: 88, h: 87,
+                description: 'Платиновая медаль'
+            },
+            
+            // Эффект блеска медали
+            {
+                name: 'medal_shine_0',
+                x: 922, y: 386, w: 20, h: 20,
+                description: 'Блеск медали - кадр 1'
+            },
+            {
+                name: 'medal_shine_1',
+                x: 943, y: 386, w: 20, h: 20,
+                description: 'Блеск медали - кадр 2'
+            },
+            {
+                name: 'medal_shine_2',
+                x: 964, y: 386, w: 20, h: 20,
+                description: 'Блеск медали - кадр 3'
+            },
+            
+            // Новый рекорд
+            {
+                name: 'new_best',
+                x: 921, y: 349, w: 64, h: 28,
+                description: 'Значок "New Best"'
+            }
+        ];
+
+        function extractTextures() {
+            const container = document.getElementById('textures');
+            
+            textures.forEach((texture, index) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = texture.w;
+                canvas.height = texture.h;
+                
+                // Извлекаем текстуру из спрайтшита
+                ctx.drawImage(
+                    spriteSheet,
+                    texture.x, texture.y, texture.w, texture.h,
+                    0, 0, texture.w, texture.h
+                );
+                
+                const div = document.createElement('div');
+                div.className = 'texture-item';
+                
+                const title = document.createElement('h3');
+                title.textContent = `${index + 1}. ${texture.name}`;
+                
+                const description = document.createElement('p');
+                description.className = 'info';
+                description.textContent = texture.description;
+                
+                const coords = document.createElement('p');
+                coords.className = 'info';
+                coords.textContent = `Координаты: x=${texture.x}, y=${texture.y}, w=${texture.w}, h=${texture.h}`;
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'download-btn';
+                downloadBtn.textContent = 'Скачать PNG';
+                downloadBtn.onclick = () => downloadCanvas(canvas, texture.name);
+                
+                div.appendChild(title);
+                div.appendChild(description);
+                div.appendChild(coords);
+                div.appendChild(canvas);
+                div.appendChild(downloadBtn);
+                
+                container.appendChild(div);
+            });
+        }
+
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename + '.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    </script>
+</body>
+</html> 

@@ -46,15 +46,23 @@ function setupTelegramButtons() {
         // Настраиваем кнопку "Назад"
         tg.BackButton.onClick(() => {
             if (state.current === state.gameOver) {
-                // Показываем диалог поделиться результатом
-                tg.showConfirm(
-                    "Поделиться результатом?",
-                    (confirmed) => {
-                        if (confirmed) {
-                            tg.shareMessage(`🎮 Я набрал ${score.game_score} очков в Flappy Bird! Попробуй побить мой рекорд!`);
-                        }
+                try {
+                    if (tg.showConfirm && typeof tg.showConfirm === 'function' && tg.version && parseFloat(tg.version) >= 6.1) {
+                        tg.showConfirm(
+                            "Поделиться результатом?",
+                            (confirmed) => {
+                                if (confirmed) {
+                                    tg.shareMessage(`🎮 Я набрал ${score.game_score} очков в Flappy Bird! Попробуй побить мой рекорд!`);
+                                }
+                            }
+                        );
+                    } else {
+                        tg.shareMessage(`🎮 Я набрал ${score.game_score} очков в Flappy Bird! Попробуй побить мой рекорд!`);
                     }
-                );
+                } catch (e) {
+                    // Если всё равно ошибка — просто делимся результатом
+                    tg.shareMessage(`🎮 Я набрал ${score.game_score} очков в Flappy Bird! Попробуй побить мой рекорд!`);
+                }
             } else {
                 state.current = state.home;
                 tg.BackButton.hide();
@@ -98,14 +106,18 @@ const GameAPI = {
     },
     
     showNewRecord() {
-        if (tg) {
+        if (tg && tg.showAlert && typeof tg.showAlert === 'function' && tg.version && parseFloat(tg.version) >= 6.1) {
             tg.showAlert('🎉 Новый рекорд! Поздравляем!');
+        } else {
+            alert('🎉 Новый рекорд! Поздравляем!');
         }
     },
     
     showAchievement(message) {
-        if (tg) {
+        if (tg && tg.showAlert && typeof tg.showAlert === 'function' && tg.version && parseFloat(tg.version) >= 6.1) {
             tg.showAlert(message);
+        } else {
+            alert(message); // или просто return;
         }
     }
 };
@@ -130,6 +142,26 @@ sprite_sheet.onerror = function() {
     console.error('Failed to load sprite sheet');
 };
 sprite_sheet.src = "img/sprite_sheet.png"
+
+// === ДОБАВЛЯЕМ: Загрузка спрайта вертолёта ===
+const helicopter_sprite = new Image();
+helicopter_sprite.onload = function() {
+    console.log('Helicopter sprite loaded successfully');
+};
+helicopter_sprite.onerror = function() {
+    console.error('Failed to load helicopter sprite');
+};
+helicopter_sprite.src = "img/helicopter@helicopter.png";
+
+// === ДОБАВЛЯЕМ: Загрузка спрайта mori_model ===
+const mori_model_sprite = new Image();
+mori_model_sprite.onload = function() {
+    console.log('Mori model sprite loaded successfully');
+};
+mori_model_sprite.onerror = function() {
+    console.error('Failed to load mori model sprite');
+};
+mori_model_sprite.src = "img/separated/mori_model.png";
 
 // LOAD SOUNDS
 const DIE = new Audio();
@@ -269,10 +301,11 @@ cvs.addEventListener("click", function(event)
                     SWOOSH.currentTime = 0;
                     SWOOSH.play();
                 }
-                
-                // Скрываем кнопки Telegram
-                if (tg) {
+                // Скрываем кнопки Telegram, если поддерживаются
+                if (tg && tg.MainButton && typeof tg.MainButton.hide === 'function') {
                     tg.MainButton.hide();
+                }
+                if (tg && tg.BackButton && tg.version && parseFloat(tg.version) >= 6.1 && typeof tg.BackButton.hide === 'function') {
                     tg.BackButton.hide();
                 }
             }
@@ -290,11 +323,12 @@ cvs.addEventListener("click", function(event)
                     SWOOSH.currentTime = 0;
                     SWOOSH.play();
                 }
-                
-                // Показываем главную кнопку Telegram
-                if (tg) {
+                // Показываем главную кнопку Telegram, если поддерживается
+                if (tg && tg.MainButton && typeof tg.MainButton.setText === 'function') {
                     tg.MainButton.setText('🎮 ИГРАТЬ');
                     tg.MainButton.show();
+                }
+                if (tg && tg.BackButton && tg.version && parseFloat(tg.version) >= 6.1 && typeof tg.BackButton.hide === 'function') {
                     tg.BackButton.hide();
                 }
             }
@@ -823,9 +857,9 @@ const bird =
 {
     animation : 
     [
-        {spriteX: 932, spriteY: 429, spriteW: 68, spriteH: 48},
-        {spriteX: 932, spriteY: 478, spriteW: 68, spriteH: 48},
-        {spriteX: 932, spriteY: 527, spriteW: 68, spriteH: 48}
+        {spriteX: 0, spriteY: 0, spriteW: 180, spriteH: 136},
+        {spriteX: 0, spriteY: 174, spriteW: 180, spriteH: 136},
+        {spriteX: 0, spriteY: 342, spriteW: 180, spriteH: 136}
     ],
     x : 0, 
     y : 0, 
@@ -844,24 +878,21 @@ const bird =
     {
         let bird = this.animation[this.frame];
 
-        // Saving the state of the canvas so only the bird rotates
         ctx.save();
-        // Translation from the (0, 0) origin to the bird orgin so the centre of rotation is the centre of the bird
         ctx.translate(this.x, this.y)
         ctx.rotate(this.rotation);
 
         if(state.current != state.home)
         {
             ctx.drawImage(
-                            sprite_sheet, 
-                            bird.spriteX, bird.spriteY, 
-                            bird.spriteW, bird.spriteH, 
-                            -this.w/2, -this.h/2, // Centering the bird
-                            this.w, this.h
-                         );
+                mori_model_sprite, 
+                bird.spriteX, bird.spriteY, 
+                bird.spriteW, bird.spriteH, 
+                -this.w/2, -this.h/2, 
+                this.w, this.h
+            );
         }
 
-        // Restore state after rotation
         ctx.restore();
     },
 
@@ -873,7 +904,7 @@ const bird =
     update: function() 
     {
         // The bird must flap slowly on get ready state
-        this.period = (state.current == state.getReady) ? 6 : 4;
+        this.period = (state.current == state.getReady) ? 9 : 6;
         // Incrementing the frame by 1, each period
         this.frame += frames % this.period == 0 ? 1 : 0;
         // Frame goes from 0 to 3, then again to 0
@@ -929,11 +960,12 @@ const bird =
     }
 }
 
-// PIPES
+// PIPES (заменяем на вертолёт)
 const pipes =
 {
     position : [],
     
+    // Оставляем для коллизий, но не используем для отрисовки
     top :
     {
         spriteX: 1001, spriteY: 0, 
@@ -941,7 +973,6 @@ const pipes =
         x: 0, y: 0, 
         w: 0, h: 0
     },
-
     bottom : 
     {
         spriteX: 1105, spriteY: 0, 
@@ -950,6 +981,18 @@ const pipes =
         w: 0, h: 0
     },
 
+    // === ДОБАВЛЯЕМ: параметры анимации вертолёта ===
+    helicopterFrame: 0,
+    helicopterFrameCount: 3,
+    helicopterFrameTick: 0,
+    helicopterFrameTickMax: 6, // чуть менее быстрая анимация
+    helicopterSpriteW: 256, // ширина одного кадра
+    helicopterSpriteH: 320, // высота одного кадра (исправлено)
+    
+    // Исправлено: пропорциональное уменьшение (128x64)
+    helicopterDrawW: 96,
+    helicopterDrawH: 48,
+
     dx      : 0,
     gap     : 0,
     maxYPos : 0,
@@ -957,30 +1000,31 @@ const pipes =
 
     draw : function()
     {
-        if(state.current == state.game || state.current == state.gameOver)
+        // Анимация вертолёта (циклическая)
+        this.helicopterFrameTick++;
+        if (this.helicopterFrameTick >= this.helicopterFrameTickMax) {
+            this.helicopterFrame = (this.helicopterFrame + 1) % this.helicopterFrameCount;
+            this.helicopterFrameTick = 0;
+        }
+
+        const frameHeight = 394; // 306 (кадр) + 88 (пустота)
+        const spriteW = 360;
+        const spriteH = 306;
+        const drawW = Math.round(spriteW / 1.5); // 240
+        const drawH = Math.round(spriteH / 1.5); // 204
+
+        for(let i = 0; i < this.position.length; i++)
         {
-            for(let i = 0; i < this.position.length; i++)
-            {
-                let p = this.position[i];
-                
-                let topYPos = p.y;
-                let bottomYPos = p.y + this.h + this.gap;
-    
-                ctx.drawImage( 
-                                sprite_sheet, 
-                                this.top.spriteX, this.top.spriteY, 
-                                this.top.spriteW, this.top.spriteH, 
-                                p.x, topYPos, 
-                                this.w, this.h
-                             ); 
-                ctx.drawImage( 
-                                sprite_sheet, 
-                                this.bottom.spriteX, this.bottom.spriteY, 
-                                this.bottom.spriteW, this.bottom.spriteH, 
-                                p.x, bottomYPos, 
-                                this.w, this.h
-                             );
-            }
+            let p = this.position[i];
+            let topYPos = p.y;
+
+            ctx.drawImage(
+                helicopter_sprite,
+                0, this.helicopterFrame * frameHeight, // x, y в спрайте
+                spriteW, spriteH,                      // w, h кадра
+                p.x, topYPos,
+                drawW, drawH
+            );
         }
     },
 
@@ -995,10 +1039,11 @@ const pipes =
         // Every 80 frames add a new position to our position array
         if(frames%80 == 0) 
         {
+            // Вертолёт появляется только в верхней части карты (до 30% высоты)
             this.position.push(
             {
                 x : cvs.width,
-                y : this.maxYPos * (Math.random() + 1),
+                y : Math.random() * (cvs.height * 0.3), // только верхняя часть
                 scored : false
             });
         }
@@ -1006,10 +1051,8 @@ const pipes =
         for(let i = 0; i < this.position.length; i++)
         {
             let p = this.position[i];
-            let bottomYPos = p.y + this.h + this.gap;
 
-            // COLLISION DETECTION
-            // Top pipe
+            // COLLISION DETECTION (оставляем только для одного вертолёта)
             if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w &&
                bird.y + bird.radius_y > p.y && bird.y - bird.radius_y < p.y + this.h)
             {
@@ -1026,24 +1069,6 @@ const pipes =
                         }
                     }, 500)
                 }
-            }
-            // Bottom pipe
-            if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w &&
-               bird.y + bird.radius_y > bottomYPos && bird.y - bird.radius_y < bottomYPos + this.h)
-            {
-                state.current = state.gameOver;
-                if(!mute)
-                {
-                    HIT.play();
-                    setTimeout(function() 
-                    {
-                        if (state.current == state.gameOver) 
-                        {
-                            DIE.currentTime = 0;
-                            DIE.play();
-                        }
-                    }, 500)   
-                }               
             }
             // Top pipe if bird is out of canvas
             if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w &&
@@ -1487,22 +1512,24 @@ const gameOver =
                 }
                 
                 // Показываем кнопки Telegram
-                if (tg) {
+                if (tg && tg.MainButton) {
                     tg.MainButton.setText('🔄 ИГРАТЬ СНОВА');
                     tg.MainButton.show();
+                    // Сначала снять старый обработчик, если поддерживается
+                    if (typeof tg.MainButton.offClick === 'function') tg.MainButton.offClick();
                     tg.MainButton.onClick(() => {
-                        // Сброс игры
                         pipes.pipesReset();
                         bird.speedReset();
                         score.scoreReset();
                         gameButtons.restart_button.isPressed = false;
                         gameButtons.home_button.isPressed = false;
                         state.current = state.getReady;
-                        tg.MainButton.hide();
+                        if (tg && tg.MainButton) tg.MainButton.hide();
                     });
-                    
-                    // Показываем кнопку "Назад"
-                    tg.BackButton.show();
+                    // Показываем кнопку "Назад" только если поддерживается
+                    if (tg.BackButton && tg.version && parseFloat(tg.version) >= 6.1 && typeof tg.BackButton.show === 'function') {
+                        tg.BackButton.show();
+                    }
                 }
             }
         }
@@ -1819,29 +1846,20 @@ function canvasScale()
     // BIRD
     bird.x = cvs.width * 0.290;
     bird.y = cvs.height * 0.395;
-    bird.w = cvs.width * 0.117;
+    bird.w = cvs.width * 0.16;
     bird.h = cvs.height * 0.059;
     bird.gravity = cvs.height * 0.0006;
     bird.jump = cvs.height * 0.01;
-    bird.radius_x = cvs.width * 0.052;
-    bird.radius_y = cvs.height * 0.026;
+    bird.radius_x = bird.w * 0.4;
+    bird.radius_y = bird.h * 0.4;
 
-    // PIPES
-    for(let i = 0; i < pipes.position.length; i++)
-    {
-        let w = pipes.w / 0.164;
-        let h = pipes.h / 0.888;
-        let p = pipes.position[i];
-
-        pipes.position[i] = 
-        {
-            x : p.x * cvs.width / w,
-            y : p.y * cvs.height / h
-        }
-    }
-    pipes.w = cvs.width * 0.164;
-    pipes.h = cvs.height * 0.888;
-    pipes.gap = cvs.height * 0.177;
+    // PIPES (helicopter)
+    // drawW и drawH должны совпадать с draw() в pipes
+    const pipesDrawW = Math.round(360 / 1.5); // 240
+    const pipesDrawH = Math.round(306 / 1.5); // 204
+    pipes.w = pipesDrawW * 0.8;
+    pipes.h = pipesDrawH * 0.8;
+    pipes.gap = 120; // или другое подходящее значение
     pipes.maxYPos = -(cvs.height * 0.350);
     pipes.dx = cvs.width * 0.007;
 
