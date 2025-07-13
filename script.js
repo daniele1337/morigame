@@ -128,9 +128,10 @@ let birdFlapped = false;
 let gamePaused = false;
 let pPressed = false;
 let nWasPressed = false;
-let mouseDown = false;
+
 let mute = false;
 let night = false;
+let engineHeld = false; // Флаг удержания клавиши двигателя
 const DEGREE = Math.PI/180;
 
 // LOAD SPRITE SHEET
@@ -275,15 +276,6 @@ cvs.addEventListener("click", function(event)
             {
                 gamePaused = !gamePaused;
             }
-            else if(!gamePaused)
-            {
-                bird.flap();
-                if(!mute)
-                {
-                    FLAP.currentTime = 0;
-                    FLAP.play();
-                }
-            }
             break;
         case state.gameOver:
             // Restart button
@@ -405,15 +397,6 @@ cvs.addEventListener("touchstart", function(event)
             {
                 gamePaused = !gamePaused;
             }
-            else if(!gamePaused)
-            {
-                bird.flap();
-                if(!mute)
-                {
-                    FLAP.currentTime = 0;
-                    FLAP.play();
-                }
-            }
             break;
         case state.gameOver:
             // Restart button
@@ -481,18 +464,31 @@ document.addEventListener("keydown", function(event)
                 state.current = state.game;
                 break;
             case state.game:
-                if (!birdFlapped && !gamePaused) 
+                if (!gamePaused) 
                 {
+                    engineHeld = true;
                     bird.flap();
                     if(!mute)
                     {
                         FLAP.currentTime = 0;
                         FLAP.play();
                     }
-                    birdFlapped = true;
                 }
                 break;
         } 
+    }
+    else if (event.key === "ArrowUp" && state.current == state.game)
+    {
+        if (!gamePaused) 
+        {
+            engineHeld = true;
+            bird.flap();
+            if(!mute)
+            {
+                FLAP.currentTime = 0;
+                FLAP.play();
+            }
+        }
     }
     else if (event.key === "p" || event.key === "P") 
     {
@@ -506,15 +502,16 @@ document.addEventListener("keydown", function(event)
     else if (event.key === "n" || event.key === "N") 
     {
         document.body.style.backgroundColor = nWasPressed ?  "#FFF" : "#123";
-    }         
+    }
 });
 
 // Control when the player stops pressing a key
 document.addEventListener("keyup", function(event) 
 { 
-    if (event.key === " " && state.current == state.game)
+    if ((event.key === " " || event.key === "ArrowUp") && state.current == state.game)
     {
-        birdFlapped = false;
+        engineHeld = false;
+        bird.release(); // Вызываем функцию спуска при отпускании
     } 
     else if (event.key === "p" || event.key === "P" && state.current == state.game)
     {
@@ -524,7 +521,7 @@ document.addEventListener("keyup", function(event)
     else if (event.key === "n" || event.key === "N") 
     {
         nWasPressed = !nWasPressed;
-        }        
+    }        
 });
 
 // Добавляем обработку touchmove и touchend для мобильных устройств
@@ -535,232 +532,14 @@ cvs.addEventListener("touchmove", function(event)
 
 cvs.addEventListener("touchend", function(event) 
 { 
+    if (state.current === state.game && !gamePaused) {
+        engineHeld = false;
+        bird.release(); // Вызываем функцию спуска при отпускании
+    }
     event.preventDefault(); // Предотвращаем дополнительные события
 });
 
-// Control when the player clicks the left mouse button
-cvs.addEventListener("mousedown", function(event) 
-{
-    const { x: clickX, y: clickY } = getCanvasRelativeCoords(event);
 
-    switch (state.current) 
-    {
-        case state.home: 
-            mouseDown = true;
-            // Mute or Unmute button
-            if (clickX >= gameButtons.x && clickX <= gameButtons.x + gameButtons.w &&
-                clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
-            {
-                // If player is clicking on Mute or Unmute button
-                gameButtons.isPressed = true;
-            } 
-            // Night or Day button
-            else if (clickX >= gameButtons.night_button.x && clickX <= gameButtons.night_button.x + gameButtons.w &&
-                     clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
-            {
-                // If player is clicking on Night or Day button
-                gameButtons.night_button.isPressed = true;
-            } 
-            // Start button
-            else if(clickX >= gameButtons.start_button.x && clickX <= gameButtons.start_button.x + gameButtons.start_button.w &&
-                    clickY >= gameButtons.start_button.y && clickY <= gameButtons.start_button.y + gameButtons.start_button.h)
-            {
-                // If player is clicking on Start button
-                gameButtons.start_button.isPressed = true;
-            } 
-            break;
-        case state.game:
-            mouseDown = true;
-            // Pause or Resume button
-            if (clickX >= gameButtons.x && clickX <= gameButtons.x + gameButtons.w &&
-                clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
-            {
-                // If player is clicking on Pause or Resume button
-                gameButtons.isPressed = true;
-            }
-            break;
-        case state.gameOver:
-            mouseDown = true;
-            // Restart button
-            if(clickX >= gameButtons.restart_button.x && clickX <= gameButtons.restart_button.x + gameButtons.restart_button.w &&
-               clickY >= gameButtons.restart_button.y && clickY <= gameButtons.restart_button.y + gameButtons.restart_button.h)
-            {
-                // If player is clicking on Restart Button
-                gameButtons.restart_button.isPressed = true;
-            }
-            // Home button
-            else if(clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
-                    clickY >= gameButtons.home_button.y && clickY <= gameButtons.home_button.y + gameButtons.home_button.h)
-            {
-                // If player is clicking on Home Button
-                gameButtons.home_button.isPressed = true;
-            }
-            break;
-    }
-});
-
-// Control when the player stops clicking the left mouse button
-cvs.addEventListener("mouseup", function(event) 
-{
-    const { x: clickX, y: clickY } = getCanvasRelativeCoords(event);
-
-    switch (state.current) 
-    {
-        case state.home: 
-            mouseDown = false;
-            // Mute or Unmute button
-            if (clickX >= gameButtons.x && clickX <= gameButtons.x + gameButtons.w &&
-                clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
-            {
-                // If player stops clicking on Mute or Unmute button
-                gameButtons.isPressed = false;
-            }  
-            // Night or Day button
-            else if (clickX >= gameButtons.night_button.x && clickX <= gameButtons.night_button.x + gameButtons.w &&
-                     clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
-            {
-                // If player stops clicking on Night or Day button
-                gameButtons.night_button.isPressed = false;
-            } 
-            // Start button
-            else if(clickX >= gameButtons.start_button.x && clickX <= gameButtons.start_button.x + gameButtons.start_button.w &&
-                    clickY >= gameButtons.start_button.y && clickY <= gameButtons.start_button.y + gameButtons.start_button.h)
-            {
-                // If player stops clicking on Home button
-                gameButtons.start_button.isPressed = false;
-            }
-            break;
-        case state.game:
-            mouseDown = false;
-            // Pause or Resume button
-            if (clickX >= gameButtons.x && clickX <= gameButtons.x + gameButtons.w &&
-                clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
-            {
-                // If players stops clicking on Pause or Resume button
-                gameButtons.isPressed = false;
-            }
-            break;
-        case state.gameOver:
-            mouseDown = false;
-            // Restart button
-            if(clickX >= gameButtons.restart_button.x && clickX <= gameButtons.restart_button.x + gameButtons.restart_button.w &&
-               clickY >= gameButtons.restart_button.y && clickY <= gameButtons.restart_button.y + gameButtons.restart_button.h)
-            {
-                // If player stops clicking on Restart button
-                gameButtons.restart_button.isPressed = false;
-            }
-            // Home button
-            else if(clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
-                    clickY >= gameButtons.home_button.y && clickY <= gameButtons.home_button.y + gameButtons.home_button.h)
-            {
-                // If player stops clicking on Home button
-                gameButtons.home_button.isPressed = false;
-            }
-            break;
-    }
-});
-
-// Control when the player moves the mouse away from the buttons
-cvs.addEventListener("mousemove", function(event) 
-{
-    const { x: clickX, y: clickY } = getCanvasRelativeCoords(event);
-
-    switch (state.current) 
-    {
-        case state.home:
-            if(mouseDown)
-            {
-                // Mute or Unmute button
-                if (clickX >= gameButtons.x && clickX <= gameButtons.x + gameButtons.w &&
-                    clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
-                {
-                    // If player is clicking and goes to Mute or Unmute button
-                    gameButtons.isPressed = true;
-                }  
-                else
-                {
-                    // If player is clicking and goes away from Mute or Unmute button
-                    gameButtons.isPressed = false;
-
-                }
-                // Night or Day button
-                if (clickX >= gameButtons.night_button.x && clickX <= gameButtons.night_button.x + gameButtons.w &&
-                    clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
-                {
-                    // If player is clicking and goes to Night or Day button
-                    gameButtons.night_button.isPressed = true;
-                } 
-                else
-                {
-                    // If player is clicking and goes away from Night or Day button
-                    gameButtons.night_button.isPressed = false;
-
-                }
-                // Start button
-                if(clickX >= gameButtons.start_button.x && clickX <= gameButtons.start_button.x + gameButtons.start_button.w &&
-                   clickY >= gameButtons.start_button.y && clickY <= gameButtons.start_button.y + gameButtons.start_button.h)
-                {
-                    // If player is clicking and goes to Start button
-                    gameButtons.start_button.isPressed = true;
-                }
-                else
-                {
-                    // If player is clicking and goes away from Start button
-                    gameButtons.start_button.isPressed = false;
-                }
-            }
-            break;
-        case state.game:
-            if(mouseDown)
-            {
-                // Pause or Resume button
-                if (clickX >= gameButtons.x && clickX <= gameButtons.x + gameButtons.w &&
-                    clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
-                {
-                    // If player is clicking and goes to Pause or Resume button
-                    gameButtons.isPressed = true;
-                }
-                else
-                {
-                    // If players is clicking and goes away from Pause or Resume button
-                    gameButtons.isPressed = false;
-                }
-            }
-            break;
-        case state.gameOver:
-            // Restart button
-            if(mouseDown)
-            {
-                if(clickX >= gameButtons.restart_button.x && clickX <= gameButtons.restart_button.x + gameButtons.restart_button.w &&
-                   clickY >= gameButtons.restart_button.y && clickY <= gameButtons.restart_button.y + gameButtons.restart_button.h)
-                {
-                    // If player is clicking and goes to Restart button
-                    gameButtons.restart_button.isPressed = true;
-                }
-                else
-                {
-                    // If player is clicking and goes away from Restart button
-                    gameButtons.restart_button.isPressed = false;
-                }
-            }
-            // Home button
-            if(mouseDown)
-            {
-                if(clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
-                   clickY >= gameButtons.home_button.y && clickY <= gameButtons.home_button.y + gameButtons.home_button.h)
-                {
-                    // If player is clicking and goes to Home button
-                    gameButtons.home_button.isPressed = true;
-                }
-                else
-                {
-                    // If player is clicking and goes away from Home button
-                    gameButtons.home_button.isPressed = false;
-                }
-            }
-            break;
-    }
-});
 
 // BACKGROUND
 const background = 
@@ -873,13 +652,57 @@ const bird =
     rotation : 0,
     radius_x : 0,
     radius_y : 0,
+    
+    // === ФИЗИКА РАКЕТЫ ===
+    maxSpeed: 0,        // Максимальная скорость падения
+    minSpeed: 0,        // Минимальная скорость (максимальная скорость подъема)
+    acceleration: 0,    // Ускорение падения
+    enginePower: 0,     // Сила реактивного двигателя
+    rotationSpeed: 0,   // Скорость поворота
+    targetRotation: 0,  // Целевой угол поворота
+    smoothRotation: 0,  // Плавный поворот
+    
+    // Параметры ракетного двигателя
+    velocityY: 0,       // Вертикальная скорость
+    engineThrust: 0,    // Текущая тяга двигателя
+    maxThrust: 0,       // Максимальная тяга
+    thrustDecay: 0,     // Затухание тяги
+    engineCooldown: 0,  // Кулдаун двигателя
+    maxEngineCooldown: 0, // Максимальный кулдаун
+    
+    // Эффекты для плавности
+    wobbleOffset: 0,    // Смещение для покачивания
+    wobbleSpeed: 0,     // Скорость покачивания
+    wobbleAmount: 0,    // Амплитуда покачивания
+    
+    // Система автополета
+    autoFlightTimer: 0, // Таймер для автополета
+    autoFlightDelay: 60, // Задержка перед активацией автополета (кадры)
+    autoFlightPower: 0, // Сила автополета
+    
+    // Умное управление ракетой
+    lastEngineTime: 0,  // Время последнего включения двигателя
+    minEngineInterval: 0, // Минимальный интервал между включениями
+    
+    // Система инерции для ракеты
+    rotationInertia: 0, // Инерция поворота
+    maxRotationInertia: 0, // Максимальная инерция поворота
 
     draw : function() 
     {
         let bird = this.animation[this.frame];
 
         ctx.save();
-        ctx.translate(this.x, this.y)
+        
+        // Добавляем покачивание для плавности и эффект работы двигателя
+        let wobbleX = Math.sin(frames * this.wobbleSpeed) * this.wobbleAmount;
+        
+        // Дополнительное покачивание при работе двигателя
+        if (this.engineThrust > 0) {
+            wobbleX += Math.sin(frames * 0.3) * this.wobbleAmount * 0.5;
+        }
+        
+        ctx.translate(this.x + wobbleX, this.y);
         ctx.rotate(this.rotation);
 
         if(state.current != state.home)
@@ -898,13 +721,55 @@ const bird =
 
     flap : function() 
     {
-        this.speed = -this.jump;
+        if (!engineHeld) {
+            this.engineThrust = 0;
+            return;
+        }
+        // Проверяем кулдаун двигателя только при первом нажатии
+        if (!engineHeld && this.engineCooldown > 0) return;
+        
+        // Умное управление - игнорируем слишком частые нажатия только при первом нажатии
+        if (!engineHeld && frames - this.lastEngineTime < this.minEngineInterval) return;
+        
+        // Устанавливаем кулдаун только при первом нажатии
+        if (!engineHeld) {
+            this.engineCooldown = this.maxEngineCooldown;
+            this.lastEngineTime = frames;
+        }
+        
+        // Сбрасываем таймер автополета
+        this.autoFlightTimer = 0;
+        
+        // Включаем реактивный двигатель - плавное нарастание тяги
+        this.engineThrust = this.maxThrust;
+        
+        // Устанавливаем целевой угол для плавного поворота - симметричный для ракеты
+        this.targetRotation = -8 * DEGREE;
+    },
+    
+    // Новая функция для управления спуском
+    release : function() 
+    {
+        // Сбрасываем тягу двигателя
+        this.engineThrust = 0;
+        
+        // Устанавливаем целевой угол для спуска
+        this.targetRotation = 8 * DEGREE;
     },
 
     update: function() 
     {
-        // The bird must flap slowly on get ready state
-        this.period = (state.current == state.getReady) ? 9 : 6;
+        // Улучшенная анимация птицы
+        if (state.current == state.getReady) {
+            this.period = 9; // Медленная анимация на экране готовности
+        } else if (state.current == state.game) {
+            // Анимация зависит от скорости движения
+            const speedFactor = Math.abs(this.velocityY) / this.maxSpeed;
+            this.period = Math.max(2, Math.min(5, 8 - speedFactor * 4)); // Минимум 2, максимум 5, всегда живая анимация
+        } else {
+            this.period = 6; // Стандартная скорость
+        }
+        
         // Incrementing the frame by 1, each period
         this.frame += frames % this.period == 0 ? 1 : 0;
         // Frame goes from 0 to 3, then again to 0
@@ -912,14 +777,94 @@ const bird =
 
         if(state.current == state.getReady)
         {
-            // Reset bird's position after game over
+            // Reset rocket's position after game over
             this.y = cvs.height * 0.395;
             this.rotation = 0 * DEGREE;
+            this.velocityY = 0;
+            this.targetRotation = 0;
+            this.engineCooldown = 0;
+            this.engineThrust = 0;
+            this.autoFlightTimer = 0;
+            this.lastEngineTime = 0;
+            this.rotationInertia = 0;
+            engineHeld = false; // Сбрасываем флаг удержания
         } 
         else
         {
-            this.speed += this.gravity;
-            this.y += this.speed;
+            // Уменьшаем кулдаун двигателя
+            if (this.engineCooldown > 0) {
+                this.engineCooldown--;
+            }
+            
+            // Система автополета
+            if (state.current == state.game) {
+                this.autoFlightTimer++;
+                
+                // Если игрок не нажимает долго, активируем автополет
+                if (this.autoFlightTimer > this.autoFlightDelay && this.velocityY > 0) {
+                    this.velocityY -= this.autoFlightPower;
+                }
+                
+                // Стабилизация ракеты - более быстрое выравнивание при медленном движении
+                if (Math.abs(this.velocityY) < this.maxSpeed * 0.3) {
+                    this.targetRotation *= 0.95; // Более быстрое выравнивание
+                }
+            }
+            
+            // Ракетная физика - тяга двигателя
+            if (this.engineThrust > 0) {
+                // Применяем тягу двигателя к скорости
+                this.velocityY -= this.engineThrust * this.enginePower;
+                // Затухание тяги
+                this.engineThrust *= this.thrustDecay;
+            }
+            
+            // Применяем гравитацию к скорости
+            this.velocityY += this.acceleration;
+            
+            // Ограничиваем скорость
+            if (this.velocityY > this.maxSpeed) {
+                this.velocityY = this.maxSpeed;
+            }
+            if (this.velocityY < this.minSpeed) {
+                this.velocityY = this.minSpeed;
+            }
+            
+            // Обновляем позицию
+            this.y += this.velocityY;
+
+            // Плавный поворот на основе скорости - упрощенная логика для одной кнопки
+            if (engineHeld && state.current == state.game) {
+                // При удержании кнопки - подъем
+                if (this.velocityY < this.minSpeed * 0.5) {
+                    this.targetRotation = -8 * DEGREE; // Быстрый подъем
+                } else {
+                    this.targetRotation = -4 * DEGREE; // Медленный подъем
+                }
+            } else if (state.current == state.game) {
+                // При отпускании кнопки - спуск
+                if (this.velocityY > this.maxSpeed * 0.3) {
+                    this.targetRotation = 8 * DEGREE; // Быстрый спуск
+                } else {
+                    this.targetRotation = 4 * DEGREE; // Медленный спуск
+                }
+            } else {
+                // В остальных случаях горизонтальный полет
+                this.targetRotation = 0 * DEGREE;
+            }
+            
+            // Плавное изменение угла поворота с инерцией для ракеты
+            const rotationDiff = this.targetRotation - this.rotation;
+            
+            // Применяем инерцию к повороту
+            this.rotationInertia += rotationDiff * this.rotationSpeed;
+            this.rotationInertia = Math.max(-this.maxRotationInertia, Math.min(this.maxRotationInertia, this.rotationInertia));
+            
+            // Применяем инерцию к повороту
+            this.rotation += this.rotationInertia;
+            
+            // Затухание инерции
+            this.rotationInertia *= 0.95;
 
             if(this.y + this.h/2 >= foreground.y)
             {
@@ -940,24 +885,32 @@ const bird =
                 }
             }
 
-            // If the speed is greater than the jump, means the bird is falling down
-            if(this.speed >= this.jump)
+            // Ограничиваем верхнюю границу экрана
+            if(this.y - this.h/2 <= 0)
             {
-                this.rotation = 90 * DEGREE;
-                // When bird dies, stop flapping animation
-                this.frame = 0;
-            }
-            else
-            {
-                this.rotation = -25 * DEGREE;
+                this.y = this.h/2;
+                if (this.velocityY < 0) {
+                    this.velocityY = 0; // Только если летим вверх, обнуляем скорость
+                }
+                // Если скорость вниз — не трогаем, чтобы сразу начиналось падение
             }
         }  
     },
 
     speedReset : function()
     {
-        this.speed = 0;
-    }
+        this.velocityY = 0;
+        this.rotation = 0;
+        this.targetRotation = 0;
+        this.engineCooldown = 0;
+        this.engineThrust = 0;
+        this.autoFlightTimer = 0;
+        this.lastEngineTime = 0;
+        this.rotationInertia = 0;
+        engineHeld = false; // Сбрасываем флаг удержания
+    },
+
+    isReleased: false,
 }
 
 // PIPES (заменяем на вертолёт)
@@ -1848,8 +1801,37 @@ function canvasScale()
     bird.y = cvs.height * 0.395;
     bird.w = cvs.width * 0.16;
     bird.h = cvs.height * 0.059;
-    bird.gravity = cvs.height * 0.0006;
-    bird.jump = cvs.height * 0.01;
+    
+    // === ФИЗИКА РАКЕТЫ ===
+    bird.gravity = cvs.height * 0.0006;      // Базовая гравитация (оставляем для совместимости)
+    bird.jump = cvs.height * 0.01;           // Базовая сила прыжка (оставляем для совместимости)
+    
+    // Параметры ракетного двигателя
+    bird.acceleration = cvs.height * 0.0004;  // Уменьшенное ускорение падения для ракеты
+    bird.enginePower = cvs.height * 0.0008;  // Сила реактивного двигателя
+    bird.maxSpeed = cvs.height * 0.010;      // Уменьшенная максимальная скорость падения
+    bird.minSpeed = -cvs.height * 0.008;     // Умеренная минимальная скорость
+    bird.rotationSpeed = 0.06;               // Медленная скорость поворота для ракеты
+    bird.maxEngineCooldown = 2;              // Кулдаун двигателя
+    
+    // Параметры тяги двигателя
+    bird.maxThrust = 1.0;                    // Максимальная тяга
+    bird.thrustDecay = 0.92;                 // Затухание тяги (0.9-0.95 для плавности)
+    
+    // Параметры автополета
+    bird.autoFlightDelay = 45;               // Задержка перед автополетом (кадры)
+    bird.autoFlightPower = cvs.height * 0.0003; // Сила автополета
+    
+    // Параметры умного управления ракетой
+    bird.minEngineInterval = 2;              // Минимальный интервал между включениями двигателя (кадры)
+    
+    // Параметры инерции для ракеты
+    bird.maxRotationInertia = 0.05;          // Максимальная инерция поворота
+    
+    // Параметры покачивания
+    bird.wobbleSpeed = 0.08;                 // Скорость покачивания
+    bird.wobbleAmount = cvs.width * 0.002;   // Амплитуда покачивания
+    
     bird.radius_x = bird.w * 0.4;
     bird.radius_y = bird.h * 0.4;
 
@@ -2046,6 +2028,15 @@ function draw()
 // UPDATE
 function update() 
 {
+    if (state.current == state.game) {
+        if (engineHeld) {
+            bird.flap();
+            bird.isReleased = false;
+        } else if (!bird.isReleased) {
+            bird.release();
+            bird.isReleased = true;
+        }
+    }
     // Update position and state of bird, foreground and pipes only if game isn't paused
     if(!gamePaused)
     {
@@ -2060,7 +2051,7 @@ function update()
 // LOOP
 function loop() 
 {
-    // Update rate: 75FPS
+    // Update rate: 60FPS для более плавного движения
     setTimeout(function() 
     {
         update();
@@ -2071,7 +2062,7 @@ function loop()
             frames++;
         }
         requestAnimationFrame(loop);
-    }, (1 / 75) * 1000);
+    }, (1 / 60) * 1000);
 }
 
 loop();
