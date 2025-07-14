@@ -51,6 +51,11 @@ initTelegram = function() {
 }
 
 let lastTimestamp = performance.now();
+let fpsCounter = 0;
+let fpsTime = 0;
+let lastFps = 0;
+let lastDelta = 0;
+
 // Игровой цикл (оптимизированный)
 gameLoop = function(timestamp) {
     if (timestamp === undefined) timestamp = performance.now();
@@ -61,6 +66,20 @@ gameLoop = function(timestamp) {
     update(deltaTime);
     draw();
     if (!gamePaused) frames++;
+
+    // FPS мониторинг
+    fpsCounter++;
+    fpsTime += deltaTime;
+    lastDelta += deltaTime;
+    if (fpsCounter >= 60) {
+        let avgFps = fpsCounter / fpsTime;
+        let avgDelta = lastDelta / fpsCounter;
+        console.log(`FPS: ${avgFps.toFixed(1)}, avg deltaTime: ${avgDelta.toFixed(4)}s`);
+        fpsCounter = 0;
+        fpsTime = 0;
+        lastDelta = 0;
+    }
+
     requestAnimationFrame(gameLoop);
 }
 
