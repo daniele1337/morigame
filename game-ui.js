@@ -134,7 +134,7 @@ home = {
             }
         }
 
-        this.period = isMobile ? 4 : 6;
+        this.period = isMobile ? 24 : 36;
         this.frame += frames % this.period == 0 ? 1 : 0;
         this.frame = this.frame % this.animation.length; 
     }
@@ -203,22 +203,23 @@ canvasScale = function() {
     bird.w = cvs.width * 0.16;
     bird.h = cvs.height * 0.059;
     
-    bird.gravity = cvs.height * 0.0006;
-    bird.jump = cvs.height * 0.01;
-    bird.acceleration = cvs.height * 0.0004;
-    bird.enginePower = cvs.height * 0.0008;
-    bird.maxSpeed = cvs.height * 0.010;
-    bird.minSpeed = -cvs.height * 0.008;
+    // ФИКСИРОВАННЫЕ ПАРАМЕТРЫ НЕ ЗАВИСЯТ ОТ РАЗМЕРА ОКНА
+    bird.gravity = 0.3;           // Гравитация
+    bird.jump = 5.5;              // Сила прыжка
+    bird.acceleration = 0.2;      // Ускорение падения
+    bird.enginePower = 0.4;       // Сила реактивного двигателя
+    bird.maxSpeed = 6;            // Максимальная скорость падения
+    bird.minSpeed = -5;           // Минимальная скорость (максимальная скорость подъема)
     bird.rotationSpeed = 0.06;
     bird.maxEngineCooldown = 2;
     bird.maxThrust = 1.0;
     bird.thrustDecay = 0.92;
     bird.autoFlightDelay = 45;
-    bird.autoFlightPower = cvs.height * 0.0003;
+    bird.autoFlightPower = 0.1;   // Сила автополета
     bird.minEngineInterval = 2;
     bird.maxRotationInertia = 0.05;
     bird.wobbleSpeed = 0.08;
-    bird.wobbleAmount = cvs.width * 0.002;
+    bird.wobbleAmount = 2;        // Амплитуда покачивания
     
     bird.radius_x = bird.w * 0.4;
     bird.radius_y = bird.h * 0.4;
@@ -229,8 +230,8 @@ canvasScale = function() {
     pipes.w = pipesDrawW * 0.8;
     pipes.h = pipesDrawH * 0.8;
     pipes.gap = 120;
-    pipes.maxYPos = -(cvs.height * 0.350);
-    pipes.dx = cvs.width * 0.007;
+    pipes.maxYPos = -(cvs.height * 0.350); // Оставляем зависимость для генерации препятствий
+    pipes.dx = 2;                // Скорость движения препятствий
 
     // HOME
     home.logo.x = cvs.width * 0.098;

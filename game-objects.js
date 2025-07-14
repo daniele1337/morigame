@@ -102,13 +102,13 @@ bird = {
 
     update: function() {
         if (state.current == state.getReady) {
-            this.period = isMobile ? 12 : 9; // Медленнее на мобильных
+            this.period = isMobile ? 72 : 56; // Ещё медленнее (ещё на 50%)
         } else if (state.current == state.game) {
             const speedFactor = Math.abs(this.velocityY) / this.maxSpeed;
-            const basePeriod = isMobile ? 8 : 5; // Медленнее на мобильных
-            this.period = Math.max(3, Math.min(basePeriod, 12 - speedFactor * 3));
+            const basePeriod = isMobile ? 48 : 32; // Ещё медленнее (ещё на 50%)
+            this.period = Math.max(16, Math.min(basePeriod, 72 - speedFactor * 18));
         } else {
-            this.period = isMobile ? 8 : 6; // Медленнее на мобильных
+            this.period = isMobile ? 48 : 36; // Ещё медленнее (ещё на 50%)
         }
         
         this.frame += frames % this.period == 0 ? 1 : 0;
@@ -220,7 +220,8 @@ pipes = {
     top: {spriteX: 1001, spriteY: 0, spriteW: 104, spriteH: 800, x: 0, y: 0, w: 0, h: 0},
     bottom: {spriteX: 1105, spriteY: 0, spriteW: 104, spriteH: 800, x: 0, y: 0, w: 0, h: 0},
     helicopterFrame: 0, helicopterFrameCount: 3, helicopterFrameTick: 0,
-    helicopterFrameTickMax: isMobile ? 14 : 7, // Медленнее на мобильных
+    // Понижаем скорость смены кадров вертолёта на 50%
+    helicopterFrameTickMax: isMobile ? 84 : 44,
     helicopterSpriteW: 256, helicopterSpriteH: 320,
     helicopterDrawW: 96, helicopterDrawH: 48,
     dx: 0, gap: 0, maxYPos: 0, scored: false,
