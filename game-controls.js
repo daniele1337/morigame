@@ -398,20 +398,20 @@ cvs.addEventListener('mousedown', function(event) {
         const sliderWidth = gameButtons.w * 2.2;
         const sliderHeight = gameButtons.h * 0.28;
         const sliderX = gameButtons.x;
-        const sliderY = gameButtons.y + gameButtons.h + 10;
-        const knobRadius = sliderHeight * 1.1;
-        // Проверка попадания по бегунку
-        const knobCenterX = sliderX + sliderWidth * volumeSliderValue;
-        const knobCenterY = sliderY + sliderHeight/2;
-        const dist = Math.sqrt((mouseX - knobCenterX) ** 2 + (mouseY - knobCenterY) ** 2);
+        const sliderY = gameButtons.y + gameButtons.h + 20;
+        const knobRadius = sliderHeight * 0.55;
+        // Увеличенная область попадания
+        const hitZone = Math.max(knobRadius * 2, sliderHeight * 3);
         if (
             mouseX >= sliderX && mouseX <= sliderX + sliderWidth &&
-            mouseY >= sliderY - knobRadius && mouseY <= sliderY + sliderHeight + knobRadius
+            mouseY >= sliderY - hitZone && mouseY <= sliderY + sliderHeight + hitZone
         ) {
             volumeSliderDragging = true;
             // Сразу обновить значение
             let newValue = (mouseX - sliderX) / sliderWidth;
             newValue = Math.max(0, Math.min(1, newValue));
+            // Чувствительность: минимальное значение 0.01
+            newValue = 0.01 + (1 - 0.01) * newValue;
             volumeSliderValue = newValue;
             if (typeof setAllSoundsVolume === 'function') setAllSoundsVolume(volumeSliderValue);
         }
@@ -427,6 +427,8 @@ cvs.addEventListener('mousemove', function(event) {
         const sliderX = gameButtons.x;
         let newValue = (mouseX - sliderX) / sliderWidth;
         newValue = Math.max(0, Math.min(1, newValue));
+        // Чувствительность: минимальное значение 0.01
+        newValue = 0.01 + (1 - 0.01) * newValue;
         volumeSliderValue = newValue;
         if (typeof setAllSoundsVolume === 'function') setAllSoundsVolume(volumeSliderValue);
     }
@@ -443,3 +445,62 @@ cvs.addEventListener('mouseleave', function(event) {
         volumeSliderDragging = false;
     }
 }); 
+
+// === Touch-события для мобильных устройств ===
+cvs.addEventListener('touchstart', function(event) {
+    if (state.current === state.home && event.touches.length === 1) {
+        const rect = cvs.getBoundingClientRect();
+        const touch = event.touches[0];
+        const touchX = touch.clientX - rect.left;
+        const touchY = touch.clientY - rect.top;
+        const sliderWidth = gameButtons.w * 2.2;
+        const sliderHeight = gameButtons.h * 0.28;
+        const sliderX = gameButtons.x;
+        const sliderY = gameButtons.y + gameButtons.h + 20;
+        const knobRadius = sliderHeight * 0.55;
+        // Увеличенная область попадания
+        const hitZone = Math.max(knobRadius * 2, sliderHeight * 3);
+        if (
+            touchX >= sliderX && touchX <= sliderX + sliderWidth &&
+            touchY >= sliderY - hitZone && touchY <= sliderY + sliderHeight + hitZone
+        ) {
+            volumeSliderDragging = true;
+            let newValue = (touchX - sliderX) / sliderWidth;
+            newValue = Math.max(0, Math.min(1, newValue));
+            newValue = 0.01 + (1 - 0.01) * newValue;
+            volumeSliderValue = newValue;
+            if (typeof setAllSoundsVolume === 'function') setAllSoundsVolume(volumeSliderValue);
+            event.preventDefault();
+        }
+    }
+}, {passive: false});
+
+cvs.addEventListener('touchmove', function(event) {
+    if (volumeSliderDragging && event.touches.length === 1) {
+        const rect = cvs.getBoundingClientRect();
+        const touch = event.touches[0];
+        const touchX = touch.clientX - rect.left;
+        const sliderWidth = gameButtons.w * 2.2;
+        const sliderX = gameButtons.x;
+        let newValue = (touchX - sliderX) / sliderWidth;
+        newValue = Math.max(0, Math.min(1, newValue));
+        newValue = 0.01 + (1 - 0.01) * newValue;
+        volumeSliderValue = newValue;
+        if (typeof setAllSoundsVolume === 'function') setAllSoundsVolume(volumeSliderValue);
+        event.preventDefault();
+    }
+}, {passive: false});
+
+cvs.addEventListener('touchend', function(event) {
+    if (volumeSliderDragging) {
+        volumeSliderDragging = false;
+        event.preventDefault();
+    }
+}, {passive: false});
+
+cvs.addEventListener('touchcancel', function(event) {
+    if (volumeSliderDragging) {
+        volumeSliderDragging = false;
+        event.preventDefault();
+    }
+}, {passive: false}); 
