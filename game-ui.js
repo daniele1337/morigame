@@ -161,7 +161,7 @@ gameOver = {
 
     draw: function() {
         if(state.current == state.gameOver) {
-            ctx.drawImage(sprite_sheet, this.game_over.spriteX, this.game_over.spriteY, this.game_over.spriteW, this.game_over.spriteH, this.game_over.x, this.game_over.y, this.game_over.w, this.game_over.h);
+            ctx.drawImage(gameOverImg, this.game_over.x, this.game_over.y, this.game_over.w, this.game_over.h);
             ctx.drawImage(sprite_sheet, this.scoreboard.spriteX, this.scoreboard.spriteY, this.scoreboard.spriteW, this.scoreboard.spriteH, this.scoreboard.x, this.scoreboard.y, this.scoreboard.w, this.scoreboard.h);
         }
     }
@@ -170,6 +170,10 @@ gameOver = {
 // === Загрузка отдельного изображения для get ready ===
 const getReadyImg = new Image();
 getReadyImg.src = "img/separated/get_ready.png";
+
+// === Загрузка отдельного изображения для game over ===
+const gameOverImg = new Image();
+gameOverImg.src = "img/separated/game_over.png";
 
 // Функция масштабирования canvas
 canvasScale = function() {
