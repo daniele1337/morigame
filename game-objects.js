@@ -21,7 +21,7 @@ background = {
     draw: function() {
         if (!night) {
             let w = this.w * 2; // растягиваем фон в 2 раза шире canvas
-            let h = foreground.y; // высота фона до земли
+            let h = cvs.height; // высота фона до земли
             let x1 = -this.offsetX % w;
             ctx.drawImage(background_day_img, x1, 0, w, h);
             ctx.drawImage(background_day_img, x1 + w, 0, w, h);
@@ -40,16 +40,13 @@ background = {
 };
 
 // Передний план
-// Новый рисунок земли
-const earth_img = new Image();
-earth_img.src = "img/separated/earth.png";
+// Удаляем загрузку earth_img и все упоминания earth.png
+// foreground теперь просто объект для совместимости, не рисует землю
 foreground = {
     spriteX: 553, spriteY: 576, spriteW: 447, spriteH: 224,
     x: 0, y: 0, w: 0, h: 0, dx: 0,
     draw: function() {
-        // Рисуем землю новой текстурой
-        ctx.drawImage(earth_img, this.x, this.y, this.w, this.h);
-        ctx.drawImage(earth_img, (this.x + this.w)-0.7, this.y, this.w, this.h);
+        // Больше ничего не рисуем
     },
     update: function(delta) {
         if(state.current != state.gameOver) {
@@ -208,8 +205,8 @@ bird = {
             this.rotation += this.rotationInertia;
             this.rotationInertia *= 0.95;
 
-            if(this.y + this.h/2 >= foreground.y) {
-                this.y = foreground.y - this.h/2;
+            if(this.y + this.h/2 >= cvs.height) {
+                this.y = cvs.height - this.h/2;
                 if(state.current == state.game) {
                     state.current = state.gameOver;
                     // === ВЗРЫВ ===
@@ -306,7 +303,7 @@ pipes = {
                 moveCircle = true;
                 circleAngle = Math.random() * Math.PI * 2;
                 circleSpeed = 1.2 + Math.random() * 0.8; // радиан/сек
-                circleRadius = (foreground.y - pipes.h) / 2;
+                circleRadius = (cvs.height - pipes.h) / 2;
                 circleCenterY = circleRadius;
                 y = circleCenterY + Math.sin(circleAngle) * circleRadius;
             } else if (Math.random() < 0.4/0.9) {
@@ -314,7 +311,7 @@ pipes = {
                 moveY = true;
                 moveDir = Math.random() < 0.5 ? 1 : -1;
                 moveSpeed = 60 + Math.random() * 60; // 60-120 пикселей/сек
-                y = Math.random() * (foreground.y - pipes.h);
+                y = Math.random() * (cvs.height - pipes.h);
             }
             this.position.push({
                 x: cvs.width,
@@ -382,7 +379,7 @@ pipes = {
                 p.y += p.moveDir * p.moveSpeed * (delta || 1);
                 // Границы: от 0 до foreground.y - this.h
                 if (p.y < 0) { p.y = 0; p.moveDir = 1; }
-                if (p.y > foreground.y - this.h) { p.y = foreground.y - this.h; p.moveDir = -1; }
+                if (p.y > cvs.height - this.h) { p.y = cvs.height - this.h; p.moveDir = -1; }
             }
             // Движение по круговой траектории
             if (p.moveCircle) {
@@ -505,7 +502,7 @@ function update(delta) {
             if (Math.random() < 0.8) {
                 mguObstacles.push({
                     x: cvs.width,
-                    y: foreground.y - mguObstacleTemplate.height,
+                    y: cvs.height - mguObstacleTemplate.height,
                     width: mguObstacleTemplate.width,
                     height: mguObstacleTemplate.height,
                     collisionZones: mguCollisionZones
