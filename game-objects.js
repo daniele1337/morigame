@@ -521,31 +521,33 @@ function update(delta) {
                 continue;
             }
             // === ПРОВЕРКА КОЛЛИЗИИ С ПТИЦЕЙ ===
-            for (let zone of mguObstacles[i].collisionZones) {
-                let absX = mguObstacles[i].x + zone.x;
-                let absY = mguObstacles[i].y + zone.y;
-                // Прямоугольная коллизия: центр птицы внутри зоны
-                if (
-                    bird.x + bird.radius_x > absX &&
-                    bird.x - bird.radius_x < absX + zone.w &&
-                    bird.y + bird.radius_y > absY &&
-                    bird.y - bird.radius_y < absY + zone.h
-                ) {
-                    state.current = state.gameOver;
-                    explosionActive = true;
-                    explosionX = bird.x;
-                    explosionY = bird.y;
-                    explosionTimer = 0;
-                    if(!mute) {
-                        HIT.play();
-                        setTimeout(function() {
-                            if (state.current == state.gameOver) {
-                                DIE.currentTime = 0;
-                                DIE.play();
-                            }
-                        }, 500)
+            if (state.current === state.game) {
+                for (let zone of mguObstacles[i].collisionZones) {
+                    let absX = mguObstacles[i].x + zone.x;
+                    let absY = mguObstacles[i].y + zone.y;
+                    // Прямоугольная коллизия: центр птицы внутри зоны
+                    if (
+                        bird.x + bird.radius_x > absX &&
+                        bird.x - bird.radius_x < absX + zone.w &&
+                        bird.y + bird.radius_y > absY &&
+                        bird.y - bird.radius_y < absY + zone.h
+                    ) {
+                        state.current = state.gameOver;
+                        explosionActive = true;
+                        explosionX = bird.x;
+                        explosionY = bird.y;
+                        explosionTimer = 0;
+                        if(!mute) {
+                            HIT.play();
+                            setTimeout(function() {
+                                if (state.current == state.gameOver) {
+                                    DIE.currentTime = 0;
+                                    DIE.play();
+                                }
+                            }, 500)
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
