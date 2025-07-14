@@ -209,6 +209,7 @@ bird = {
             if(this.y + this.h/2 >= cvs.height) {
                 this.y = cvs.height - this.h/2;
                 if(state.current == state.game) {
+                    console.log('GAME OVER: столкновение с землёй');
                     state.current = state.gameOver;
                     // === ВЗРЫВ ===
                     explosion_dx = pipes.dx;
@@ -263,7 +264,7 @@ pipes = {
     helicopterFrameTickMax: isMobile ? 84 : 44,
     helicopterSpriteW: 256, helicopterSpriteH: 320,
     helicopterDrawW: 96, helicopterDrawH: 48,
-    dx: 0, gap: 0, maxYPos: 0, scored: false,
+    dx: 2, gap: 0, maxYPos: 0, scored: false,
     nextHelicopterFrame: 80,
     helicopterFrameTime: 0, // для анимации по времени
     spawnTimer: 0, // таймер появления
@@ -271,7 +272,7 @@ pipes = {
 
     draw: function() {
         this.helicopterFrameTime += (typeof window !== 'undefined' && window.lastDelta) ? window.lastDelta : 0.016;
-        let framePeriod = 0.12; // было 0.08 сек = 8.3 кадров/сек (замедлено на 50%)
+        let framePeriod = 0.24; // было 0.12 сек, теперь в 2 раза медленнее
         if (this.helicopterFrameTime > framePeriod) {
             this.helicopterFrame = (this.helicopterFrame + 1) % this.helicopterFrameCount;
             this.helicopterFrameTime = 0;
@@ -282,17 +283,57 @@ pipes = {
         const spriteH = 306;
         const drawW = Math.round(spriteW / 1.5) * 0.8 * 1.1;
         const drawH = Math.round(spriteH / 1.5) * 0.8 * 1.1;
-
+        this.w = drawW;
+        this.h = drawH;
         for(let i = 0; i < this.position.length; i++) {
             let p = this.position[i];
-            let topYPos = p.y;
-            ctx.drawImage(helicopter_sprite, 0, this.helicopterFrame * frameHeight, spriteW, spriteH, p.x, topYPos, drawW, drawH);
+            const frame = this.helicopterFrame || 0;
+            const f = helicopterFrames[frame];
+            const localDrawW = drawW;
+            const localDrawH = drawW * (f.sh / f.sw);
+            const topYPos = p.y;
+            // === Актуальные размеры кадра ===
+            // drawW оставляем прежним, drawH рассчитываем пропорционально кадру
+            // === ОТРИСОВКА ВЕРТОЛЁТА ===
+            if (typeof helicopter_sprite !== 'undefined' && helicopter_sprite.complete && helicopter_sprite.naturalWidth > 0) {
+                ctx.drawImage(
+                    helicopter_sprite,
+                    f.sx, f.sy, f.sw, f.sh,
+                    p.x, topYPos, localDrawW, localDrawH
+                );
+                // === ВИЗУАЛИЗАЦИЯ ЗОН КОЛЛИЗИИ ВЕРТОЛЁТА ===
+                ctx.save();
+                ctx.globalAlpha = 0.3;
+                ctx.fillStyle = 'orange';
+                for (let zone of helicopterCollisionZones) {
+                    let scaleX = localDrawW / f.sw;
+                    let scaleY = localDrawH / f.sh;
+                    ctx.fillRect(
+                        p.x + zone.x * scaleX,
+                        topYPos + zone.y * scaleY,
+                        zone.w * scaleX,
+                        zone.h * scaleY
+                    );
+                }
+                ctx.restore();
+            }
         }
+        // Удаляю тестовые прямоугольники:
+        // ctx.fillStyle = 'lime';
+        // ctx.fillRect(100, 100, 100, 100);
+        // if (this.position.length > 0) {
+        //     let p = this.position[0];
+        //     ctx.fillStyle = 'blue';
+        //     ctx.fillRect(p.x, p.y, drawW, drawH);
+        // }
+        // console.log('Размеры canvas:', cvs.width, cvs.height);
     },
 
     update: function(delta) {
         if(state.current != state.game) return;
 
+        const spriteW = 360;
+        const drawW = Math.round(spriteW / 1.5) * 0.8 * 1.1;
         this.spawnTimer += delta;
         let interval = this.spawnInterval + (Math.random() - 0.5) * 0.4; // небольшой разброс
         if (this.spawnTimer >= interval) {
@@ -313,10 +354,17 @@ pipes = {
                 moveY = true;
                 moveDir = Math.random() < 0.5 ? 1 : -1;
                 moveSpeed = 60 + Math.random() * 60; // 60-120 пикселей/сек
+                // 10% шанс на ускоренный вертикальный вертолёт
+                if (Math.random() < 0.1) {
+                    moveSpeed *= 1.3;
+                }
                 y = Math.random() * (cvs.height - pipes.h);
             }
+            const frameHeight = 394;
+            const spriteH = 306;
+            const drawH = Math.round(spriteH / 1.5) * 0.8 * 1.1;
             this.position.push({
-                x: cvs.width,
+                x: cvs.width + drawW, // появление заранее, за пределами экрана
                 y: y,
                 scored: false,
                 moveY: moveY,
@@ -328,71 +376,94 @@ pipes = {
                 circleRadius: circleRadius,
                 circleCenterY: circleCenterY
             });
+            console.log('Вертолёт добавлен:', {x: cvs.width - drawW, y});
+            console.log('Всего вертолётов:', this.position.length);
             this.spawnTimer = 0;
         }
         
         for(let i = 0; i < this.position.length; i++) {
             let p = this.position[i];
+            // === ДВИЖЕНИЕ ВЕРТОЛЁТА ===
+            p.x -= this.dx * delta;
 
-            if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w &&
-               bird.y + bird.radius_y > p.y && bird.y - bird.radius_y < p.y + this.h) {
-                state.current = state.gameOver;
-                explosion_dx = this.dx;
-                explosionActive = true;
-                explosionX = bird.x;
-                explosionY = bird.y;
-                explosionTimer = 0;
-                birdVisible = false;
-                if(!mute) {
-                    HIT.play();
-                    setTimeout(function() {
-                        if (state.current == state.gameOver) {
-                            DIE.currentTime = 0;
-                            DIE.play();
-                        }
-                    }, 500)
-                }
-            }
-            
-            if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w && bird.y <= 0) {
-                state.current = state.gameOver;
-                explosion_dx = this.dx;
-                explosionActive = true;
-                explosionX = bird.x;
-                explosionY = bird.y;
-                explosionTimer = 0;
-                birdVisible = false;
-                if(!mute) {
-                    HIT.play();
-                    setTimeout(function() {
-                        if (state.current == state.gameOver) {
-                            DIE.currentTime = 0;
-                            DIE.play();
-                        }
-                    }, 500)
-                }
-            }
-
-            p.x -= this.dx * (delta || 1);
-            // Движение по вертикали для некоторых вертолётов
+            // Вертикальное движение для 40% вертолётов
             if (p.moveY) {
-                p.y += p.moveDir * p.moveSpeed * (delta || 1);
-                // Границы: от 0 до foreground.y - this.h
-                if (p.y < 0) { p.y = 0; p.moveDir = 1; }
-                if (p.y > cvs.height - this.h) { p.y = cvs.height - this.h; p.moveDir = -1; }
+                p.y += p.moveDir * p.moveSpeed * delta;
+                // Отскок от границ (например, верх и низ экрана)
+                if (p.y < 0) {
+                    p.y = 0;
+                    p.moveDir = 1;
+                }
+                if (p.y + this.h > cvs.height) {
+                    p.y = cvs.height - this.h;
+                    p.moveDir = -1;
+                }
             }
-            // Движение по круговой траектории
-            if (p.moveCircle) {
-                p.circleAngle += p.circleSpeed * (delta || 1);
-                if (p.circleAngle > Math.PI * 2) p.circleAngle -= Math.PI * 2;
-                p.y = p.circleCenterY + Math.sin(p.circleAngle) * p.circleRadius;
+            let foundCollision = false;
+            // === В pipes.update: масштабируем зоны коллизии героя с учётом реального масштаба по высоте ===
+            let scaleX = bird.w / birdSpriteW;
+            let scaleY = (bird.h * 1.452) / birdSpriteH;
+            for (let zone of bird.collisionZones) {
+                let birdAbsX = bird.x - bird.w/2 + zone.x * scaleX;
+                let birdAbsY = bird.y - (bird.h * 1.452)/2 + zone.y * scaleY;
+                let zoneW = zone.w * scaleX;
+                let zoneH = zone.h * scaleY;
+               
             }
-
-            if (this.position.length == 6) {
-                this.position.splice(0, 2);
+            if (foundCollision) continue;
+            
+            // === КОЛЛИЗИЯ С ВЕРТОЛЁТОМ (сложные зоны) ===
+            const frame = this.helicopterFrame || 0;
+            const f = helicopterFrames[frame];
+            const localDrawW = drawW;
+            const localDrawH = drawW * (f.sh / f.sw);
+            const topYPos = p.y;
+            for (let heliZone of helicopterCollisionZones) {
+                let heliScaleX = localDrawW / f.sw;
+                let heliScaleY = localDrawH / f.sh;
+                let heliAbsX = p.x + heliZone.x * heliScaleX;
+                let heliAbsY = topYPos + heliZone.y * heliScaleY;
+                let heliZoneW = heliZone.w * heliScaleX;
+                let heliZoneH = heliZone.h * heliScaleY;
+                for (let birdZone of bird.collisionZones) {
+                    let birdScaleX = bird.w / birdSpriteW;
+                    let birdScaleY = (bird.h * 1.452) / birdSpriteH;
+                    let birdAbsX = bird.x - bird.w/2 + birdZone.x * birdScaleX;
+                    let birdAbsY = bird.y - (bird.h * 1.452)/2 + birdZone.y * birdScaleY;
+                    let birdZoneW = birdZone.w * birdScaleX;
+                    let birdZoneH = birdZone.h * birdScaleY;
+                    if (
+                        birdAbsX < heliAbsX + heliZoneW &&
+                        birdAbsX + birdZoneW > heliAbsX &&
+                        birdAbsY < heliAbsY + heliZoneH &&
+                        birdAbsY + birdZoneH > heliAbsY
+                    ) {
+                        console.log('GAME OVER: столкновение с вертолётом (сложная зона)');
+                        state.current = state.gameOver;
+                        explosion_dx = this.dx;
+                        explosionActive = true;
+                        explosionX = bird.x;
+                        explosionY = bird.y;
+                        explosionTimer = 0;
+                        birdVisible = false;
+                        if(!mute) {
+                            HIT.play();
+                            setTimeout(function() {
+                                if (state.current == state.gameOver) {
+                                    DIE.currentTime = 0;
+                                    DIE.play();
+                                }
+                            }, 500)
+                        }
+                        foundCollision = true;
+                        break;
+                    }
+                }
+                if (foundCollision) break;
             }
             
             if (p.x + this.w < bird.x - bird.radius_x && !p.scored) {
+                console.log('Удаляем вертолёт:', {x: p.x, w: this.w, birdX: bird.x, birdRadiusX: bird.radius_x});
                 score.game_score++;
                 if(!mute) POINT.play();
                 
@@ -425,6 +496,8 @@ let explosionTimer = 0;
 const EXPLOSION_DURATION = 1.5; // секунды
 // === Глобальные переменные для взрыва и видимости птицы ===
 var birdVisible = true;
+// === Размеры исходного спрайта главного героя ===
+const birdSpriteW = 180, birdSpriteH = 136;
 // === Для движения взрыва с фоном назад ===
 let explosion_dx = 0;
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
@@ -446,6 +519,26 @@ const mguCollisionZones = [
   { x: 174, y: 210, w: 85, h: 107 },
   { x: 155, y: 318, w: 124, h: 80 },
   { x: 28, y: 398, w: 374, h: 159 }
+];
+// === КОНЕЦ ДОБАВЛЕНИЯ ===
+
+// === ЗОНЫ КОЛЛИЗИИ ДЛЯ ГЛАВНОГО ГЕРОЯ ===
+bird.collisionZones = [
+  { x: 94, y: 0, w: 61, h: 70 },
+  { x: 25, y: 69, w: 154, h: 66 }
+];
+// === КОНЕЦ ДОБАВЛЕНИЯ ===
+
+// === ПАРАМЕТРЫ КАДРОВ ВЕРТОЛЁТА ===
+const helicopterFrames = [
+    { sx: 0, sy: 0, sw: 360, sh: 305 },    // 1 кадр
+    { sx: 0, sy: 390, sw: 360, sh: 306 },  // 2 кадр
+    { sx: 0, sy: 785, sw: 360, sh: 319 }   // 3 кадр
+];
+// === ЗОНЫ КОЛЛИЗИИ ДЛЯ ВЕРТОЛЁТА ===
+const helicopterCollisionZones = [
+    { x: 0, y: 0, w: 360, h: 140 },
+    { x: 44, y: 141, w: 112, h: 167 }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
@@ -523,32 +616,47 @@ function update(delta) {
             }
             // === ПРОВЕРКА КОЛЛИЗИИ С ПТИЦЕЙ ===
             if (state.current === state.game) {
+                // === В pipes.update: масштабируем зоны коллизии героя с учётом реального масштаба по высоте ===
+                let scaleX = bird.w / birdSpriteW;
+                let scaleY = (bird.h * 1.452) / birdSpriteH;
                 for (let zone of mguObstacles[i].collisionZones) {
-                    let absX = mguObstacles[i].x + zone.x;
-                    let absY = mguObstacles[i].y + zone.y;
-                    // Прямоугольная коллизия: центр птицы внутри зоны
-                    if (
-                        bird.x + bird.radius_x > absX &&
-                        bird.x - bird.radius_x < absX + zone.w &&
-                        bird.y + bird.radius_y > absY &&
-                        bird.y - bird.radius_y < absY + zone.h
-                    ) {
-                        state.current = state.gameOver;
-                        explosion_dx = pipes.dx;
-                        explosionActive = true;
-                        explosionX = bird.x;
-                        explosionY = bird.y;
-                        explosionTimer = 0;
-                        if(!mute) {
-                            HIT.play();
-                            setTimeout(function() {
-                                if (state.current == state.gameOver) {
-                                    DIE.currentTime = 0;
-                                    DIE.play();
-                                }
-                            }, 500)
+                    let mguScaleX = mguObstacles[i].width / 403;
+                    let mguScaleY = mguObstacles[i].height / 514;
+                    let mguZoneAbsX = mguObstacles[i].x + zone.x * mguScaleX;
+                    let mguZoneAbsY = mguObstacles[i].y + zone.y * mguScaleY;
+                    let mguZoneW = zone.w * mguScaleX;
+                    let mguZoneH = zone.h * mguScaleY;
+                    for (let birdZone of bird.collisionZones) {
+                        let scaleX = bird.w / birdSpriteW;
+                        let scaleY = (bird.h * 1.452) / birdSpriteH;
+                        let birdAbsX = bird.x - bird.w/2 + birdZone.x * scaleX;
+                        let birdAbsY = bird.y - (bird.h * 1.452)/2 + birdZone.y * scaleY;
+                        let zoneW = birdZone.w * scaleX;
+                        let zoneH = birdZone.h * scaleY;
+                        if (
+                            birdAbsX < mguZoneAbsX + mguZoneW &&
+                            birdAbsX + zoneW > mguZoneAbsX &&
+                            birdAbsY < mguZoneAbsY + mguZoneH &&
+                            birdAbsY + zoneH > mguZoneAbsY
+                        ) {
+                            console.log('GAME OVER: столкновение с МГУ');
+                            state.current = state.gameOver;
+                            explosionActive = true;
+                            explosion_dx = pipes.dx;
+                            explosionX = bird.x;
+                            explosionY = bird.y;
+                            explosionTimer = 0;
+                            if(!mute) {
+                                HIT.play();
+                                setTimeout(function() {
+                                    if (state.current == state.gameOver) {
+                                        DIE.currentTime = 0;
+                                        DIE.play();
+                                    }
+                                }, 500)
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
             }
@@ -594,4 +702,40 @@ function draw() {
     gameButtons.draw();
     gameOver.draw();
     score.draw();
+    // === ВИЗУАЛИЗАЦИЯ ЗОН КОЛЛИЗИИ ГЕРОЯ ===
+    if (typeof bird !== 'undefined' && birdVisible) {
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = 'cyan';
+        for (let zone of bird.collisionZones) {
+            let birdScaleX = bird.w / birdSpriteW;
+            let birdScaleY = (bird.h * 1.452) / birdSpriteH;
+            ctx.fillRect(
+                bird.x - bird.w/2 + zone.x * birdScaleX,
+                bird.y - (bird.h * 1.452)/2 + zone.y * birdScaleY,
+                zone.w * birdScaleX,
+                zone.h * birdScaleY
+            );
+        }
+        ctx.restore();
+    }
+    // === ВИЗУАЛИЗАЦИЯ ЗОН КОЛЛИЗИИ МГУ ===
+    if (typeof mguObstacles !== 'undefined' && mguObstacles.length > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = 'orange';
+        for (let mgu of mguObstacles) {
+            for (let zone of mguCollisionZones) {
+                let scaleX = mgu.width ? mgu.width / mguObstacleTemplate.width : 1;
+                let scaleY = mgu.height ? mgu.height / mguObstacleTemplate.height : 1;
+                ctx.fillRect(
+                    mgu.x + zone.x * scaleX,
+                    mgu.y + zone.y * scaleY,
+                    zone.w * scaleX,
+                    zone.h * scaleY
+                );
+            }
+        }
+        ctx.restore();
+    }
 } 
