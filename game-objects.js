@@ -30,9 +30,9 @@ background = {
             ctx.drawImage(sprite_sheet, this.stars.spriteX, this.stars.spriteY, this.stars.spriteW, this.stars.spriteH, this.x, this.stars.y, this.w, this.stars.h);
         }
     },
-    update: function() {
+    update: function(delta) {
         if (!night) {
-            this.offsetX += this.speed;
+            this.offsetX += this.speed * (delta || 1);
         } else {
             this.offsetX = 0;
         }
@@ -51,9 +51,9 @@ foreground = {
         ctx.drawImage(earth_img, this.x, this.y, this.w, this.h);
         ctx.drawImage(earth_img, (this.x + this.w)-0.7, this.y, this.w, this.h);
     },
-    update: function() {
+    update: function(delta) {
         if(state.current != state.gameOver) {
-            this.x = (this.x - this.dx) % (this.w/2);
+            this.x = (this.x - this.dx * (delta || 1)) % (this.w/2);
         }
     }
 };
@@ -121,7 +121,7 @@ bird = {
         this.targetRotation = 8 * Math.PI/180;
     },
 
-    update: function() {
+    update: function(delta) {
         if (state.current == state.getReady) {
             this.period = isMobile ? 72 : 56; // Ещё медленнее (ещё на 50%)
         } else if (state.current == state.game) {
@@ -132,6 +132,7 @@ bird = {
             this.period = isMobile ? 48 : 36; // Ещё медленнее (ещё на 50%)
         }
         
+        // Анимация кадров птицы (оставим по frames, чтобы не ломать визуал)
         this.frame += frames % this.period == 0 ? 1 : 0;
         this.frame = this.frame % this.animation.length;
 
@@ -148,13 +149,14 @@ bird = {
             engineHeld = false;
         } else {
             if (this.engineCooldown > 0) {
-                this.engineCooldown--;
+                this.engineCooldown -= (delta || 1);
+                if (this.engineCooldown < 0) this.engineCooldown = 0;
             }
             
             if (state.current == state.game) {
-                this.autoFlightTimer++;
+                this.autoFlightTimer += (delta || 1);
                 if (this.autoFlightTimer > this.autoFlightDelay && this.velocityY > 0) {
-                    this.velocityY -= this.autoFlightPower;
+                    this.velocityY -= this.autoFlightPower * (delta || 1);
                 }
                 if (Math.abs(this.velocityY) < this.maxSpeed * 0.3) {
                     this.targetRotation *= 0.95;
@@ -162,11 +164,11 @@ bird = {
             }
             
             if (this.engineThrust > 0) {
-                this.velocityY -= this.engineThrust * this.enginePower;
-                this.engineThrust *= this.thrustDecay;
+                this.velocityY -= this.engineThrust * this.enginePower * (delta || 1);
+                this.engineThrust *= Math.pow(this.thrustDecay, (delta || 1));
             }
             
-            this.velocityY += this.acceleration;
+            this.velocityY += this.acceleration * (delta || 1);
             
             if (this.velocityY > this.maxSpeed) {
                 this.velocityY = this.maxSpeed;
@@ -175,7 +177,7 @@ bird = {
                 this.velocityY = this.minSpeed;
             }
             
-            this.y += this.velocityY;
+            this.y += this.velocityY * (delta || 1);
 
             if (engineHeld && state.current == state.game) {
                 if (this.velocityY < this.minSpeed * 0.5) {
@@ -268,7 +270,7 @@ pipes = {
         }
     },
 
-    update: function() {
+    update: function(delta) {
         if(state.current != state.game) return;
 
         if(frames >= this.nextHelicopterFrame) {
@@ -329,10 +331,10 @@ pipes = {
                 }   
             }
 
-            p.x -= this.dx;
+            p.x -= this.dx * (delta || 1);
             // Движение по вертикали для некоторых вертолётов
             if (p.moveY) {
-                p.y += p.moveDir * p.moveSpeed;
+                p.y += p.moveDir * p.moveSpeed * (delta || 1);
                 // Границы: от 0 до foreground.y - this.h
                 if (p.y < 0) { p.y = 0; p.moveDir = 1; }
                 if (p.y > foreground.y - this.h) { p.y = foreground.y - this.h; p.moveDir = -1; }
@@ -363,7 +365,7 @@ pipes = {
 };
 
 // Функции обновления и отрисовки
-function update() {
+function update(delta) {
     if (state.current == state.game) {
         if (engineHeld) {
             bird.flap();
@@ -374,12 +376,12 @@ function update() {
         }
     }
     if(!gamePaused) {
-        bird.update();
-        foreground.update();
-        pipes.update();
-        background.update(); // Обновляем фон
+        bird.update(delta);
+        foreground.update(delta);
+        pipes.update(delta);
+        background.update(delta); // Обновляем фон
     }
-    home.update();
+    home.update(delta);
 }
 
 function draw() {

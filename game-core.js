@@ -50,11 +50,14 @@ initTelegram = function() {
     }, 200);
 }
 
-// Игровой цикл (оптимизированный)
-gameLoop = function() {
-    update();
+let lastTime = performance.now();
+
+function gameLoop(now) {
+    let delta = (now - lastTime) / 1000; // в секундах
+    update(delta);
     draw();
     if (!gamePaused) frames++;
+    lastTime = now;
     requestAnimationFrame(gameLoop);
 }
 
@@ -63,7 +66,8 @@ window.addEventListener("load", () => {
     state.current = state.home;
     canvasScale();
     initGame();
-    gameLoop();
+    lastTime = performance.now(); // сброс времени при старте
+    gameLoop(lastTime);
 });
 
 // Добавляю отладку размеров объектов в draw()
