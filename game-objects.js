@@ -79,6 +79,7 @@ bird = {
     lastEngineTime: 0, minEngineInterval: 0,
     rotationInertia: 0, maxRotationInertia: 0,
     isReleased: false,
+    frameTime: 0, // для анимации по времени
 
     draw: function() {
         let bird = this.animation[this.frame];
@@ -132,9 +133,13 @@ bird = {
             this.period = isMobile ? 48 : 36; // Ещё медленнее (ещё на 50%)
         }
         
-        // Анимация кадров птицы (оставим по frames, чтобы не ломать визуал)
-        this.frame += frames % this.period == 0 ? 1 : 0;
-        this.frame = this.frame % this.animation.length;
+        // Анимация кадров птицы по времени
+        this.frameTime += delta;
+        let framePeriod = 0.08; // 0.08 сек = 12.5 кадров/сек (подберите под нужную скорость)
+        if (this.frameTime > framePeriod) {
+            this.frame = (this.frame + 1) % this.animation.length;
+            this.frameTime = 0;
+        }
 
         if(state.current == state.getReady) {
             this.y = cvs.height * 0.395;
