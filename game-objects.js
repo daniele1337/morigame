@@ -167,8 +167,9 @@ bird = {
                 }
             }
             
+            // В update: увеличиваем ускорение на 15%
             if (this.engineThrust > 0) {
-                this.velocityY -= this.engineThrust * this.enginePower * (delta || 1);
+                this.velocityY -= this.engineThrust * this.enginePower * 1.15 * (delta || 1);
                 this.engineThrust *= Math.pow(this.thrustDecay, (delta || 1));
             }
             
