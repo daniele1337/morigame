@@ -368,3 +368,4 @@ function draw() {
     gameOver.draw();
     score.draw();
 } 
+window.draw = draw; 

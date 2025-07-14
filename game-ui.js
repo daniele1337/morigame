@@ -322,3 +322,4 @@ canvasScale = function() {
     score.best.y = cvs.height * 0.545;
     score.space = cvs.width * 0.016;
 } 
+window.canvasScale = canvasScale; 
