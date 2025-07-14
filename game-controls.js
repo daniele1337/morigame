@@ -400,13 +400,11 @@ cvs.addEventListener('mousedown', function(event) {
         const sliderX = gameButtons.x;
         const sliderY = gameButtons.y + gameButtons.h + 20;
         const knobRadius = sliderHeight * 0.55;
-        // Проверка попадания по бегунку
-        const knobCenterX = sliderX + sliderWidth * volumeSliderValue;
-        const knobCenterY = sliderY + sliderHeight/2;
-        const dist = Math.sqrt((mouseX - knobCenterX) ** 2 + (mouseY - knobCenterY) ** 2);
+        // Увеличенная область попадания
+        const hitZone = Math.max(knobRadius * 2, sliderHeight * 3);
         if (
             mouseX >= sliderX && mouseX <= sliderX + sliderWidth &&
-            mouseY >= sliderY - knobRadius && mouseY <= sliderY + sliderHeight + knobRadius
+            mouseY >= sliderY - hitZone && mouseY <= sliderY + sliderHeight + hitZone
         ) {
             volumeSliderDragging = true;
             // Сразу обновить значение
@@ -460,12 +458,11 @@ cvs.addEventListener('touchstart', function(event) {
         const sliderX = gameButtons.x;
         const sliderY = gameButtons.y + gameButtons.h + 20;
         const knobRadius = sliderHeight * 0.55;
-        const knobCenterX = sliderX + sliderWidth * volumeSliderValue;
-        const knobCenterY = sliderY + sliderHeight/2;
-        const dist = Math.sqrt((touchX - knobCenterX) ** 2 + (touchY - knobCenterY) ** 2);
+        // Увеличенная область попадания
+        const hitZone = Math.max(knobRadius * 2, sliderHeight * 3);
         if (
             touchX >= sliderX && touchX <= sliderX + sliderWidth &&
-            touchY >= sliderY - knobRadius && touchY <= sliderY + sliderHeight + knobRadius
+            touchY >= sliderY - hitZone && touchY <= sliderY + sliderHeight + hitZone
         ) {
             volumeSliderDragging = true;
             let newValue = (touchX - sliderX) / sliderWidth;
