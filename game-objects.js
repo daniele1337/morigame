@@ -1,23 +1,40 @@
 // Игровые объекты (оптимизированные)
 
-// Фон
+// Новый дневной фон
+const background_day_img = new Image();
+background_day_img.src = "img/separated/background_day.png";
+
 background = {
-    day_spriteX: 0,
+    // Координаты и размеры для совместимости
+    x: 0, y: 0, w: 0, h: 0,
     night_spriteX: 1211,
     spriteY: 392,
     spriteW: 552,
     spriteH: 408,
-    x: 0, y: 0, w: 0, h: 0,
     stars: {
         spriteX: 1211, spriteY: 0,
         spriteW: 552, spriteH: 392,
         y: 0, h: 0
     },
+    offsetX: 0,
+    speed: 1, // скорость движения фона (пикселей за кадр)
     draw: function() {
-        let spriteX = night ? this.night_spriteX : this.day_spriteX;
-        ctx.drawImage(sprite_sheet, spriteX, this.spriteY, this.spriteW, this.spriteH, this.x, this.y, this.w, this.h);
-        if(night) {
+        if (!night) {
+            let w = this.w * 2; // растягиваем фон в 2 раза шире canvas
+            let h = foreground.y; // высота фона до земли
+            let x1 = -this.offsetX % w;
+            ctx.drawImage(background_day_img, x1, 0, w, h);
+            ctx.drawImage(background_day_img, x1 + w, 0, w, h);
+        } else {
+            ctx.drawImage(sprite_sheet, this.night_spriteX, this.spriteY, this.spriteW, this.spriteH, this.x, this.y, this.w, this.h);
             ctx.drawImage(sprite_sheet, this.stars.spriteX, this.stars.spriteY, this.stars.spriteW, this.stars.spriteH, this.x, this.stars.y, this.w, this.stars.h);
+        }
+    },
+    update: function() {
+        if (!night) {
+            this.offsetX += this.speed;
+        } else {
+            this.offsetX = 0;
         }
     }
 };
@@ -225,6 +242,7 @@ pipes = {
     helicopterSpriteW: 256, helicopterSpriteH: 320,
     helicopterDrawW: 96, helicopterDrawH: 48,
     dx: 0, gap: 0, maxYPos: 0, scored: false,
+    nextHelicopterFrame: 80,
 
     draw: function() {
         this.helicopterFrameTick++;
@@ -249,12 +267,19 @@ pipes = {
     update: function() {
         if(state.current != state.game) return;
 
-        if(frames%80 == 0) {
+        if(frames >= this.nextHelicopterFrame) {
             this.position.push({
                 x: cvs.width,
                 y: Math.random() * (cvs.height * 0.3),
                 scored: false
             });
+            // Выбираем следующий интервал появления
+            let rand = Math.random();
+            let interval;
+            if(rand < 0.6) interval = 80; // 60% — через 1 интервал
+            else if(rand < 0.85) interval = 160; // 25% — через 2 интервала
+            else interval = 240; // 15% — через 3 интервала
+            this.nextHelicopterFrame = frames + interval;
         }
         
         for(let i = 0; i < this.position.length; i++) {
@@ -309,6 +334,7 @@ pipes = {
 
     pipesReset: function() {
         this.position = [];
+        this.nextHelicopterFrame = frames + 80;
     }
 };
 
@@ -327,6 +353,7 @@ function update() {
         bird.update();
         foreground.update();
         pipes.update();
+        background.update(); // Обновляем фон
     }
     home.update();
 }

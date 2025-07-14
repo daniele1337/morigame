@@ -184,7 +184,7 @@ canvasScale = function() {
 
     // BACKGROUND
     background.x = 0;
-    background.y = cvs.height * 0.631;
+    background.y = foreground.y - background.h;
     background.w = cvs.width;
     background.h = background.w * 0.74;
     background.stars.y = background.y * 0.167;
