@@ -254,12 +254,14 @@ pipes = {
     helicopterDrawW: 96, helicopterDrawH: 48,
     dx: 0, gap: 0, maxYPos: 0, scored: false,
     nextHelicopterFrame: 80,
+    helicopterFrameTime: 0, // для анимации по времени
 
     draw: function() {
-        this.helicopterFrameTick++;
-        if (this.helicopterFrameTick >= this.helicopterFrameTickMax) {
+        this.helicopterFrameTime += (typeof window !== 'undefined' && window.lastDelta) ? window.lastDelta : 0.016;
+        let framePeriod = 0.08; // 0.08 сек = 12.5 кадров/сек
+        if (this.helicopterFrameTime > framePeriod) {
             this.helicopterFrame = (this.helicopterFrame + 1) % this.helicopterFrameCount;
-            this.helicopterFrameTick = 0;
+            this.helicopterFrameTime = 0;
         }
 
         const frameHeight = 394;

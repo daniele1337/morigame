@@ -54,6 +54,7 @@ let lastTime = performance.now();
 
 function gameLoop(now) {
     let delta = (now - lastTime) / 1000; // в секундах
+    window.lastDelta = delta; // для передачи в draw-функции
     update(delta);
     draw();
     if (!gamePaused) frames++;
