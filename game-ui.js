@@ -147,7 +147,7 @@ getReady = {
 
     draw: function() {
         if(state.current == state.getReady) {
-            ctx.drawImage(sprite_sheet, this.get_ready.spriteX, this.get_ready.spriteY, this.get_ready.spriteW, this.get_ready.spriteH, this.get_ready.x, this.get_ready.y, this.get_ready.w, this.get_ready.h);
+            ctx.drawImage(getReadyImg, this.get_ready.x, this.get_ready.y, this.get_ready.w, this.get_ready.h);
             ctx.drawImage(sprite_sheet, this.tap.spriteX, this.tap.spriteY, this.tap.spriteW, this.tap.spriteH, this.tap.x, this.tap.y, this.tap.w, this.tap.h);
         }
     }
@@ -166,6 +166,10 @@ gameOver = {
         }
     }
 };
+
+// === Загрузка отдельного изображения для get ready ===
+const getReadyImg = new Image();
+getReadyImg.src = "img/separated/get_ready.png";
 
 // Функция масштабирования canvas
 canvasScale = function() {
