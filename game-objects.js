@@ -424,18 +424,45 @@ let explosionActive = false;
 let explosionX = 0;
 let explosionY = 0;
 let explosionTimer = 0;
+// === ВРЕМЯ ОТОБРАЖЕНИЯ ВЗРЫВА ===
+const EXPLOSION_DURATION = 1.5; // секунды
 // === Глобальные переменные для взрыва и видимости птицы ===
 var birdVisible = true;
+// === КОНЕЦ ДОБАВЛЕНИЯ ===
+
+// === МАССИВ ДИНАМИЧЕСКИХ МГУ ===
+const mgu_img = new Image();
+mgu_img.src = "img/separated/MGU.png";
+const mguObstacleTemplate = {
+    width: 403,
+    height: 514
+};
+let mguObstacles = [];
+let mguSpawnTimer = 0;
+const mguSpawnInterval = 5; // секунд
+// === ЗОНЫ КОЛЛИЗИИ ДЛЯ МГУ ===
+const mguCollisionZones = [
+  { x: 204, y: 65, w: 22, h: 94 },
+  { x: 190.5, y: 159, w: 53, h: 50 },
+  { x: 174, y: 210, w: 85, h: 107 },
+  { x: 155, y: 318, w: 124, h: 80 },
+  { x: 28, y: 398, w: 374, h: 159 }
+];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
 // === Функция для отрисовки взрыва ===
 function drawExplosion() {
     if (explosionActive) {
-        let explosionImg = new Image();
-        explosionImg.src = 'img/separated/explosion.png';
+        // Используем старый фрагмент: sx=659, sy=177, sw=459, sh=442
+        const sx = 659, sy = 177, sw = 459, sh = 442;
         ctx.save();
         ctx.globalAlpha = 0.8;
-        ctx.drawImage(explosionImg, explosionX - 64, explosionY - 64, 128, 128);
+        ctx.drawImage(
+            explosion_img,
+            sx, sy, sw, sh,
+            explosionX - sw/2, explosionY - sh/2,
+            sw, sh
+        );
         ctx.restore();
     }
 }
@@ -454,7 +481,7 @@ function updateExplosion(delta) {
 function update(delta) {
     if (explosionActive) {
         explosionTimer += delta;
-        if (explosionTimer > 1) { // 1 секунда
+        if (explosionTimer > EXPLOSION_DURATION) { // 3 секунды
             explosionActive = false;
         }
     }
@@ -472,6 +499,56 @@ function update(delta) {
         foreground.update(delta);
         pipes.update(delta);
         background.update(delta); // Обновляем фон
+        // === СПАВН МГУ ===
+        mguSpawnTimer += delta;
+        if (mguSpawnTimer >= mguSpawnInterval) {
+            if (Math.random() < 0.8) {
+                mguObstacles.push({
+                    x: cvs.width,
+                    y: foreground.y - mguObstacleTemplate.height,
+                    width: mguObstacleTemplate.width,
+                    height: mguObstacleTemplate.height,
+                    collisionZones: mguCollisionZones
+                });
+            }
+            mguSpawnTimer = 0;
+        }
+        // === ДВИЖЕНИЕ МГУ ===
+        for (let i = mguObstacles.length - 1; i >= 0; i--) {
+            mguObstacles[i].x -= pipes.dx * (delta || 1);
+            if (mguObstacles[i].x + mguObstacles[i].width < 0) {
+                mguObstacles.splice(i, 1);
+                continue;
+            }
+            // === ПРОВЕРКА КОЛЛИЗИИ С ПТИЦЕЙ ===
+            for (let zone of mguObstacles[i].collisionZones) {
+                let absX = mguObstacles[i].x + zone.x;
+                let absY = mguObstacles[i].y + zone.y;
+                // Прямоугольная коллизия: центр птицы внутри зоны
+                if (
+                    bird.x + bird.radius_x > absX &&
+                    bird.x - bird.radius_x < absX + zone.w &&
+                    bird.y + bird.radius_y > absY &&
+                    bird.y - bird.radius_y < absY + zone.h
+                ) {
+                    state.current = state.gameOver;
+                    explosionActive = true;
+                    explosionX = bird.x;
+                    explosionY = bird.y;
+                    explosionTimer = 0;
+                    if(!mute) {
+                        HIT.play();
+                        setTimeout(function() {
+                            if (state.current == state.gameOver) {
+                                DIE.currentTime = 0;
+                                DIE.play();
+                            }
+                        }, 500)
+                    }
+                    break;
+                }
+            }
+        }
     }
     home.update(delta);
 }
@@ -493,6 +570,11 @@ function draw() {
 
     background.draw();
     pipes.draw();
+    // === ОТРИСОВКА ВСЕХ МГУ ===
+    for (let i = 0; i < mguObstacles.length; i++) {
+        ctx.drawImage(mgu_img, mguObstacles[i].x, mguObstacles[i].y, mguObstacles[i].width, mguObstacles[i].height);
+    }
+    // === КОНЕЦ ===
     foreground.draw();
     // === НЕ РИСУЕМ ПЕРСОНАЖА, ЕСЛИ ВЗРЫВ ===
     if (!explosionActive) {
@@ -500,15 +582,7 @@ function draw() {
     }
     // === ОТРИСОВКА ВЗРЫВА ===
     if (explosionActive) {
-        // Координаты и размер фрагмента взрыва
-        const sx = 659, sy = 177, sw = 459, sh = 442;
-        // Центрируем взрыв относительно птицы
-        ctx.drawImage(
-            explosion_img,
-            sx, sy, sw, sh,
-            explosionX - sw/2, explosionY - sh/2,
-            sw, sh
-        );
+        drawExplosion();
     }
     // === КОНЕЦ ===
     home.draw();
