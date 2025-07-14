@@ -356,7 +356,7 @@ pipes = {
 };
 
 // Функции обновления и отрисовки
-function update() {
+function update(deltaTime) {
     if (state.current == state.game) {
         if (engineHeld) {
             bird.flap(deltaTime);
@@ -372,7 +372,7 @@ function update() {
         pipes.update(deltaTime);
         background.update(deltaTime); // Обновляем фон
     }
-    home.update();
+    home.update(deltaTime);
 }
 
 function draw() {
