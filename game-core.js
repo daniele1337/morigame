@@ -5,7 +5,7 @@ ctx = cvs.getContext("2d");
 // Переменные игры
 frames = 0;
 gamePaused = false;
-mute = true; // звук по умолчанию отключён
+mute = false;
 night = false;
 engineHeld = false;
 
