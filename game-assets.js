@@ -46,4 +46,14 @@ POINT = new Audio();
 POINT.src = "audio/point.wav";
 
 SWOOSH = new Audio();
-SWOOSH.src = "audio/swooshing.wav"; 
+SWOOSH.src = "audio/swooshing.wav";
+
+// === Функция для установки громкости всех звуков ===
+function setAllSoundsVolume(vol) {
+    DIE.volume = vol;
+    FLAP.volume = vol;
+    HIT.volume = vol;
+    POINT.volume = vol;
+    SWOOSH.volume = vol;
+    // Добавьте сюда другие звуки, если появятся
+} 

@@ -81,6 +81,9 @@ gameButtons = {
             }  
                        
             ctx.drawImage(sprite_sheet, this.start_button.spriteX, this.start_button.spriteY, this.start_button.spriteW, this.start_button.spriteH, this.start_button.x, start_button_y, this.start_button.w, this.start_button.h);
+
+            // === Отрисовка ползунка громкости под mute ===
+            drawVolumeSlider();
         } else if(state.current == state.game) {
             if(!gamePaused) {
                 ctx.drawImage(sprite_sheet, this.pause_button.spriteX, this.pause_button.spriteY, this.pause_button.spriteW, this.pause_button.spriteH, this.x, button_y, this.w, this.h);
@@ -93,6 +96,49 @@ gameButtons = {
         }
     }
 };
+
+// === Функция для отрисовки ползунка громкости на canvas ===
+function drawVolumeSlider() {
+    // Параметры ползунка
+    const sliderWidth = gameButtons.w * 2.2;
+    const sliderHeight = gameButtons.h * 0.28;
+    const sliderX = gameButtons.x; // Левый край совпадает с кнопкой mute
+    const sliderY = gameButtons.y + gameButtons.h + 10;
+    const knobRadius = sliderHeight * 1.1;
+    // Фон
+    ctx.save();
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = '#e0e0e0'; // серый фон
+    ctx.strokeStyle = '#bbb';
+    ctx.lineWidth = 2;
+    ctx.roundRect(sliderX-6, sliderY-6, sliderWidth+12, sliderHeight+12, 8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.globalAlpha = 1.0;
+    // Линия
+    ctx.strokeStyle = '#bbb';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(sliderX, sliderY + sliderHeight/2);
+    ctx.lineTo(sliderX + sliderWidth, sliderY + sliderHeight/2);
+    ctx.stroke();
+    // Активная часть
+    ctx.strokeStyle = '#ff9800'; // оранжевая активная часть
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(sliderX, sliderY + sliderHeight/2);
+    ctx.lineTo(sliderX + sliderWidth * volumeSliderValue, sliderY + sliderHeight/2);
+    ctx.stroke();
+    // Круглый бегунок
+    ctx.beginPath();
+    ctx.arc(sliderX + sliderWidth * volumeSliderValue, sliderY + sliderHeight/2, knobRadius, 0, 2*Math.PI);
+    ctx.fillStyle = '#ff9800'; // оранжевый круг
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+}
 
 // Главный экран
 home = {
@@ -174,6 +220,9 @@ getReadyImg.src = "img/separated/get_ready.png";
 // === Загрузка отдельного изображения для game over ===
 const gameOverImg = new Image();
 gameOverImg.src = "img/separated/game_over.png";
+
+// === Глобальная переменная для значения громкости ===
+var volumeSliderValue = 1.0;
 
 // Функция масштабирования canvas
 canvasScale = function() {
