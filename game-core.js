@@ -50,9 +50,15 @@ initTelegram = function() {
     }, 200);
 }
 
+let lastTimestamp = performance.now();
 // Игровой цикл (оптимизированный)
-gameLoop = function() {
-    update();
+gameLoop = function(timestamp) {
+    if (timestamp === undefined) timestamp = performance.now();
+    let deltaTime = (timestamp - lastTimestamp) / 1000; // в секундах
+    lastTimestamp = timestamp;
+    // Ограничиваем максимальный deltaTime для плавности (например, 50 мс)
+    deltaTime = Math.min(deltaTime, 0.05);
+    update(deltaTime);
     draw();
     if (!gamePaused) frames++;
     requestAnimationFrame(gameLoop);
@@ -63,6 +69,7 @@ window.addEventListener("load", () => {
     state.current = state.home;
     canvasScale();
     initGame();
+    lastTimestamp = performance.now();
     gameLoop();
 });
 
