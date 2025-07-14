@@ -134,7 +134,7 @@ home = {
                 }
             }
         }
-<<<<<<< HEAD
+
         this.period = isMobile ? 4 : 6;
         this._frameTimer = this._frameTimer || 0;
         this._frameTimer += (deltaTime ? deltaTime * 60 : 1);
@@ -142,12 +142,6 @@ home = {
             this.frame = (this.frame + 1) % this.animation.length;
             this._frameTimer = 0;
         }
-=======
-
-        this.period = isMobile ? 24 : 36;
-        this.frame += frames % this.period == 0 ? 1 : 0;
-        this.frame = this.frame % this.animation.length; 
->>>>>>> 47548a7f01b8e440aa14bb81c74350d53ad170e6
     }
 };
 
@@ -181,17 +175,25 @@ gameOver = {
 // Функция масштабирования canvas
 canvasScale = function() {
     let screenWidth, screenHeight;
-    
+    // Для Telegram Mini App используем viewport, если доступен
     if (tg && tg.viewportStableHeight) {
-        screenWidth = tg.viewportStableHeight;
         screenHeight = tg.viewportStableHeight;
+        screenWidth = tg.viewportStableWidth || screenHeight * 9/16;
     } else {
         screenWidth = window.innerWidth;
         screenHeight = window.innerHeight;
     }
-    
-    cvs.height = screenHeight;
-    cvs.width = screenHeight * 0.72;
+    // Соотношение сторон 9:16 (портрет)
+    let aspect = 9/16;
+    if (screenWidth / screenHeight > aspect) {
+        // Слишком широкий экран — ограничиваем по высоте
+        cvs.height = screenHeight;
+        cvs.width = Math.floor(screenHeight * aspect);
+    } else {
+        // Слишком высокий экран — ограничиваем по ширине
+        cvs.width = screenWidth;
+        cvs.height = Math.floor(screenWidth / aspect);
+    }
 
     // BACKGROUND
     background.x = 0;

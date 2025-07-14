@@ -3,6 +3,11 @@
 // Новый дневной фон
 const background_day_img = new Image();
 background_day_img.src = "img/separated/background_day.png";
+background_day_img.hasError = false;
+background_day_img.onerror = function() {
+    background_day_img.hasError = true;
+    console.error('Не удалось загрузить background_day_img');
+};
 
 background = {
     // Координаты и размеры для совместимости
@@ -43,6 +48,11 @@ background = {
 // Новый рисунок земли
 const earth_img = new Image();
 earth_img.src = "img/separated/earth.png";
+earth_img.hasError = false;
+earth_img.onerror = function() {
+    earth_img.hasError = true;
+    console.error('Не удалось загрузить earth_img');
+};
 foreground = {
     spriteX: 553, spriteY: 576, spriteW: 447, spriteH: 224,
     x: 0, y: 0, w: 0, h: 0, dx: 0,
@@ -271,96 +281,25 @@ pipes = {
 
     update: function(deltaTime) {
         if(state.current != state.game) return;
-<<<<<<< HEAD
         this._pipeTimer = this._pipeTimer || 0;
         this._pipeTimer += (deltaTime ? deltaTime * 60 : 1);
         if(this._pipeTimer >= 80) {
-=======
-
-        if(frames >= this.nextHelicopterFrame) {
-            // 40% шанс на движущийся по вертикали вертолёт
-            let moveY = false, moveDir = 1, moveSpeed = 0;
-            if (Math.random() < 0.4) {
-                moveY = true;
-                moveDir = Math.random() < 0.5 ? 1 : -1;
-                moveSpeed = 1 + Math.random(); // небольшая скорость 1-2 пикселя/кадр
-            }
->>>>>>> 47548a7f01b8e440aa14bb81c74350d53ad170e6
             this.position.push({
                 x: cvs.width,
                 y: Math.random() * (cvs.height * 0.3),
-                scored: false,
-                moveY: moveY,
-                moveDir: moveDir,
-                moveSpeed: moveSpeed
+                scored: false
             });
-<<<<<<< HEAD
             this._pipeTimer = 0;
-=======
-            // Выбираем следующий интервал появления
-            let rand = Math.random();
-            let interval;
-            // Минимум 5 промежутков (5*80=400 кадров) между вертолётами
-            // Добавляем небольшой разброс для естественности
-            let base = 400;
-            if(rand < 0.6) interval = base + Math.floor(Math.random()*60); // 60% — 400-460 кадров
-            else if(rand < 0.85) interval = base + 100 + Math.floor(Math.random()*60); // 25% — 500-560 кадров
-            else interval = base + 200 + Math.floor(Math.random()*60); // 15% — 600-660 кадров
-            this.nextHelicopterFrame = frames + interval;
->>>>>>> 47548a7f01b8e440aa14bb81c74350d53ad170e6
         }
-        
         for(let i = 0; i < this.position.length; i++) {
             let p = this.position[i];
-
-            if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w &&
-               bird.y + bird.radius_y > p.y && bird.y - bird.radius_y < p.y + this.h) {
-                state.current = state.gameOver;
-                if(!mute) {
-                    HIT.play();
-                    setTimeout(function() {
-                        if (state.current == state.gameOver) {
-                            DIE.currentTime = 0;
-                            DIE.play();
-                        }
-                    }, 500)
-                }
-            }
-            
-            if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w && bird.y <= 0) {
-                state.current = state.gameOver;
-                if(!mute) {
-                    HIT.play();
-                    setTimeout(function() {
-                        if (state.current == state.gameOver) {
-                            DIE.currentTime = 0;
-                            DIE.play();
-                        }
-                    }, 500)   
-                }   
-            }
-
-<<<<<<< HEAD
             p.x -= this.dx * (deltaTime ? deltaTime * 60 : 1);
-=======
-            p.x -= this.dx;
-            // Движение по вертикали для некоторых вертолётов
-            if (p.moveY) {
-                p.y += p.moveDir * p.moveSpeed;
-                // Границы: от 0 до foreground.y - this.h
-                if (p.y < 0) { p.y = 0; p.moveDir = 1; }
-                if (p.y > foreground.y - this.h) { p.y = foreground.y - this.h; p.moveDir = -1; }
-            }
->>>>>>> 47548a7f01b8e440aa14bb81c74350d53ad170e6
-
             if (this.position.length == 6) {
                 this.position.splice(0, 2);
             }
-            
             if (p.x + this.w < bird.x - bird.radius_x && !p.scored) {
                 score.game_score++;
                 if(!mute) POINT.play();
-                
                 if(score.game_score > score.best_score) {
                     score.best_score = score.game_score;
                     score.new_best_score = true;
@@ -389,29 +328,30 @@ function update(deltaTime) {
         }
     }
     if(!gamePaused) {
-<<<<<<< HEAD
         bird.update(deltaTime);
         foreground.update(deltaTime);
         pipes.update(deltaTime);
-=======
-        bird.update();
-        foreground.update();
-        pipes.update();
         background.update(); // Обновляем фон
->>>>>>> 47548a7f01b8e440aa14bb81c74350d53ad170e6
     }
     home.update(deltaTime);
 }
 
 function draw() {
     if (!cvs) return;
-    if (!sprite_sheet.complete) {
+    // Проверяем загрузку всех ключевых спрайтов
+    if (!sprite_sheet.complete || !mori_model_sprite.complete || background_day_img.hasError || earth_img.hasError) {
         ctx.fillStyle = "#7BC5CD";
         ctx.fillRect(0, 0, cvs.width, cvs.height);
         ctx.fillStyle = "#000";
         ctx.font = "20px Arial";
         ctx.textAlign = "center";
-        ctx.fillText("Loading...", cvs.width / 2, cvs.height / 2);
+        if (background_day_img.hasError) {
+            ctx.fillText("Ошибка загрузки background_day_img", cvs.width / 2, cvs.height / 2);
+        } else if (earth_img.hasError) {
+            ctx.fillText("Ошибка загрузки earth_img", cvs.width / 2, cvs.height / 2);
+        } else {
+            ctx.fillText("Loading...", cvs.width / 2, cvs.height / 2);
+        }
         return;
     }
     
