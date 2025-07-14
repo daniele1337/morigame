@@ -5,7 +5,7 @@ ctx = cvs.getContext("2d");
 // Переменные игры
 frames = 0;
 gamePaused = false;
-mute = false;
+mute = true; // звук по умолчанию отключён
 night = false;
 engineHeld = false;
 
@@ -51,14 +51,8 @@ initTelegram = function() {
 }
 
 // Игровой цикл (оптимизированный)
-let lastTimestamp = performance.now();
-gameLoop = function(timestamp) {
-    if (timestamp === undefined) timestamp = performance.now();
-    let deltaTime = (timestamp - lastTimestamp) / 1000; // в секундах
-    lastTimestamp = timestamp;
-    // Ограничиваем максимальный deltaTime для плавности (например, 50 мс)
-    deltaTime = Math.min(deltaTime, 0.05);
-    update(deltaTime);
+gameLoop = function() {
+    update();
     draw();
     if (!gamePaused) frames++;
     requestAnimationFrame(gameLoop);
@@ -69,7 +63,6 @@ window.addEventListener("load", () => {
     state.current = state.home;
     canvasScale();
     initGame();
-    lastTimestamp = performance.now();
     gameLoop();
 });
 

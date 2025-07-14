@@ -3,11 +3,6 @@
 // Новый дневной фон
 const background_day_img = new Image();
 background_day_img.src = "img/separated/background_day.png";
-background_day_img.hasError = false;
-background_day_img.onerror = function() {
-    background_day_img.hasError = true;
-    console.error('Не удалось загрузить background_day_img');
-};
 
 background = {
     // Координаты и размеры для совместимости
@@ -48,11 +43,6 @@ background = {
 // Новый рисунок земли
 const earth_img = new Image();
 earth_img.src = "img/separated/earth.png";
-earth_img.hasError = false;
-earth_img.onerror = function() {
-    earth_img.hasError = true;
-    console.error('Не удалось загрузить earth_img');
-};
 foreground = {
     spriteX: 553, spriteY: 576, spriteW: 447, spriteH: 224,
     x: 0, y: 0, w: 0, h: 0, dx: 0,
@@ -61,9 +51,9 @@ foreground = {
         ctx.drawImage(earth_img, this.x, this.y, this.w, this.h);
         ctx.drawImage(earth_img, (this.x + this.w)-0.7, this.y, this.w, this.h);
     },
-    update: function(deltaTime) {
+    update: function() {
         if(state.current != state.gameOver) {
-            this.x = (this.x - this.dx * (deltaTime ? deltaTime * 60 : 1)) % (this.w/2);
+            this.x = (this.x - this.dx) % (this.w/2);
         }
     }
 };
@@ -108,7 +98,7 @@ bird = {
         ctx.restore();
     },
 
-    flap: function(deltaTime) {
+    flap: function() {
         if (!engineHeld) {
             this.engineThrust = 0;
             return;
@@ -126,12 +116,12 @@ bird = {
         this.targetRotation = -8 * Math.PI/180;
     },
     
-    release: function(deltaTime) {
+    release: function() {
         this.engineThrust = 0;
         this.targetRotation = 8 * Math.PI/180;
     },
 
-    update: function(deltaTime) {
+    update: function() {
         if (state.current == state.getReady) {
             this.period = isMobile ? 72 : 56; // Ещё медленнее (ещё на 50%)
         } else if (state.current == state.game) {
@@ -158,14 +148,13 @@ bird = {
             engineHeld = false;
         } else {
             if (this.engineCooldown > 0) {
-                this.engineCooldown -= (deltaTime ? deltaTime * 60 : 1);
-                if (this.engineCooldown < 0) this.engineCooldown = 0;
+                this.engineCooldown--;
             }
             
             if (state.current == state.game) {
-                this.autoFlightTimer += (deltaTime ? deltaTime * 60 : 1);
+                this.autoFlightTimer++;
                 if (this.autoFlightTimer > this.autoFlightDelay && this.velocityY > 0) {
-                    this.velocityY -= this.autoFlightPower * (deltaTime ? deltaTime * 60 : 1);
+                    this.velocityY -= this.autoFlightPower;
                 }
                 if (Math.abs(this.velocityY) < this.maxSpeed * 0.3) {
                     this.targetRotation *= 0.95;
@@ -173,11 +162,11 @@ bird = {
             }
             
             if (this.engineThrust > 0) {
-                this.velocityY -= this.engineThrust * this.enginePower * (deltaTime ? deltaTime * 60 : 1);
-                this.engineThrust *= Math.pow(this.thrustDecay, (deltaTime ? deltaTime * 60 : 1));
+                this.velocityY -= this.engineThrust * this.enginePower;
+                this.engineThrust *= this.thrustDecay;
             }
             
-            this.velocityY += this.acceleration * (deltaTime ? deltaTime * 60 : 1);
+            this.velocityY += this.acceleration;
             
             if (this.velocityY > this.maxSpeed) {
                 this.velocityY = this.maxSpeed;
@@ -186,7 +175,7 @@ bird = {
                 this.velocityY = this.minSpeed;
             }
             
-            this.y += this.velocityY * (deltaTime ? deltaTime * 60 : 1);
+            this.y += this.velocityY;
 
             if (engineHeld && state.current == state.game) {
                 if (this.velocityY < this.minSpeed * 0.5) {
@@ -205,10 +194,10 @@ bird = {
             }
             
             const rotationDiff = this.targetRotation - this.rotation;
-            this.rotationInertia += rotationDiff * this.rotationSpeed * (deltaTime ? deltaTime * 60 : 1);
+            this.rotationInertia += rotationDiff * this.rotationSpeed;
             this.rotationInertia = Math.max(-this.maxRotationInertia, Math.min(this.maxRotationInertia, this.rotationInertia));
-            this.rotation += this.rotationInertia * (deltaTime ? deltaTime * 60 : 1);
-            this.rotationInertia *= Math.pow(0.95, (deltaTime ? deltaTime * 60 : 1));
+            this.rotation += this.rotationInertia;
+            this.rotationInertia *= 0.95;
 
             if(this.y + this.h/2 >= foreground.y) {
                 this.y = foreground.y - this.h/2;
@@ -279,27 +268,84 @@ pipes = {
         }
     },
 
-    update: function(deltaTime) {
+    update: function() {
         if(state.current != state.game) return;
-        this._pipeTimer = this._pipeTimer || 0;
-        this._pipeTimer += (deltaTime ? deltaTime * 60 : 1);
-        if(this._pipeTimer >= 80) {
+
+        if(frames >= this.nextHelicopterFrame) {
+            // 40% шанс на движущийся по вертикали вертолёт
+            let moveY = false, moveDir = 1, moveSpeed = 0;
+            if (Math.random() < 0.4) {
+                moveY = true;
+                moveDir = Math.random() < 0.5 ? 1 : -1;
+                moveSpeed = 1 + Math.random(); // небольшая скорость 1-2 пикселя/кадр
+            }
             this.position.push({
                 x: cvs.width,
                 y: Math.random() * (cvs.height * 0.3),
-                scored: false
+                scored: false,
+                moveY: moveY,
+                moveDir: moveDir,
+                moveSpeed: moveSpeed
             });
-            this._pipeTimer = 0;
+            // Выбираем следующий интервал появления
+            let rand = Math.random();
+            let interval;
+            // Минимум 5 промежутков (5*80=400 кадров) между вертолётами
+            // Добавляем небольшой разброс для естественности
+            let base = 400;
+            if(rand < 0.6) interval = base + Math.floor(Math.random()*60); // 60% — 400-460 кадров
+            else if(rand < 0.85) interval = base + 100 + Math.floor(Math.random()*60); // 25% — 500-560 кадров
+            else interval = base + 200 + Math.floor(Math.random()*60); // 15% — 600-660 кадров
+            this.nextHelicopterFrame = frames + interval;
         }
+        
         for(let i = 0; i < this.position.length; i++) {
             let p = this.position[i];
-            p.x -= this.dx * (deltaTime ? deltaTime * 60 : 1);
+
+            if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w &&
+               bird.y + bird.radius_y > p.y && bird.y - bird.radius_y < p.y + this.h) {
+                state.current = state.gameOver;
+                if(!mute) {
+                    HIT.play();
+                    setTimeout(function() {
+                        if (state.current == state.gameOver) {
+                            DIE.currentTime = 0;
+                            DIE.play();
+                        }
+                    }, 500)
+                }
+            }
+            
+            if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w && bird.y <= 0) {
+                state.current = state.gameOver;
+                if(!mute) {
+                    HIT.play();
+                    setTimeout(function() {
+                        if (state.current == state.gameOver) {
+                            DIE.currentTime = 0;
+                            DIE.play();
+                        }
+                    }, 500)   
+                }   
+            }
+
+            p.x -= this.dx;
+            // Движение по вертикали для некоторых вертолётов
+            if (p.moveY) {
+                p.y += p.moveDir * p.moveSpeed;
+                // Границы: от 0 до foreground.y - this.h
+                if (p.y < 0) { p.y = 0; p.moveDir = 1; }
+                if (p.y > foreground.y - this.h) { p.y = foreground.y - this.h; p.moveDir = -1; }
+            }
+
             if (this.position.length == 6) {
                 this.position.splice(0, 2);
             }
+            
             if (p.x + this.w < bird.x - bird.radius_x && !p.scored) {
                 score.game_score++;
                 if(!mute) POINT.play();
+                
                 if(score.game_score > score.best_score) {
                     score.best_score = score.game_score;
                     score.new_best_score = true;
@@ -317,41 +363,34 @@ pipes = {
 };
 
 // Функции обновления и отрисовки
-function update(deltaTime) {
+function update() {
     if (state.current == state.game) {
         if (engineHeld) {
-            bird.flap(deltaTime);
+            bird.flap();
             bird.isReleased = false;
         } else if (!bird.isReleased) {
-            bird.release(deltaTime);
+            bird.release();
             bird.isReleased = true;
         }
     }
     if(!gamePaused) {
-        bird.update(deltaTime);
-        foreground.update(deltaTime);
-        pipes.update(deltaTime);
+        bird.update();
+        foreground.update();
+        pipes.update();
         background.update(); // Обновляем фон
     }
-    home.update(deltaTime);
+    home.update();
 }
 
 function draw() {
     if (!cvs) return;
-    // Проверяем загрузку всех ключевых спрайтов
-    if (!sprite_sheet.complete || !mori_model_sprite.complete || background_day_img.hasError || earth_img.hasError) {
+    if (!sprite_sheet.complete) {
         ctx.fillStyle = "#7BC5CD";
         ctx.fillRect(0, 0, cvs.width, cvs.height);
         ctx.fillStyle = "#000";
         ctx.font = "20px Arial";
         ctx.textAlign = "center";
-        if (background_day_img.hasError) {
-            ctx.fillText("Ошибка загрузки background_day_img", cvs.width / 2, cvs.height / 2);
-        } else if (earth_img.hasError) {
-            ctx.fillText("Ошибка загрузки earth_img", cvs.width / 2, cvs.height / 2);
-        } else {
-            ctx.fillText("Loading...", cvs.width / 2, cvs.height / 2);
-        }
+        ctx.fillText("Loading...", cvs.width / 2, cvs.height / 2);
         return;
     }
     
@@ -368,4 +407,3 @@ function draw() {
     gameOver.draw();
     score.draw();
 } 
-window.draw = draw; 

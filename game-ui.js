@@ -116,32 +116,27 @@ home = {
         }
     },
 
-    update: function(deltaTime) {
+    update: function() {
         if (state.current == state.home) {
-            let move = this.logo.dy * (deltaTime ? deltaTime * 60 : 1);
             if (this.logoGoUp) {
-                this.logo.y -= move;
-                this.bird.y -= move;
+                this.logo.y -= this.logo.dy;
+                this.bird.y -= this.logo.dy;
                 if(this.logo.y <= this.logo.MAXY) {
                     this.logoGoUp = false;
                 }
             }
             if (!this.logoGoUp) {
-                this.logo.y += move;
-                this.bird.y += move;
+                this.logo.y += this.logo.dy;
+                this.bird.y += this.logo.dy;
                 if(this.logo.y >= this.logo.MINY) {
                     this.logoGoUp = true;
                 }
             }
         }
 
-        this.period = isMobile ? 4 : 6;
-        this._frameTimer = this._frameTimer || 0;
-        this._frameTimer += (deltaTime ? deltaTime * 60 : 1);
-        if (this._frameTimer >= this.period) {
-            this.frame = (this.frame + 1) % this.animation.length;
-            this._frameTimer = 0;
-        }
+        this.period = isMobile ? 24 : 36;
+        this.frame += frames % this.period == 0 ? 1 : 0;
+        this.frame = this.frame % this.animation.length; 
     }
 };
 
@@ -175,25 +170,17 @@ gameOver = {
 // Функция масштабирования canvas
 canvasScale = function() {
     let screenWidth, screenHeight;
-    // Для Telegram Mini App используем viewport, если доступен
+    
     if (tg && tg.viewportStableHeight) {
+        screenWidth = tg.viewportStableHeight;
         screenHeight = tg.viewportStableHeight;
-        screenWidth = tg.viewportStableWidth || screenHeight * 9/16;
     } else {
         screenWidth = window.innerWidth;
         screenHeight = window.innerHeight;
     }
-    // Соотношение сторон 9:16 (портрет)
-    let aspect = 9/16;
-    if (screenWidth / screenHeight > aspect) {
-        // Слишком широкий экран — ограничиваем по высоте
-        cvs.height = screenHeight;
-        cvs.width = Math.floor(screenHeight * aspect);
-    } else {
-        // Слишком высокий экран — ограничиваем по ширине
-        cvs.width = screenWidth;
-        cvs.height = Math.floor(screenWidth / aspect);
-    }
+    
+    cvs.height = screenHeight;
+    cvs.width = screenHeight * 0.72;
 
     // BACKGROUND
     background.x = 0;
@@ -322,4 +309,3 @@ canvasScale = function() {
     score.best.y = cvs.height * 0.545;
     score.space = cvs.width * 0.016;
 } 
-window.canvasScale = canvasScale; 
