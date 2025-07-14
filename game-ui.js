@@ -204,18 +204,18 @@ canvasScale = function() {
     bird.h = cvs.height * 0.059;
     
     // ФИКСИРОВАННЫЕ ПАРАМЕТРЫ НЕ ЗАВИСЯТ ОТ РАЗМЕРА ОКНА
-    bird.gravity = 27;           // было 18
-    bird.jump = 495;             // было 330
-    bird.acceleration = 18;      // было 12
-    bird.enginePower = 36;       // было 24
-    bird.maxSpeed = 540;         // было 360
-    bird.minSpeed = -450;        // было -300
+    bird.gravity = 400;
+    bird.jump = 1200;
+    bird.acceleration = 400;
+    bird.enginePower = 800;
+    bird.maxSpeed = 1200;
+    bird.minSpeed = -1200;
     bird.rotationSpeed = 0.06;
     bird.maxEngineCooldown = 2;
     bird.maxThrust = 1.0;
     bird.thrustDecay = 0.92;
     bird.autoFlightDelay = 45;
-    bird.autoFlightPower = 9;    // было 6
+    bird.autoFlightPower = 400;
     bird.minEngineInterval = 2;
     bird.maxRotationInertia = 0.05;
     bird.wobbleSpeed = 0.08;
