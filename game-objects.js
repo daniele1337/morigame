@@ -1,34 +1,55 @@
 // Игровые объекты (оптимизированные)
 
-// Фон
+// Новый дневной фон
+const background_day_img = new Image();
+background_day_img.src = "img/separated/background_day.png";
+
 background = {
-    day_spriteX: 0,
+    // Координаты и размеры для совместимости
+    x: 0, y: 0, w: 0, h: 0,
     night_spriteX: 1211,
     spriteY: 392,
     spriteW: 552,
     spriteH: 408,
-    x: 0, y: 0, w: 0, h: 0,
     stars: {
         spriteX: 1211, spriteY: 0,
         spriteW: 552, spriteH: 392,
         y: 0, h: 0
     },
+    offsetX: 0,
+    speed: 1, // скорость движения фона (пикселей за кадр)
     draw: function() {
-        let spriteX = night ? this.night_spriteX : this.day_spriteX;
-        ctx.drawImage(sprite_sheet, spriteX, this.spriteY, this.spriteW, this.spriteH, this.x, this.y, this.w, this.h);
-        if(night) {
+        if (!night) {
+            let w = this.w * 2; // растягиваем фон в 2 раза шире canvas
+            let h = foreground.y; // высота фона до земли
+            let x1 = -this.offsetX % w;
+            ctx.drawImage(background_day_img, x1, 0, w, h);
+            ctx.drawImage(background_day_img, x1 + w, 0, w, h);
+        } else {
+            ctx.drawImage(sprite_sheet, this.night_spriteX, this.spriteY, this.spriteW, this.spriteH, this.x, this.y, this.w, this.h);
             ctx.drawImage(sprite_sheet, this.stars.spriteX, this.stars.spriteY, this.stars.spriteW, this.stars.spriteH, this.x, this.stars.y, this.w, this.stars.h);
+        }
+    },
+    update: function() {
+        if (!night) {
+            this.offsetX += this.speed;
+        } else {
+            this.offsetX = 0;
         }
     }
 };
 
 // Передний план
+// Новый рисунок земли
+const earth_img = new Image();
+earth_img.src = "img/separated/earth.png";
 foreground = {
     spriteX: 553, spriteY: 576, spriteW: 447, spriteH: 224,
     x: 0, y: 0, w: 0, h: 0, dx: 0,
     draw: function() {
-        ctx.drawImage(sprite_sheet, this.spriteX, this.spriteY, this.spriteW, this.spriteH, this.x, this.y, this.w, this.h);
-        ctx.drawImage(sprite_sheet, this.spriteX, this.spriteY, this.spriteW, this.spriteH, (this.x + this.w)-0.7, this.y, this.w, this.h);
+        // Рисуем землю новой текстурой
+        ctx.drawImage(earth_img, this.x, this.y, this.w, this.h);
+        ctx.drawImage(earth_img, (this.x + this.w)-0.7, this.y, this.w, this.h);
     },
     update: function(deltaTime) {
         if(state.current != state.gameOver) {
@@ -102,13 +123,13 @@ bird = {
 
     update: function(deltaTime) {
         if (state.current == state.getReady) {
-            this.period = isMobile ? 12 : 9; // Медленнее на мобильных
+            this.period = isMobile ? 72 : 56; // Ещё медленнее (ещё на 50%)
         } else if (state.current == state.game) {
             const speedFactor = Math.abs(this.velocityY) / this.maxSpeed;
-            const basePeriod = isMobile ? 8 : 5; // Медленнее на мобильных
-            this.period = Math.max(3, Math.min(basePeriod, 12 - speedFactor * 3));
+            const basePeriod = isMobile ? 48 : 32; // Ещё медленнее (ещё на 50%)
+            this.period = Math.max(16, Math.min(basePeriod, 72 - speedFactor * 18));
         } else {
-            this.period = isMobile ? 8 : 6; // Медленнее на мобильных
+            this.period = isMobile ? 48 : 36; // Ещё медленнее (ещё на 50%)
         }
         
         this.frame += frames % this.period == 0 ? 1 : 0;
@@ -221,10 +242,12 @@ pipes = {
     top: {spriteX: 1001, spriteY: 0, spriteW: 104, spriteH: 800, x: 0, y: 0, w: 0, h: 0},
     bottom: {spriteX: 1105, spriteY: 0, spriteW: 104, spriteH: 800, x: 0, y: 0, w: 0, h: 0},
     helicopterFrame: 0, helicopterFrameCount: 3, helicopterFrameTick: 0,
-    helicopterFrameTickMax: isMobile ? 14 : 7, // Медленнее на мобильных
+    // Понижаем скорость смены кадров вертолёта на 50%
+    helicopterFrameTickMax: isMobile ? 84 : 44,
     helicopterSpriteW: 256, helicopterSpriteH: 320,
     helicopterDrawW: 96, helicopterDrawH: 48,
     dx: 0, gap: 0, maxYPos: 0, scored: false,
+    nextHelicopterFrame: 80,
 
     draw: function() {
         this.helicopterFrameTick++;
@@ -248,15 +271,43 @@ pipes = {
 
     update: function(deltaTime) {
         if(state.current != state.game) return;
+<<<<<<< HEAD
         this._pipeTimer = this._pipeTimer || 0;
         this._pipeTimer += (deltaTime ? deltaTime * 60 : 1);
         if(this._pipeTimer >= 80) {
+=======
+
+        if(frames >= this.nextHelicopterFrame) {
+            // 40% шанс на движущийся по вертикали вертолёт
+            let moveY = false, moveDir = 1, moveSpeed = 0;
+            if (Math.random() < 0.4) {
+                moveY = true;
+                moveDir = Math.random() < 0.5 ? 1 : -1;
+                moveSpeed = 1 + Math.random(); // небольшая скорость 1-2 пикселя/кадр
+            }
+>>>>>>> 47548a7f01b8e440aa14bb81c74350d53ad170e6
             this.position.push({
                 x: cvs.width,
                 y: Math.random() * (cvs.height * 0.3),
-                scored: false
+                scored: false,
+                moveY: moveY,
+                moveDir: moveDir,
+                moveSpeed: moveSpeed
             });
+<<<<<<< HEAD
             this._pipeTimer = 0;
+=======
+            // Выбираем следующий интервал появления
+            let rand = Math.random();
+            let interval;
+            // Минимум 5 промежутков (5*80=400 кадров) между вертолётами
+            // Добавляем небольшой разброс для естественности
+            let base = 400;
+            if(rand < 0.6) interval = base + Math.floor(Math.random()*60); // 60% — 400-460 кадров
+            else if(rand < 0.85) interval = base + 100 + Math.floor(Math.random()*60); // 25% — 500-560 кадров
+            else interval = base + 200 + Math.floor(Math.random()*60); // 15% — 600-660 кадров
+            this.nextHelicopterFrame = frames + interval;
+>>>>>>> 47548a7f01b8e440aa14bb81c74350d53ad170e6
         }
         
         for(let i = 0; i < this.position.length; i++) {
@@ -289,7 +340,18 @@ pipes = {
                 }   
             }
 
+<<<<<<< HEAD
             p.x -= this.dx * (deltaTime ? deltaTime * 60 : 1);
+=======
+            p.x -= this.dx;
+            // Движение по вертикали для некоторых вертолётов
+            if (p.moveY) {
+                p.y += p.moveDir * p.moveSpeed;
+                // Границы: от 0 до foreground.y - this.h
+                if (p.y < 0) { p.y = 0; p.moveDir = 1; }
+                if (p.y > foreground.y - this.h) { p.y = foreground.y - this.h; p.moveDir = -1; }
+            }
+>>>>>>> 47548a7f01b8e440aa14bb81c74350d53ad170e6
 
             if (this.position.length == 6) {
                 this.position.splice(0, 2);
@@ -311,6 +373,7 @@ pipes = {
 
     pipesReset: function() {
         this.position = [];
+        this.nextHelicopterFrame = frames + 400;
     }
 };
 
@@ -326,9 +389,16 @@ function update(deltaTime) {
         }
     }
     if(!gamePaused) {
+<<<<<<< HEAD
         bird.update(deltaTime);
         foreground.update(deltaTime);
         pipes.update(deltaTime);
+=======
+        bird.update();
+        foreground.update();
+        pipes.update();
+        background.update(); // Обновляем фон
+>>>>>>> 47548a7f01b8e440aa14bb81c74350d53ad170e6
     }
     home.update(deltaTime);
 }
