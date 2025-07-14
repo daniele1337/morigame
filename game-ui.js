@@ -103,8 +103,8 @@ function drawVolumeSlider() {
     const sliderWidth = gameButtons.w * 2.2;
     const sliderHeight = gameButtons.h * 0.28;
     const sliderX = gameButtons.x; // Левый край совпадает с кнопкой mute
-    const sliderY = gameButtons.y + gameButtons.h + 10;
-    const knobRadius = sliderHeight * 1.1;
+    const sliderY = gameButtons.y + gameButtons.h + 20; // сдвинуть ниже
+    const knobRadius = sliderHeight * 0.55; // круг в 2 раза меньше
     // Фон
     ctx.save();
     ctx.globalAlpha = 0.92;
