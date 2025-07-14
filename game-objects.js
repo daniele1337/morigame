@@ -287,14 +287,16 @@ pipes = {
         if (this.spawnTimer >= interval) {
             // 40% шанс на движущийся по вертикали вертолёт
             let moveY = false, moveDir = 1, moveSpeed = 0;
+            let y = Math.random() * (cvs.height * 0.3);
             if (Math.random() < 0.4) {
                 moveY = true;
                 moveDir = Math.random() < 0.5 ? 1 : -1;
-                moveSpeed = 1 + Math.random(); // небольшая скорость 1-2 пикселя/кадр
+                moveSpeed = 60 + Math.random() * 60; // 60-120 пикселей/сек
+                y = Math.random() * (foreground.y - pipes.h); // стартовая позиция по вертикали
             }
             this.position.push({
                 x: cvs.width,
-                y: Math.random() * (cvs.height * 0.3),
+                y: y,
                 scored: false,
                 moveY: moveY,
                 moveDir: moveDir,
