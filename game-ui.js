@@ -156,7 +156,7 @@ home = {
         let bird = this.animation[this.frame];
 
         if(state.current == state.home) {
-            ctx.drawImage(sprite_sheet, this.logo.spriteX, this.logo.spriteY, this.logo.spriteW, this.logo.spriteH, this.logo.x, this.logo.y, this.logo.w, this.logo.h);
+            ctx.drawImage(mainLogoImg, this.logo.x, this.logo.y, this.logo.w, this.logo.h);
             ctx.drawImage(mori_model_sprite, bird.spriteX, bird.spriteY, bird.spriteW, bird.spriteH, this.bird.x, this.bird.y, this.bird.w, this.bird.h);
             ctx.drawImage(sprite_sheet, this.studio_name.spriteX, this.studio_name.spriteY, this.studio_name.spriteW, this.studio_name.spriteH, this.studio_name.x, this.studio_name.y, this.studio_name.w, this.studio_name.h);
         }
@@ -220,6 +220,10 @@ getReadyImg.src = "img/separated/get_ready.png";
 // === Загрузка отдельного изображения для game over ===
 const gameOverImg = new Image();
 gameOverImg.src = "img/separated/game_over.png";
+
+// === Загрузка отдельного изображения для главного логотипа ===
+const mainLogoImg = new Image();
+mainLogoImg.src = "img/separated/main_logo_text.png";
 
 // === Глобальная переменная для значения громкости ===
 var volumeSliderValue = 1.0;
