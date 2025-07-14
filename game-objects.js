@@ -287,12 +287,22 @@ pipes = {
         if (this.spawnTimer >= interval) {
             // 40% шанс на движущийся по вертикали вертолёт
             let moveY = false, moveDir = 1, moveSpeed = 0;
+            let moveCircle = false, circleAngle = 0, circleSpeed = 0, circleRadius = 0, circleCenterY = 0;
             let y = Math.random() * (cvs.height * 0.3);
-            if (Math.random() < 0.4) {
+            if (Math.random() < 0.1) {
+                // 10% — круговая траектория
+                moveCircle = true;
+                circleAngle = Math.random() * Math.PI * 2;
+                circleSpeed = 1.2 + Math.random() * 0.8; // радиан/сек
+                circleRadius = (foreground.y - pipes.h) / 2;
+                circleCenterY = circleRadius;
+                y = circleCenterY + Math.sin(circleAngle) * circleRadius;
+            } else if (Math.random() < 0.4/0.9) {
+                // 40% от оставшихся — вертикальная траектория
                 moveY = true;
                 moveDir = Math.random() < 0.5 ? 1 : -1;
                 moveSpeed = 60 + Math.random() * 60; // 60-120 пикселей/сек
-                y = Math.random() * (foreground.y - pipes.h); // стартовая позиция по вертикали
+                y = Math.random() * (foreground.y - pipes.h);
             }
             this.position.push({
                 x: cvs.width,
@@ -300,7 +310,12 @@ pipes = {
                 scored: false,
                 moveY: moveY,
                 moveDir: moveDir,
-                moveSpeed: moveSpeed
+                moveSpeed: moveSpeed,
+                moveCircle: moveCircle,
+                circleAngle: circleAngle,
+                circleSpeed: circleSpeed,
+                circleRadius: circleRadius,
+                circleCenterY: circleCenterY
             });
             this.spawnTimer = 0;
         }
@@ -342,6 +357,12 @@ pipes = {
                 // Границы: от 0 до foreground.y - this.h
                 if (p.y < 0) { p.y = 0; p.moveDir = 1; }
                 if (p.y > foreground.y - this.h) { p.y = foreground.y - this.h; p.moveDir = -1; }
+            }
+            // Движение по круговой траектории
+            if (p.moveCircle) {
+                p.circleAngle += p.circleSpeed * (delta || 1);
+                if (p.circleAngle > Math.PI * 2) p.circleAngle -= Math.PI * 2;
+                p.y = p.circleCenterY + Math.sin(p.circleAngle) * p.circleRadius;
             }
 
             if (this.position.length == 6) {
