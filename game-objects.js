@@ -255,10 +255,12 @@ pipes = {
     dx: 0, gap: 0, maxYPos: 0, scored: false,
     nextHelicopterFrame: 80,
     helicopterFrameTime: 0, // для анимации по времени
+    spawnTimer: 0, // таймер появления
+    spawnInterval: 2.5, // базовый интервал появления в секундах (эквивалентно 400 кадров при 160 FPS)
 
     draw: function() {
         this.helicopterFrameTime += (typeof window !== 'undefined' && window.lastDelta) ? window.lastDelta : 0.016;
-        let framePeriod = 0.08; // 0.08 сек = 12.5 кадров/сек
+        let framePeriod = 0.12; // было 0.08 сек = 8.3 кадров/сек (замедлено на 50%)
         if (this.helicopterFrameTime > framePeriod) {
             this.helicopterFrame = (this.helicopterFrame + 1) % this.helicopterFrameCount;
             this.helicopterFrameTime = 0;
@@ -280,7 +282,9 @@ pipes = {
     update: function(delta) {
         if(state.current != state.game) return;
 
-        if(frames >= this.nextHelicopterFrame) {
+        this.spawnTimer += delta;
+        let interval = this.spawnInterval + (Math.random() - 0.5) * 0.4; // небольшой разброс
+        if (this.spawnTimer >= interval) {
             // 40% шанс на движущийся по вертикали вертолёт
             let moveY = false, moveDir = 1, moveSpeed = 0;
             if (Math.random() < 0.4) {
@@ -296,16 +300,7 @@ pipes = {
                 moveDir: moveDir,
                 moveSpeed: moveSpeed
             });
-            // Выбираем следующий интервал появления
-            let rand = Math.random();
-            let interval;
-            // Минимум 5 промежутков (5*80=400 кадров) между вертолётами
-            // Добавляем небольшой разброс для естественности
-            let base = 400;
-            if(rand < 0.6) interval = base + Math.floor(Math.random()*60); // 60% — 400-460 кадров
-            else if(rand < 0.85) interval = base + 100 + Math.floor(Math.random()*60); // 25% — 500-560 кадров
-            else interval = base + 200 + Math.floor(Math.random()*60); // 15% — 600-660 кадров
-            this.nextHelicopterFrame = frames + interval;
+            this.spawnTimer = 0;
         }
         
         for(let i = 0; i < this.position.length; i++) {
