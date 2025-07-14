@@ -61,6 +61,7 @@ gameButtons = {
     x: 0, y: 0, w: 0, h: 0, y_pressed: 0, isPressed: false,
 
     draw: function() {
+        mute = true; // Принудительно выключаем звук при первом рендере
         let button_y = this.isPressed ? this.y_pressed : this.y;
         let night_button_y = this.night_button.isPressed ? this.y_pressed : this.y;
         let start_button_y = this.start_button.isPressed ? this.start_button.y_pressed : this.start_button.y;
@@ -228,6 +229,9 @@ mainLogoImg.src = "img/separated/main_logo_text.png";
 // === Глобальная переменная для значения громкости ===
 var volumeSliderValue = 1.0;
 
+// === Принудительно выключаем звук по умолчанию ===
+if (typeof mute === 'undefined') mute = true;
+
 // Функция масштабирования canvas
 canvasScale = function() {
     let screenWidth, screenHeight;
@@ -370,3 +374,16 @@ canvasScale = function() {
     score.best.y = cvs.height * 0.545;
     score.space = cvs.width * 0.016;
 } 
+
+// === Синхронизация состояния иконки звука с mute ===
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof mute !== 'undefined' && mute) {
+        if (typeof soundButton !== 'undefined') {
+            soundButton.state = 'off';
+        }
+        // Если есть функция для обновления UI, вызвать её
+        if (typeof updateSoundButtonUI === 'function') {
+            updateSoundButtonUI();
+        }
+    }
+}); 

@@ -302,20 +302,22 @@ pipes = {
                     p.x, topYPos, localDrawW, localDrawH
                 );
                 // === ВИЗУАЛИЗАЦИЯ ЗОН КОЛЛИЗИИ ВЕРТОЛЁТА ===
-                ctx.save();
-                ctx.globalAlpha = 0.3;
-                ctx.fillStyle = 'orange';
-                for (let zone of helicopterCollisionZones) {
-                    let scaleX = localDrawW / f.sw;
-                    let scaleY = localDrawH / f.sh;
-                    ctx.fillRect(
-                        p.x + zone.x * scaleX,
-                        topYPos + zone.y * scaleY,
-                        zone.w * scaleX,
-                        zone.h * scaleY
-                    );
+                if (showCollisionTest) {
+                    ctx.save();
+                    ctx.globalAlpha = 0.3;
+                    ctx.fillStyle = 'orange';
+                    for (let zone of helicopterCollisionZones) {
+                        let scaleX = localDrawW / f.sw;
+                        let scaleY = localDrawH / f.sh;
+                        ctx.fillRect(
+                            p.x + zone.x * scaleX,
+                            topYPos + zone.y * scaleY,
+                            zone.w * scaleX,
+                            zone.h * scaleY
+                        );
+                    }
+                    ctx.restore();
                 }
-                ctx.restore();
             }
         }
         // Удаляю тестовые прямоугольники:
@@ -703,7 +705,7 @@ function draw() {
     gameOver.draw();
     score.draw();
     // === ВИЗУАЛИЗАЦИЯ ЗОН КОЛЛИЗИИ ГЕРОЯ ===
-    if (typeof bird !== 'undefined' && birdVisible) {
+    if (showCollisionTest && typeof bird !== 'undefined' && birdVisible) {
         ctx.save();
         ctx.globalAlpha = 0.3;
         ctx.fillStyle = 'cyan';
@@ -720,7 +722,7 @@ function draw() {
         ctx.restore();
     }
     // === ВИЗУАЛИЗАЦИЯ ЗОН КОЛЛИЗИИ МГУ ===
-    if (typeof mguObstacles !== 'undefined' && mguObstacles.length > 0) {
+    if (showCollisionTest && typeof mguObstacles !== 'undefined' && mguObstacles.length > 0) {
         ctx.save();
         ctx.globalAlpha = 0.3;
         ctx.fillStyle = 'orange';
@@ -738,4 +740,53 @@ function draw() {
         }
         ctx.restore();
     }
+    // === Чекбокс только в главном меню ===
+    if (typeof state !== 'undefined' && state.current === state.home) {
+        drawCollisionCheckbox(ctx);
+    }
 } 
+
+// === Глобальная переменная для теста коллизий ===
+window.showCollisionTest = false;
+
+// === Координаты чекбокса ===
+const checkboxX = 60, checkboxY = 220, checkboxSize = 28;
+
+// === Функция для отрисовки чекбокса ===
+function drawCollisionCheckbox(ctx) {
+    ctx.save();
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(checkboxX, checkboxY, checkboxSize, checkboxSize);
+    if (window.showCollisionTest) {
+        ctx.beginPath();
+        ctx.moveTo(checkboxX + 6, checkboxY + 14);
+        ctx.lineTo(checkboxX + 12, checkboxY + 22);
+        ctx.lineTo(checkboxX + 22, checkboxY + 6);
+        ctx.stroke();
+    }
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "#222";
+    ctx.fillText("Тест коллизий", checkboxX + 38, checkboxY + 22);
+    ctx.restore();
+}
+
+// === Обработка клика по canvas для чекбокса ===
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('canvas');
+    if (canvas) {
+        canvas.addEventListener('click', function(e) {
+            if (typeof state !== 'undefined' && state.current === state.home) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                if (
+                    mouseX >= checkboxX && mouseX <= checkboxX + checkboxSize &&
+                    mouseY >= checkboxY && mouseY <= checkboxY + checkboxSize
+                ) {
+                    window.showCollisionTest = !window.showCollisionTest;
+                }
+            }
+        });
+    }
+}); 

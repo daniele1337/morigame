@@ -2,6 +2,9 @@ cvs = document.getElementById("canvas");
 ctx = cvs.getContext("2d");
 isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+// === Глобальная переменная для отключения звука по умолчанию ===
+mute = true;
+
 // LOAD SPRITE SHEET
 sprite_sheet = new Image();
 sprite_sheet.onload = function() {
