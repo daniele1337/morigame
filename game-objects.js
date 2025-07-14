@@ -82,6 +82,7 @@ bird = {
     frameTime: 0, // для анимации по времени
 
     draw: function() {
+        if (!birdVisible) return;
         if (typeof explosionActive !== 'undefined' && explosionActive) return;
         let bird = this.animation[this.frame];
         ctx.save();
@@ -216,6 +217,7 @@ bird = {
                     explosionX = this.x;
                     explosionY = this.y;
                     explosionTimer = 0;
+                    birdVisible = true; // Сброс видимости птицы при взрыве
                     // === КОНЕЦ ===
                     if(!mute) {
                         HIT.play();
@@ -246,6 +248,9 @@ bird = {
         this.lastEngineTime = 0;
         this.rotationInertia = 0;
         engineHeld = false;
+        birdVisible = true;         // сброс видимости птицы
+        explosionActive = false;    // сброс взрыва
+        explosionTimer = 0;         // сброс таймера взрыва
     }
 };
 
@@ -338,6 +343,7 @@ pipes = {
                 explosionX = bird.x;
                 explosionY = bird.y;
                 explosionTimer = 0;
+                birdVisible = true; // Сброс видимости птицы при взрыве
                 // === КОНЕЦ ===
                 if(!mute) {
                     HIT.play();
@@ -357,6 +363,7 @@ pipes = {
                 explosionX = bird.x;
                 explosionY = bird.y;
                 explosionTimer = 0;
+                birdVisible = true; // Сброс видимости птицы при взрыве
                 // === КОНЕЦ ===
                 if(!mute) {
                     HIT.play();
@@ -417,7 +424,31 @@ let explosionActive = false;
 let explosionX = 0;
 let explosionY = 0;
 let explosionTimer = 0;
+// === Глобальные переменные для взрыва и видимости птицы ===
+var birdVisible = true;
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
+
+// === Функция для отрисовки взрыва ===
+function drawExplosion() {
+    if (explosionActive) {
+        let explosionImg = new Image();
+        explosionImg.src = 'img/separated/explosion.png';
+        ctx.save();
+        ctx.globalAlpha = 0.8;
+        ctx.drawImage(explosionImg, explosionX - 64, explosionY - 64, 128, 128);
+        ctx.restore();
+    }
+}
+
+// === В update-цикле ===
+function updateExplosion(delta) {
+    if (explosionActive) {
+        explosionTimer += delta;
+        if (explosionTimer > 0.7) { // 0.7 сек — длительность взрыва
+            birdVisible = false;
+        }
+    }
+}
 
 // Функции обновления и отрисовки
 function update(delta) {

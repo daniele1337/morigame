@@ -56,7 +56,9 @@ function gameLoop(now) {
     let delta = (now - lastTime) / 1000; // в секундах
     window.lastDelta = delta; // для передачи в draw-функции
     update(delta);
+    updateExplosion(delta);
     draw();
+    drawExplosion();
     if (!gamePaused) frames++;
     lastTime = now;
     requestAnimationFrame(gameLoop);
