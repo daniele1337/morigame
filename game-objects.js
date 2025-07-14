@@ -551,8 +551,11 @@ function drawExplosion() {
         const sx = 659, sy = 177, sw = 459, sh = 442;
         // Смещение взрыва назад с той же скоростью, что и препятствие
         let dx = -explosion_dx * explosionTimer;
+        // === АНИМАЦИЯ ИСЧЕЗНОВЕНИЯ ===
+        let alpha = 0.8 * (1 - explosionTimer / EXPLOSION_DURATION);
+        if (alpha < 0) alpha = 0;
         ctx.save();
-        ctx.globalAlpha = 0.8;
+        ctx.globalAlpha = alpha;
         ctx.drawImage(
             explosion_img,
             sx, sy, sw, sh,
@@ -695,7 +698,7 @@ function draw() {
         bird.draw();
     }
     // === ОТРИСОВКА ВЗРЫВА ===
-    if (explosionActive) {
+    if (explosionActive && state.current !== state.gameOver) {
         drawExplosion();
     }
     // === КОНЕЦ ===
