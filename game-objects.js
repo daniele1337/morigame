@@ -82,6 +82,7 @@ bird = {
     frameTime: 0, // для анимации по времени
 
     draw: function() {
+        if (typeof explosionActive !== 'undefined' && explosionActive) return;
         let bird = this.animation[this.frame];
         ctx.save();
         
@@ -210,6 +211,12 @@ bird = {
                 this.y = foreground.y - this.h/2;
                 if(state.current == state.game) {
                     state.current = state.gameOver;
+                    // === ВЗРЫВ ===
+                    explosionActive = true;
+                    explosionX = this.x;
+                    explosionY = this.y;
+                    explosionTimer = 0;
+                    // === КОНЕЦ ===
                     if(!mute) {
                         HIT.play();
                         setTimeout(function() {
@@ -326,6 +333,12 @@ pipes = {
             if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w &&
                bird.y + bird.radius_y > p.y && bird.y - bird.radius_y < p.y + this.h) {
                 state.current = state.gameOver;
+                // === ВЗРЫВ ===
+                explosionActive = true;
+                explosionX = bird.x;
+                explosionY = bird.y;
+                explosionTimer = 0;
+                // === КОНЕЦ ===
                 if(!mute) {
                     HIT.play();
                     setTimeout(function() {
@@ -339,6 +352,12 @@ pipes = {
             
             if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w && bird.y <= 0) {
                 state.current = state.gameOver;
+                // === ВЗРЫВ ===
+                explosionActive = true;
+                explosionX = bird.x;
+                explosionY = bird.y;
+                explosionTimer = 0;
+                // === КОНЕЦ ===
                 if(!mute) {
                     HIT.play();
                     setTimeout(function() {
@@ -389,8 +408,25 @@ pipes = {
     }
 };
 
+// === ДОБАВЛЯЕМ В НАЧАЛО ФАЙЛА ===
+const explosion_img = new Image();
+explosion_img.src = "img/separated/explosion.png";
+
+// Переменная для хранения состояния взрыва
+let explosionActive = false;
+let explosionX = 0;
+let explosionY = 0;
+let explosionTimer = 0;
+// === КОНЕЦ ДОБАВЛЕНИЯ ===
+
 // Функции обновления и отрисовки
 function update(delta) {
+    if (explosionActive) {
+        explosionTimer += delta;
+        if (explosionTimer > 1) { // 1 секунда
+            explosionActive = false;
+        }
+    }
     if (state.current == state.game) {
         if (engineHeld) {
             bird.flap();
@@ -427,7 +463,23 @@ function draw() {
     background.draw();
     pipes.draw();
     foreground.draw();
-    bird.draw();
+    // === НЕ РИСУЕМ ПЕРСОНАЖА, ЕСЛИ ВЗРЫВ ===
+    if (!explosionActive) {
+        bird.draw();
+    }
+    // === ОТРИСОВКА ВЗРЫВА ===
+    if (explosionActive) {
+        // Координаты и размер фрагмента взрыва
+        const sx = 659, sy = 177, sw = 459, sh = 442;
+        // Центрируем взрыв относительно птицы
+        ctx.drawImage(
+            explosion_img,
+            sx, sy, sw, sh,
+            explosionX - sw/2, explosionY - sh/2,
+            sw, sh
+        );
+    }
+    // === КОНЕЦ ===
     home.draw();
     getReady.draw();
     gameButtons.draw();
