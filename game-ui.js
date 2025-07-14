@@ -195,7 +195,7 @@ canvasScale = function() {
     foreground.y = cvs.height * 0.861;
     foreground.w = cvs.width * 0.7;
     foreground.h = foreground.w * 0.46;
-    foreground.dx = cvs.width * 0.007;
+    foreground.dx = cvs.width * 0.63;
 
     // BIRD
     bird.x = cvs.width * 0.290;
@@ -204,18 +204,18 @@ canvasScale = function() {
     bird.h = cvs.height * 0.059;
     
     // ФИКСИРОВАННЫЕ ПАРАМЕТРЫ НЕ ЗАВИСЯТ ОТ РАЗМЕРА ОКНА
-    bird.gravity = 0.3;           // Гравитация
-    bird.jump = 5.5;              // Сила прыжка
-    bird.acceleration = 0.2;      // Ускорение падения
-    bird.enginePower = 0.4;       // Сила реактивного двигателя
-    bird.maxSpeed = 6;            // Максимальная скорость падения
-    bird.minSpeed = -5;           // Минимальная скорость (максимальная скорость подъема)
+    bird.gravity = 27;           // было 18
+    bird.jump = 495;             // было 330
+    bird.acceleration = 18;      // было 12
+    bird.enginePower = 36;       // было 24
+    bird.maxSpeed = 540;         // было 360
+    bird.minSpeed = -450;        // было -300
     bird.rotationSpeed = 0.06;
     bird.maxEngineCooldown = 2;
     bird.maxThrust = 1.0;
     bird.thrustDecay = 0.92;
     bird.autoFlightDelay = 45;
-    bird.autoFlightPower = 0.1;   // Сила автополета
+    bird.autoFlightPower = 9;    // было 6
     bird.minEngineInterval = 2;
     bird.maxRotationInertia = 0.05;
     bird.wobbleSpeed = 0.08;
@@ -231,7 +231,7 @@ canvasScale = function() {
     pipes.h = pipesDrawH * 0.8;
     pipes.gap = 120;
     pipes.maxYPos = -(cvs.height * 0.350); // Оставляем зависимость для генерации препятствий
-    pipes.dx = 2;                // Скорость движения препятствий
+    pipes.dx = 180;                // было 120
 
     // HOME
     home.logo.x = cvs.width * 0.098;
