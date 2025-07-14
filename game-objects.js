@@ -107,7 +107,7 @@ bird = {
             return;
         }
         if (!engineHeld && this.engineCooldown > 0) return;
-        if (!engineHeld && (performance.now() - this.lastEngineTime < this.minEngineInterval * 16.67)) return;
+        if (!engineHeld && (performance.now() - this.lastEngineTime < this.minEngineInterval * 1000)) return;
         
         if (!engineHeld) {
             this.engineCooldown = this.maxEngineCooldown;
@@ -145,30 +145,30 @@ bird = {
             engineHeld = false;
         } else {
             if (this.engineCooldown > 0) {
-                this.engineCooldown -= deltaTime * 60;
+                this.engineCooldown -= deltaTime;
                 if (this.engineCooldown < 0) this.engineCooldown = 0;
             }
             if (state.current == state.game) {
-                this.autoFlightTimer += deltaTime * 60;
+                this.autoFlightTimer += deltaTime;
                 if (this.autoFlightTimer > this.autoFlightDelay && this.velocityY > 0) {
-                    this.velocityY -= this.autoFlightPower * deltaTime * 60;
+                    this.velocityY -= this.autoFlightPower * deltaTime;
                 }
                 if (Math.abs(this.velocityY) < this.maxSpeed * 0.3) {
                     this.targetRotation *= 0.95;
                 }
             }
             if (this.engineThrust > 0) {
-                this.velocityY -= this.engineThrust * this.enginePower * deltaTime * 60;
-                this.engineThrust *= Math.pow(this.thrustDecay, deltaTime * 60);
+                this.velocityY -= this.engineThrust * this.enginePower * deltaTime;
+                this.engineThrust *= Math.pow(this.thrustDecay, deltaTime);
             }
-            this.velocityY += this.acceleration * deltaTime * 60;
+            this.velocityY += this.acceleration * deltaTime;
             if (this.velocityY > this.maxSpeed) {
                 this.velocityY = this.maxSpeed;
             }
             if (this.velocityY < this.minSpeed) {
                 this.velocityY = this.minSpeed;
             }
-            this.y += this.velocityY * deltaTime * 60;
+            this.y += this.velocityY * deltaTime;
             if (engineHeld && state.current == state.game) {
                 if (this.velocityY < this.minSpeed * 0.5) {
                     this.targetRotation = -8 * Math.PI/180;
@@ -185,10 +185,10 @@ bird = {
                 this.targetRotation = 0;
             }
             const rotationDiff = this.targetRotation - this.rotation;
-            this.rotationInertia += rotationDiff * this.rotationSpeed * deltaTime * 60;
+            this.rotationInertia += rotationDiff * this.rotationSpeed * deltaTime;
             this.rotationInertia = Math.max(-this.maxRotationInertia, Math.min(this.maxRotationInertia, this.rotationInertia));
-            this.rotation += this.rotationInertia * deltaTime * 60;
-            this.rotationInertia *= Math.pow(0.95, deltaTime * 60);
+            this.rotation += this.rotationInertia * deltaTime;
+            this.rotationInertia *= Math.pow(0.95, deltaTime);
             if(this.y + this.h/2 >= foreground.y) {
                 this.y = foreground.y - this.h/2;
                 if(state.current == state.game) {
