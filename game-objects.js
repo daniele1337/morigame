@@ -40,12 +40,16 @@ background = {
 };
 
 // Передний план
+// Новый рисунок земли
+const earth_img = new Image();
+earth_img.src = "img/separated/earth.png";
 foreground = {
     spriteX: 553, spriteY: 576, spriteW: 447, spriteH: 224,
     x: 0, y: 0, w: 0, h: 0, dx: 0,
     draw: function() {
-        ctx.drawImage(sprite_sheet, this.spriteX, this.spriteY, this.spriteW, this.spriteH, this.x, this.y, this.w, this.h);
-        ctx.drawImage(sprite_sheet, this.spriteX, this.spriteY, this.spriteW, this.spriteH, (this.x + this.w)-0.7, this.y, this.w, this.h);
+        // Рисуем землю новой текстурой
+        ctx.drawImage(earth_img, this.x, this.y, this.w, this.h);
+        ctx.drawImage(earth_img, (this.x + this.w)-0.7, this.y, this.w, this.h);
     },
     update: function() {
         if(state.current != state.gameOver) {
