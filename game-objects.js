@@ -30,9 +30,9 @@ foreground = {
         ctx.drawImage(sprite_sheet, this.spriteX, this.spriteY, this.spriteW, this.spriteH, this.x, this.y, this.w, this.h);
         ctx.drawImage(sprite_sheet, this.spriteX, this.spriteY, this.spriteW, this.spriteH, (this.x + this.w)-0.7, this.y, this.w, this.h);
     },
-    update: function() {
+    update: function(deltaTime) {
         if(state.current != state.gameOver) {
-            this.x = (this.x - this.dx) % (this.w/2);
+            this.x = (this.x - this.dx * (deltaTime ? deltaTime * 60 : 1)) % (this.w/2);
         }
     }
 };
@@ -77,7 +77,7 @@ bird = {
         ctx.restore();
     },
 
-    flap: function() {
+    flap: function(deltaTime) {
         if (!engineHeld) {
             this.engineThrust = 0;
             return;
@@ -95,12 +95,12 @@ bird = {
         this.targetRotation = -8 * Math.PI/180;
     },
     
-    release: function() {
+    release: function(deltaTime) {
         this.engineThrust = 0;
         this.targetRotation = 8 * Math.PI/180;
     },
 
-    update: function() {
+    update: function(deltaTime) {
         if (state.current == state.getReady) {
             this.period = isMobile ? 12 : 9; // Медленнее на мобильных
         } else if (state.current == state.game) {
@@ -127,13 +127,14 @@ bird = {
             engineHeld = false;
         } else {
             if (this.engineCooldown > 0) {
-                this.engineCooldown--;
+                this.engineCooldown -= (deltaTime ? deltaTime * 60 : 1);
+                if (this.engineCooldown < 0) this.engineCooldown = 0;
             }
             
             if (state.current == state.game) {
-                this.autoFlightTimer++;
+                this.autoFlightTimer += (deltaTime ? deltaTime * 60 : 1);
                 if (this.autoFlightTimer > this.autoFlightDelay && this.velocityY > 0) {
-                    this.velocityY -= this.autoFlightPower;
+                    this.velocityY -= this.autoFlightPower * (deltaTime ? deltaTime * 60 : 1);
                 }
                 if (Math.abs(this.velocityY) < this.maxSpeed * 0.3) {
                     this.targetRotation *= 0.95;
@@ -141,11 +142,11 @@ bird = {
             }
             
             if (this.engineThrust > 0) {
-                this.velocityY -= this.engineThrust * this.enginePower;
-                this.engineThrust *= this.thrustDecay;
+                this.velocityY -= this.engineThrust * this.enginePower * (deltaTime ? deltaTime * 60 : 1);
+                this.engineThrust *= Math.pow(this.thrustDecay, (deltaTime ? deltaTime * 60 : 1));
             }
             
-            this.velocityY += this.acceleration;
+            this.velocityY += this.acceleration * (deltaTime ? deltaTime * 60 : 1);
             
             if (this.velocityY > this.maxSpeed) {
                 this.velocityY = this.maxSpeed;
@@ -154,7 +155,7 @@ bird = {
                 this.velocityY = this.minSpeed;
             }
             
-            this.y += this.velocityY;
+            this.y += this.velocityY * (deltaTime ? deltaTime * 60 : 1);
 
             if (engineHeld && state.current == state.game) {
                 if (this.velocityY < this.minSpeed * 0.5) {
@@ -173,10 +174,10 @@ bird = {
             }
             
             const rotationDiff = this.targetRotation - this.rotation;
-            this.rotationInertia += rotationDiff * this.rotationSpeed;
+            this.rotationInertia += rotationDiff * this.rotationSpeed * (deltaTime ? deltaTime * 60 : 1);
             this.rotationInertia = Math.max(-this.maxRotationInertia, Math.min(this.maxRotationInertia, this.rotationInertia));
-            this.rotation += this.rotationInertia;
-            this.rotationInertia *= 0.95;
+            this.rotation += this.rotationInertia * (deltaTime ? deltaTime * 60 : 1);
+            this.rotationInertia *= Math.pow(0.95, (deltaTime ? deltaTime * 60 : 1));
 
             if(this.y + this.h/2 >= foreground.y) {
                 this.y = foreground.y - this.h/2;
@@ -245,15 +246,17 @@ pipes = {
         }
     },
 
-    update: function() {
+    update: function(deltaTime) {
         if(state.current != state.game) return;
-
-        if(frames%80 == 0) {
+        this._pipeTimer = this._pipeTimer || 0;
+        this._pipeTimer += (deltaTime ? deltaTime * 60 : 1);
+        if(this._pipeTimer >= 80) {
             this.position.push({
                 x: cvs.width,
                 y: Math.random() * (cvs.height * 0.3),
                 scored: false
             });
+            this._pipeTimer = 0;
         }
         
         for(let i = 0; i < this.position.length; i++) {
@@ -286,7 +289,7 @@ pipes = {
                 }   
             }
 
-            p.x -= this.dx;
+            p.x -= this.dx * (deltaTime ? deltaTime * 60 : 1);
 
             if (this.position.length == 6) {
                 this.position.splice(0, 2);
@@ -312,22 +315,22 @@ pipes = {
 };
 
 // Функции обновления и отрисовки
-function update() {
+function update(deltaTime) {
     if (state.current == state.game) {
         if (engineHeld) {
-            bird.flap();
+            bird.flap(deltaTime);
             bird.isReleased = false;
         } else if (!bird.isReleased) {
-            bird.release();
+            bird.release(deltaTime);
             bird.isReleased = true;
         }
     }
     if(!gamePaused) {
-        bird.update();
-        foreground.update();
-        pipes.update();
+        bird.update(deltaTime);
+        foreground.update(deltaTime);
+        pipes.update(deltaTime);
     }
-    home.update();
+    home.update(deltaTime);
 }
 
 function draw() {

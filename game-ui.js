@@ -116,27 +116,31 @@ home = {
         }
     },
 
-    update: function() {
+    update: function(deltaTime) {
         if (state.current == state.home) {
+            let move = this.logo.dy * (deltaTime ? deltaTime * 60 : 1);
             if (this.logoGoUp) {
-                this.logo.y -= this.logo.dy;
-                this.bird.y -= this.logo.dy;
+                this.logo.y -= move;
+                this.bird.y -= move;
                 if(this.logo.y <= this.logo.MAXY) {
                     this.logoGoUp = false;
                 }
             }
             if (!this.logoGoUp) {
-                this.logo.y += this.logo.dy;
-                this.bird.y += this.logo.dy;
+                this.logo.y += move;
+                this.bird.y += move;
                 if(this.logo.y >= this.logo.MINY) {
                     this.logoGoUp = true;
                 }
             }
         }
-
         this.period = isMobile ? 4 : 6;
-        this.frame += frames % this.period == 0 ? 1 : 0;
-        this.frame = this.frame % this.animation.length; 
+        this._frameTimer = this._frameTimer || 0;
+        this._frameTimer += (deltaTime ? deltaTime * 60 : 1);
+        if (this._frameTimer >= this.period) {
+            this.frame = (this.frame + 1) % this.animation.length;
+            this._frameTimer = 0;
+        }
     }
 };
 
