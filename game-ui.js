@@ -105,8 +105,6 @@ home = {
     bird: {x: 0, y: 0, w: 0, h: 0},
     studio_name: {spriteX: 172, spriteY: 284, spriteW: 380, spriteH: 28, x: 0, y: 0, w: 0, h: 0},
     frame: 0, logoGoUp: true,
-    _frameTimer: 0,
-    period: 0.12, // секунд на кадр (8 кадров/сек)
 
     draw: function() {
         let bird = this.animation[this.frame];
@@ -118,30 +116,27 @@ home = {
         }
     },
 
-    update: function(deltaTime) {
+    update: function() {
         if (state.current == state.home) {
-            let move = this.logo.dy * (deltaTime ? deltaTime * 60 : 1);
             if (this.logoGoUp) {
-                this.logo.y -= move;
-                this.bird.y -= move;
+                this.logo.y -= this.logo.dy;
+                this.bird.y -= this.logo.dy;
                 if(this.logo.y <= this.logo.MAXY) {
                     this.logoGoUp = false;
                 }
             }
             if (!this.logoGoUp) {
-                this.logo.y += move;
-                this.bird.y += move;
+                this.logo.y += this.logo.dy;
+                this.bird.y += this.logo.dy;
                 if(this.logo.y >= this.logo.MINY) {
                     this.logoGoUp = true;
                 }
             }
         }
-        // Анимация
-        this._frameTimer += deltaTime;
-        if (this._frameTimer >= this.period) {
-            this.frame = (this.frame + 1) % this.animation.length;
-            this._frameTimer = 0;
-        }
+
+        this.period = isMobile ? 24 : 36;
+        this.frame += frames % this.period == 0 ? 1 : 0;
+        this.frame = this.frame % this.animation.length; 
     }
 };
 
