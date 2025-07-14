@@ -20,11 +20,11 @@ background = {
     speed: 90, // было 60 — скорость движения фона (пикселей в секунду)
     draw: function() {
         if (!night) {
-            let w = this.w * 2; // растягиваем фон в 2 раза шире canvas
-            let h = cvs.height; // высота фона до земли
-            let x1 = -this.offsetX % w;
+            let w = Math.round(this.w * 2);
+            let h = Math.round(cvs.height);
+            let x1 = Math.round(-this.offsetX % w);
             ctx.drawImage(background_day_img, x1, 0, w, h);
-            ctx.drawImage(background_day_img, x1 + w, 0, w, h);
+            ctx.drawImage(background_day_img, x1 + w, 0, w + 1, h); // +1 к ширине для перекрытия шва
         } else {
             ctx.drawImage(sprite_sheet, this.night_spriteX, this.spriteY, this.spriteW, this.spriteH, this.x, this.y, this.w, this.h);
             ctx.drawImage(sprite_sheet, this.stars.spriteX, this.stars.spriteY, this.stars.spriteW, this.stars.spriteH, this.x, this.stars.y, this.w, this.stars.h);
@@ -210,6 +210,7 @@ bird = {
                 if(state.current == state.game) {
                     state.current = state.gameOver;
                     // === ВЗРЫВ ===
+                    explosion_dx = pipes.dx;
                     explosionActive = true;
                     explosionX = this.x;
                     explosionY = this.y;
@@ -335,13 +336,12 @@ pipes = {
             if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w &&
                bird.y + bird.radius_y > p.y && bird.y - bird.radius_y < p.y + this.h) {
                 state.current = state.gameOver;
-                // === ВЗРЫВ ===
+                explosion_dx = this.dx;
                 explosionActive = true;
                 explosionX = bird.x;
                 explosionY = bird.y;
                 explosionTimer = 0;
-                birdVisible = true; // Сброс видимости птицы при взрыве
-                // === КОНЕЦ ===
+                birdVisible = false;
                 if(!mute) {
                     HIT.play();
                     setTimeout(function() {
@@ -355,13 +355,12 @@ pipes = {
             
             if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w && bird.y <= 0) {
                 state.current = state.gameOver;
-                // === ВЗРЫВ ===
+                explosion_dx = this.dx;
                 explosionActive = true;
                 explosionX = bird.x;
                 explosionY = bird.y;
                 explosionTimer = 0;
-                birdVisible = true; // Сброс видимости птицы при взрыве
-                // === КОНЕЦ ===
+                birdVisible = false;
                 if(!mute) {
                     HIT.play();
                     setTimeout(function() {
@@ -369,8 +368,8 @@ pipes = {
                             DIE.currentTime = 0;
                             DIE.play();
                         }
-                    }, 500)   
-                }   
+                    }, 500)
+                }
             }
 
             p.x -= this.dx * (delta || 1);
@@ -425,6 +424,8 @@ let explosionTimer = 0;
 const EXPLOSION_DURATION = 1.5; // секунды
 // === Глобальные переменные для взрыва и видимости птицы ===
 var birdVisible = true;
+// === Для движения взрыва с фоном назад ===
+let explosion_dx = 0;
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
 // === МАССИВ ДИНАМИЧЕСКИХ МГУ ===
@@ -452,12 +453,14 @@ function drawExplosion() {
     if (explosionActive) {
         // Используем старый фрагмент: sx=659, sy=177, sw=459, sh=442
         const sx = 659, sy = 177, sw = 459, sh = 442;
+        // Смещение взрыва назад с той же скоростью, что и препятствие
+        let dx = -explosion_dx * explosionTimer;
         ctx.save();
         ctx.globalAlpha = 0.8;
         ctx.drawImage(
             explosion_img,
             sx, sy, sw, sh,
-            explosionX - sw/2, explosionY - sh/2,
+            explosionX - sw/2 + dx, explosionY - sh/2,
             sw, sh
         );
         ctx.restore();
@@ -530,6 +533,7 @@ function update(delta) {
                         bird.y - bird.radius_y < absY + zone.h
                     ) {
                         state.current = state.gameOver;
+                        explosion_dx = pipes.dx;
                         explosionActive = true;
                         explosionX = bird.x;
                         explosionY = bird.y;
