@@ -272,17 +272,30 @@ pipes = {
         if(state.current != state.game) return;
 
         if(frames >= this.nextHelicopterFrame) {
+            // 40% шанс на движущийся по вертикали вертолёт
+            let moveY = false, moveDir = 1, moveSpeed = 0;
+            if (Math.random() < 0.4) {
+                moveY = true;
+                moveDir = Math.random() < 0.5 ? 1 : -1;
+                moveSpeed = 1 + Math.random(); // небольшая скорость 1-2 пикселя/кадр
+            }
             this.position.push({
                 x: cvs.width,
                 y: Math.random() * (cvs.height * 0.3),
-                scored: false
+                scored: false,
+                moveY: moveY,
+                moveDir: moveDir,
+                moveSpeed: moveSpeed
             });
             // Выбираем следующий интервал появления
             let rand = Math.random();
             let interval;
-            if(rand < 0.6) interval = 80; // 60% — через 1 интервал
-            else if(rand < 0.85) interval = 160; // 25% — через 2 интервала
-            else interval = 240; // 15% — через 3 интервала
+            // Минимум 5 промежутков (5*80=400 кадров) между вертолётами
+            // Добавляем небольшой разброс для естественности
+            let base = 400;
+            if(rand < 0.6) interval = base + Math.floor(Math.random()*60); // 60% — 400-460 кадров
+            else if(rand < 0.85) interval = base + 100 + Math.floor(Math.random()*60); // 25% — 500-560 кадров
+            else interval = base + 200 + Math.floor(Math.random()*60); // 15% — 600-660 кадров
             this.nextHelicopterFrame = frames + interval;
         }
         
@@ -317,6 +330,13 @@ pipes = {
             }
 
             p.x -= this.dx;
+            // Движение по вертикали для некоторых вертолётов
+            if (p.moveY) {
+                p.y += p.moveDir * p.moveSpeed;
+                // Границы: от 0 до foreground.y - this.h
+                if (p.y < 0) { p.y = 0; p.moveDir = 1; }
+                if (p.y > foreground.y - this.h) { p.y = foreground.y - this.h; p.moveDir = -1; }
+            }
 
             if (this.position.length == 6) {
                 this.position.splice(0, 2);
@@ -338,7 +358,7 @@ pipes = {
 
     pipesReset: function() {
         this.position = [];
-        this.nextHelicopterFrame = frames + 80;
+        this.nextHelicopterFrame = frames + 400;
     }
 };
 
