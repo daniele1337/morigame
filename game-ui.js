@@ -201,7 +201,7 @@ const btnStartImg = new Image(); btnStartImg.src = "img/separated/buttons/start.
 
 // === Загрузка отдельного изображения для логотипа ===
 const mainLogoImg = new Image();
-mainLogoImg.src = "img/main_logo_text.png";
+mainLogoImg.src = "img/separated/main_logo_text.png";
 
 // Функция масштабирования canvas
 canvasScale = function() {
