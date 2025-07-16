@@ -441,22 +441,22 @@ pipes = {
                         birdAbsY + birdZoneH > heliAbsY
                     ) {
                         console.log('GAME OVER: столкновение с вертолётом (сложная зона)');
-                        state.current = state.gameOver;
+                state.current = state.gameOver;
                         explosion_dx = this.dx;
-                        explosionActive = true;
-                        explosionX = bird.x;
-                        explosionY = bird.y;
-                        explosionTimer = 0;
+                explosionActive = true;
+                explosionX = bird.x;
+                explosionY = bird.y;
+                explosionTimer = 0;
                         birdVisible = false;
-                        if(!mute) {
-                            HIT.play();
-                            setTimeout(function() {
-                                if (state.current == state.gameOver) {
-                                    DIE.currentTime = 0;
-                                    DIE.play();
-                                }
-                            }, 500)
+                if(!mute) {
+                    HIT.play();
+                    setTimeout(function() {
+                        if (state.current == state.gameOver) {
+                            DIE.currentTime = 0;
+                            DIE.play();
                         }
+                    }, 500)   
+                }   
                         foundCollision = true;
                         break;
                     }
@@ -508,19 +508,63 @@ let explosion_dx = 0;
 const mgu_img = new Image();
 mgu_img.src = "img/separated/MGU.png";
 const mguObstacleTemplate = {
-    width: 403,
-    height: 514
+    width: Math.round(403 * 1.26),
+    height: Math.round(514 * 1.26)
 };
 let mguObstacles = [];
 let mguSpawnTimer = 0;
-const mguSpawnInterval = 5; // секунд
+let mguSpawnInterval = 4 + Math.random() * 3; // 4-7 секунд
+let lubyankaSpawnTimer = 0;
+let lubyankaSpawnInterval = 4 + Math.random() * 3; // 4-7 секунд
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ МГУ ===
 const mguCollisionZones = [
-  { x: 204, y: 65, w: 22, h: 94 },
-  { x: 190.5, y: 159, w: 53, h: 50 },
-  { x: 174, y: 210, w: 85, h: 107 },
-  { x: 155, y: 318, w: 124, h: 80 },
-  { x: 28, y: 398, w: 374, h: 159 }
+  { x: Math.round(204 * 1.26), y: Math.round(65 * 1.26), w: Math.round(22 * 1.26), h: Math.round(94 * 1.26) },
+  { x: Math.round(190.5 * 1.26), y: Math.round(159 * 1.26), w: Math.round(53 * 1.26), h: Math.round(50 * 1.26) },
+  { x: Math.round(174 * 1.26), y: Math.round(210 * 1.26), w: Math.round(85 * 1.26), h: Math.round(107 * 1.26) },
+  { x: Math.round(155 * 1.26), y: Math.round(318 * 1.26), w: Math.round(124 * 1.26), h: Math.round(80 * 1.26) },
+  { x: Math.round(28 * 1.26), y: Math.round(398 * 1.26), w: Math.round(374 * 1.26), h: Math.round(159 * 1.26) }
+];
+// === КОНЕЦ ДОБАВЛЕНИЯ ===
+
+// === МАССИВ ДИНАМИЧЕСКИХ ЛУБЯНОК ===
+const lubyanka_img = new Image();
+lubyanka_img.src = "img/separated/Lubyanka.png";
+const lubyankaObstacleTemplate = {
+    width: 865,
+    height: 466
+};
+let lubyankaObstacles = [];
+// === ЗОНЫ КОЛЛИЗИИ ДЛЯ ЛУБЯНКИ ===
+const lubyankaCollisionZones = [
+  { x: 23/2, y: 203/2, w: 124/2, h: 774/2 },
+  { x: 144/2, y: 329/2, w: 1479/2, h: 649/2 },
+  { x: 1622/2, y: 206/2, w: 117/2, h: 775/2 },
+  { x: 755/2, y: 243/2, w: 247/2, h: 90/2 },
+  { x: 809/2, y: 181/2, w: 155/2, h: 62/2 },
+  { x: 825/2, y: 165/2, w: 114/2, h: 18/2 },
+  { x: 837/2, y: 155/2, w: 92/2, h: 10/2 },
+  { x: 844/2, y: 144/2, w: 78/2, h: 11/2 },
+  { x: 851/2, y: 132/2, w: 60/2, h: 12/2 },
+  { x: 859/2, y: 113/2, w: 51/2, h: 19/2 },
+  { x: 865/2, y: 98/2, w: 38/2, h: 15/2 },
+  { x: 878/2, y: 51/2, w: 6/2, h: 47/2 }
+];
+// === КОНЕЦ ДОБАВЛЕНИЯ ===
+
+// === ОСТАНКИНСКАЯ БАШНЯ ===
+const ostankino_img = new Image();
+ostankino_img.src = "img/separated/OstankinoTowe1r.png";
+const ostankinoObstacleTemplate = {
+    width: Math.round(256 * 1.05),
+    height: Math.round(878 * 1.05)
+};
+let ostankinoObstacles = [];
+let ostankinoSpawnTimer = 0;
+let ostankinoSpawnInterval = 4 + Math.random() * 3;
+const ostankinoCollisionZones = [
+    { x: Math.round(70 * 1.05), y: Math.round(766 * 1.05), w: Math.round(139 * 1.05), h: Math.round(107 * 1.05) },
+    { x: Math.round(121 * 1.05), y: Math.round(332 * 1.05), w: Math.round(44 * 1.05), h: Math.round(436 * 1.05) },
+    { x: Math.round(131 * 1.05), y: Math.round(142 * 1.05), w: Math.round(17 * 1.05), h: Math.round(189 * 1.05) }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
@@ -576,6 +620,36 @@ function updateExplosion(delta) {
     }
 }
 
+function checkCollisionZones(newX, newY, newW, newH, newZones, existingObstacles, existingTemplate, existingZones) {
+    for (let obj of existingObstacles) {
+        let scaleX = obj.width / existingTemplate.width;
+        let scaleY = obj.height / existingTemplate.height;
+        for (let ez of existingZones) {
+            let ezX = obj.x + ez.x * scaleX;
+            let ezY = obj.y + ez.y * scaleY;
+            let ezW = ez.w * scaleX;
+            let ezH = ez.h * scaleY;
+            for (let nz of newZones) {
+                let nScaleX = newW / existingTemplate.width;
+                let nScaleY = newH / existingTemplate.height;
+                let nzX = newX + nz.x * nScaleX;
+                let nzY = newY + nz.y * nScaleY;
+                let nzW = nz.w * nScaleX;
+                let nzH = nz.h * nScaleY;
+                if (
+                    nzX < ezX + ezW &&
+                    nzX + nzW > ezX &&
+                    nzY < ezY + ezH &&
+                    nzY + nzH > ezY
+                ) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 // Функции обновления и отрисовки
 function update(delta) {
     if (explosionActive) {
@@ -598,21 +672,185 @@ function update(delta) {
         foreground.update(delta);
         pipes.update(delta);
         background.update(delta); // Обновляем фон
+
+        // === СПАВН КРУПНЫХ ОБЪЕКТОВ (только один за кадр) ===
+        let spawnedThisFrame = false;
+
+        // === СПАВН ЛУБЯНКИ ===
+        lubyankaSpawnTimer += delta;
+        if (!spawnedThisFrame && lubyankaSpawnTimer >= lubyankaSpawnInterval) {
+            let lubyankaX = cvs.width;
+            let lubyankaY = cvs.height - lubyankaObstacleTemplate.height;
+            let lubyankaW = lubyankaObstacleTemplate.width;
+            let lubyankaH = lubyankaObstacleTemplate.height;
+            let overlaps = false;
+            // Проверка по зонам коллизии с МГУ
+            overlaps = overlaps || checkCollisionZones(
+                lubyankaX, lubyankaY, lubyankaW, lubyankaH, lubyankaCollisionZones,
+                mguObstacles, mguObstacleTemplate, mguCollisionZones
+            );
+            // Проверка по зонам коллизии с другими Лубянками
+            overlaps = overlaps || checkCollisionZones(
+                lubyankaX, lubyankaY, lubyankaW, lubyankaH, lubyankaCollisionZones,
+                lubyankaObstacles, lubyankaObstacleTemplate, lubyankaCollisionZones
+            );
+            // Проверка по зонам коллизии с Останкино
+            overlaps = overlaps || checkCollisionZones(
+                lubyankaX, lubyankaY, lubyankaW, lubyankaH, lubyankaCollisionZones,
+                ostankinoObstacles, ostankinoObstacleTemplate, ostankinoCollisionZones
+            );
+            if (!overlaps && Math.random() < 0.6) {
+                console.log('СПАВН ЛУБЯНКА', cvs.width);
+                lubyankaObstacles.push({
+                    x: lubyankaX,
+                    y: lubyankaY,
+                    width: lubyankaW,
+                    height: lubyankaH,
+                    collisionZones: lubyankaCollisionZones
+                });
+                spawnedThisFrame = true;
+            } else if (overlaps) {
+                console.log('Лубянка не заспавнена: пересечение по зонам коллизии');
+            } else {
+                console.log('ЛУБЯНКА: пропуск по вероятности');
+            }
+            lubyankaSpawnTimer = 0;
+            lubyankaSpawnInterval = 4 + Math.random() * 3;
+        }
         // === СПАВН МГУ ===
         mguSpawnTimer += delta;
-        if (mguSpawnTimer >= mguSpawnInterval) {
-            if (Math.random() < 0.8) {
+        if (!spawnedThisFrame && mguSpawnTimer >= mguSpawnInterval) {
+            let mguX = cvs.width;
+            let mguY = cvs.height - mguObstacleTemplate.height;
+            let mguW = mguObstacleTemplate.width;
+            let mguH = mguObstacleTemplate.height;
+            let overlaps = false;
+            // Проверка по зонам коллизии с Лубянкой
+            overlaps = overlaps || checkCollisionZones(
+                mguX, mguY, mguW, mguH, mguCollisionZones,
+                lubyankaObstacles, lubyankaObstacleTemplate, lubyankaCollisionZones
+            );
+            // Проверка по зонам коллизии с другими МГУ
+            overlaps = overlaps || checkCollisionZones(
+                mguX, mguY, mguW, mguH, mguCollisionZones,
+                mguObstacles, mguObstacleTemplate, mguCollisionZones
+            );
+            // Проверка по зонам коллизии с Останкино
+            overlaps = overlaps || checkCollisionZones(
+                mguX, mguY, mguW, mguH, mguCollisionZones,
+                ostankinoObstacles, ostankinoObstacleTemplate, ostankinoCollisionZones
+            );
+            if (!overlaps && Math.random() < 0.7) {
+                console.log('СПАВН МГУ', cvs.width);
                 mguObstacles.push({
-                    x: cvs.width,
-                    y: cvs.height - mguObstacleTemplate.height,
-                    width: mguObstacleTemplate.width,
-                    height: mguObstacleTemplate.height,
+                    x: mguX,
+                    y: mguY,
+                    width: mguW,
+                    height: mguH,
                     collisionZones: mguCollisionZones
                 });
+                spawnedThisFrame = true;
+            } else if (overlaps) {
+                console.log('МГУ не заспавнен: пересечение по зонам коллизии');
+            } else {
+                console.log('МГУ: пропуск по вероятности');
             }
             mguSpawnTimer = 0;
+            mguSpawnInterval = 4 + Math.random() * 3;
         }
-        // === ДВИЖЕНИЕ МГУ ===
+        // === СПАВН ОСТАНКИНСКОЙ БАШНИ ===
+        ostankinoSpawnTimer += delta;
+        if (!spawnedThisFrame && ostankinoSpawnTimer >= ostankinoSpawnInterval) {
+            let ostankinoW = ostankinoObstacleTemplate.width;
+            let ostankinoH = ostankinoObstacleTemplate.height;
+            let ostankinoX = cvs.width;
+            let ostankinoY = cvs.height - ostankinoObstacleTemplate.height;
+            let overlaps = false;
+            // Проверка по зонам коллизии с МГУ
+            overlaps = overlaps || checkCollisionZones(
+                ostankinoX, ostankinoY, ostankinoW, ostankinoH, ostankinoCollisionZones,
+                mguObstacles, mguObstacleTemplate, mguCollisionZones
+            );
+            // Проверка по зонам коллизии с Лубянкой
+            overlaps = overlaps || checkCollisionZones(
+                ostankinoX, ostankinoY, ostankinoW, ostankinoH, ostankinoCollisionZones,
+                lubyankaObstacles, lubyankaObstacleTemplate, lubyankaCollisionZones
+            );
+            // Проверка по зонам коллизии с другими башнями
+            overlaps = overlaps || checkCollisionZones(
+                ostankinoX, ostankinoY, ostankinoW, ostankinoH, ostankinoCollisionZones,
+                ostankinoObstacles, ostankinoObstacleTemplate, ostankinoCollisionZones
+            );
+            if (!overlaps && Math.random() < 0.7) {
+                console.log('СПАВН ОСТАНКИНО', ostankinoX);
+                ostankinoObstacles.push({
+                    x: ostankinoX,
+                    y: ostankinoY,
+                    width: ostankinoW,
+                    height: ostankinoH,
+                    collisionZones: ostankinoCollisionZones
+                });
+                spawnedThisFrame = true;
+            } else if (overlaps) {
+                console.log('Останкино не заспавнена: пересечение по зонам коллизии');
+            } else {
+                console.log('ОСТАНКИНО: пропуск по вероятности');
+            }
+            ostankinoSpawnTimer = 0;
+            ostankinoSpawnInterval = 4 + Math.random() * 3;
+        }
+        // === ДВИЖЕНИЕ И УДАЛЕНИЕ ЛУБЯНКИ ===
+        for (let i = lubyankaObstacles.length - 1; i >= 0; i--) {
+            lubyankaObstacles[i].x -= pipes.dx * (delta || 1);
+            if (lubyankaObstacles[i].x + lubyankaObstacles[i].width < 0) {
+                lubyankaObstacles.splice(i, 1);
+                continue;
+            }
+            // === ПРОВЕРКА КОЛЛИЗИИ С ПТИЦЕЙ ===
+            if (state.current === state.game) {
+                for (let zone of lubyankaObstacles[i].collisionZones) {
+                    let lubyankaScaleX = lubyankaObstacles[i].width / lubyankaObstacleTemplate.width;
+                    let lubyankaScaleY = lubyankaObstacles[i].height / lubyankaObstacleTemplate.height;
+                    let lubyankaZoneAbsX = lubyankaObstacles[i].x + zone.x * lubyankaScaleX;
+                    let lubyankaZoneAbsY = lubyankaObstacles[i].y + zone.y * lubyankaScaleY;
+                    let lubyankaZoneW = zone.w * lubyankaScaleX;
+                    let lubyankaZoneH = zone.h * lubyankaScaleY;
+                    for (let birdZone of bird.collisionZones) {
+                        let scaleX = bird.w / birdSpriteW;
+                        let scaleY = (bird.h * 1.452) / birdSpriteH;
+                        let birdAbsX = bird.x - bird.w/2 + birdZone.x * scaleX;
+                        let birdAbsY = bird.y - (bird.h * 1.452)/2 + birdZone.y * scaleY;
+                        let zoneW = birdZone.w * scaleX;
+                        let zoneH = birdZone.h * scaleY;
+                        if (
+                            birdAbsX < lubyankaZoneAbsX + lubyankaZoneW &&
+                            birdAbsX + zoneW > lubyankaZoneAbsX &&
+                            birdAbsY < lubyankaZoneAbsY + lubyankaZoneH &&
+                            birdAbsY + zoneH > lubyankaZoneAbsY
+                        ) {
+                            console.log('GAME OVER: столкновение с Лубянкой');
+                            state.current = state.gameOver;
+                            explosionActive = true;
+                            explosion_dx = pipes.dx;
+                            explosionX = bird.x;
+                            explosionY = bird.y;
+                            explosionTimer = 0;
+                            if(!mute) {
+                                HIT.play();
+                                setTimeout(function() {
+                                    if (state.current == state.gameOver) {
+                                        DIE.currentTime = 0;
+                                        DIE.play();
+                                    }
+                                }, 500)
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        // === ДВИЖЕНИЕ И УДАЛЕНИЕ МГУ ===
         for (let i = mguObstacles.length - 1; i >= 0; i--) {
             mguObstacles[i].x -= pipes.dx * (delta || 1);
             if (mguObstacles[i].x + mguObstacles[i].width < 0) {
@@ -621,12 +859,9 @@ function update(delta) {
             }
             // === ПРОВЕРКА КОЛЛИЗИИ С ПТИЦЕЙ ===
             if (state.current === state.game) {
-                // === В pipes.update: масштабируем зоны коллизии героя с учётом реального масштаба по высоте ===
-                let scaleX = bird.w / birdSpriteW;
-                let scaleY = (bird.h * 1.452) / birdSpriteH;
                 for (let zone of mguObstacles[i].collisionZones) {
-                    let mguScaleX = mguObstacles[i].width / 403;
-                    let mguScaleY = mguObstacles[i].height / 514;
+                    let mguScaleX = mguObstacles[i].width / mguObstacleTemplate.width;
+                    let mguScaleY = mguObstacles[i].height / mguObstacleTemplate.height;
                     let mguZoneAbsX = mguObstacles[i].x + zone.x * mguScaleX;
                     let mguZoneAbsY = mguObstacles[i].y + zone.y * mguScaleY;
                     let mguZoneW = zone.w * mguScaleX;
@@ -645,6 +880,60 @@ function update(delta) {
                             birdAbsY + zoneH > mguZoneAbsY
                         ) {
                             console.log('GAME OVER: столкновение с МГУ');
+                            state.current = state.gameOver;
+                            explosionActive = true;
+                            explosion_dx = pipes.dx;
+                            explosionX = bird.x;
+                            explosionY = bird.y;
+                            explosionTimer = 0;
+                            if(!mute) {
+                                HIT.play();
+                                setTimeout(function() {
+                                    if (state.current == state.gameOver) {
+                                        DIE.currentTime = 0;
+                                        DIE.play();
+                                    }
+                                }, 500)
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        // === ДВИЖЕНИЕ И УДАЛЕНИЕ ОСТАНКИНСКОЙ БАШНИ ===
+        for (let i = ostankinoObstacles.length - 1; i >= 0; i--) {
+            ostankinoObstacles[i].x -= pipes.dx * (delta || 1);
+            if (ostankinoObstacles[i].x + ostankinoObstacles[i].width < 0) {
+                ostankinoObstacles.splice(i, 1);
+                continue;
+            }
+            // === ПРОВЕРКА КОЛЛИЗИИ С ПТИЦЕЙ ===
+            if (state.current === state.game) {
+                for (let zone of ostankinoObstacles[i].collisionZones) {
+                    // Масштабируем зону Останкино
+                    let ostankinoScaleX = ostankinoObstacles[i].width / ostankinoObstacleTemplate.width;
+                    let ostankinoScaleY = ostankinoObstacles[i].height / ostankinoObstacleTemplate.height;
+                    let ostankinoZoneAbsX = ostankinoObstacles[i].x + zone.x * ostankinoScaleX;
+                    let ostankinoZoneAbsY = ostankinoObstacles[i].y + zone.y * ostankinoScaleY;
+                    let ostankinoZoneW = zone.w * ostankinoScaleX;
+                    let ostankinoZoneH = zone.h * ostankinoScaleY;
+
+                    // Проверяем каждую зону игрока
+                    for (let birdZone of bird.collisionZones) {
+                        let birdScaleX = bird.w / birdSpriteW;
+                        let birdScaleY = (bird.h * 1.452) / birdSpriteH;
+                        let birdAbsX = bird.x - bird.w/2 + birdZone.x * birdScaleX;
+                        let birdAbsY = bird.y - (bird.h * 1.452)/2 + birdZone.y * birdScaleY;
+                        let zoneW = birdZone.w * birdScaleX;
+                        let zoneH = birdZone.h * birdScaleY;
+                        if (
+                            birdAbsX < ostankinoZoneAbsX + ostankinoZoneW &&
+                            birdAbsX + zoneW > ostankinoZoneAbsX &&
+                            birdAbsY < ostankinoZoneAbsY + ostankinoZoneH &&
+                            birdAbsY + zoneH > ostankinoZoneAbsY
+                        ) {
+                            console.log('GAME OVER: столкновение с Останкино');
                             state.current = state.gameOver;
                             explosionActive = true;
                             explosion_dx = pipes.dx;
@@ -691,6 +980,14 @@ function draw() {
     for (let i = 0; i < mguObstacles.length; i++) {
         ctx.drawImage(mgu_img, mguObstacles[i].x, mguObstacles[i].y, mguObstacles[i].width, mguObstacles[i].height);
     }
+    // === ОТРИСОВКА ВСЕХ ЛУБЯНОК ===
+    for (let i = 0; i < lubyankaObstacles.length; i++) {
+        ctx.drawImage(lubyanka_img, lubyankaObstacles[i].x, lubyankaObstacles[i].y, lubyankaObstacles[i].width, lubyankaObstacles[i].height);
+    }
+    // === ОТРИСОВКА ВСЕХ ОСТАНКИНСКИХ БАШЕН ===
+    for (let i = 0; i < ostankinoObstacles.length; i++) {
+        ctx.drawImage(ostankino_img, ostankinoObstacles[i].x, ostankinoObstacles[i].y, ostankinoObstacles[i].width, ostankinoObstacles[i].height);
+    }
     // === КОНЕЦ ===
     foreground.draw();
     // === НЕ РИСУЕМ ПЕРСОНАЖА, ЕСЛИ ВЗРЫВ ===
@@ -736,6 +1033,44 @@ function draw() {
                 ctx.fillRect(
                     mgu.x + zone.x * scaleX,
                     mgu.y + zone.y * scaleY,
+                    zone.w * scaleX,
+                    zone.h * scaleY
+                );
+            }
+        }
+        ctx.restore();
+    }
+    // === ВИЗУАЛИЗАЦИЯ ЗОН КОЛЛИЗИИ ЛУБЯНКИ ===
+    if (showCollisionTest && typeof lubyankaObstacles !== 'undefined' && lubyankaObstacles.length > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = 'orange';
+        for (let lubyanka of lubyankaObstacles) {
+            for (let zone of lubyankaCollisionZones) {
+                let scaleX = lubyanka.width ? lubyanka.width / lubyankaObstacleTemplate.width : 1;
+                let scaleY = lubyanka.height ? lubyanka.height / lubyankaObstacleTemplate.height : 1;
+                ctx.fillRect(
+                    lubyanka.x + zone.x * scaleX,
+                    lubyanka.y + zone.y * scaleY,
+                    zone.w * scaleX,
+                    zone.h * scaleY
+                );
+            }
+        }
+        ctx.restore();
+    }
+    // === ВИЗУАЛИЗАЦИЯ ЗОН КОЛЛИЗИИ ОСТАНКИНО ===
+    if (showCollisionTest && typeof ostankinoObstacles !== 'undefined' && ostankinoObstacles.length > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = 'orange';
+        for (let ostankino of ostankinoObstacles) {
+            for (let zone of ostankinoCollisionZones) {
+                let scaleX = ostankino.width ? ostankino.width / ostankinoObstacleTemplate.width : 1;
+                let scaleY = ostankino.height ? ostankino.height / ostankinoObstacleTemplate.height : 1;
+                ctx.fillRect(
+                    ostankino.x + zone.x * scaleX,
+                    ostankino.y + zone.y * scaleY,
                     zone.w * scaleX,
                     zone.h * scaleY
                 );
