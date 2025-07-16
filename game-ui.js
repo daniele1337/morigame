@@ -184,18 +184,18 @@ const gameOverImg = new Image();
 gameOverImg.src = "img/separated/game_over.png";
 
 // === Загрузка отдельных изображений для кнопок ===
-const btnDayModeImg = new Image(); btnDayModeImg.src = "img/separated/day_mode.png";
-const btnHomeImg = new Image(); btnHomeImg.src = "img/separated/home.png";
-const btnNightModeImg = new Image(); btnNightModeImg.src = "img/separated/night_mode.png";
-const btnOkImg = new Image(); btnOkImg.src = "img/separated/ok.png";
-const btnPauseImg = new Image(); btnPauseImg.src = "img/separated/pause.png";
-const btnPlayImg = new Image(); btnPlayImg.src = "img/separated/play.png";
-const btnRestartImg = new Image(); btnRestartImg.src = "img/separated/restart.png";
-const btnScoreImg = new Image(); btnScoreImg.src = "img/separated/score.png";
-const btnSoundOffImg = new Image(); btnSoundOffImg.src = "img/separated/sound_off.png";
-const btnShareImg = new Image(); btnShareImg.src = "img/separated/share.png";
-const btnSoundOnImg = new Image(); btnSoundOnImg.src = "img/separated/sound_on.png";
-const btnStartImg = new Image(); btnStartImg.src = "img/separated/start.png";
+const btnDayModeImg = new Image(); btnDayModeImg.src = "img/separated/buttons/day_mode.png";
+const btnHomeImg = new Image(); btnHomeImg.src = "img/separated/buttons/home.png";
+const btnNightModeImg = new Image(); btnNightModeImg.src = "img/separated/buttons/night_mode.png";
+const btnOkImg = new Image(); btnOkImg.src = "img/separated/buttons/ok.png";
+const btnPauseImg = new Image(); btnPauseImg.src = "img/separated/buttons/pause.png";
+const btnPlayImg = new Image(); btnPlayImg.src = "img/separated/buttons/play.png";
+const btnRestartImg = new Image(); btnRestartImg.src = "img/separated/buttons/restart.png";
+const btnScoreImg = new Image(); btnScoreImg.src = "img/separated/buttons/score.png";
+const btnSoundOffImg = new Image(); btnSoundOffImg.src = "img/separated/buttons/sound_off.png";
+const btnShareImg = new Image(); btnShareImg.src = "img/separated/buttons/share.png";
+const btnSoundOnImg = new Image(); btnSoundOnImg.src = "img/separated/buttons/sound_on.png";
+const btnStartImg = new Image(); btnStartImg.src = "img/separated/buttons/start.png";
 
 // Функция масштабирования canvas
 canvasScale = function() {
