@@ -551,8 +551,8 @@ let explosion_dx = 0;
 const mgu_img = new Image();
 mgu_img.src = "img/separated/MGU.png";
 const mguObstacleTemplate = {
-    width: Math.round(403 * 1.26),
-    height: Math.round(514 * 1.26)
+    get width() { return Math.round(403 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get height() { return Math.round(514 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
 };
 let mguObstacles = [];
 let mguSpawnTimer = 0;
@@ -561,11 +561,36 @@ let lubyankaSpawnTimer = 0;
 let lubyankaSpawnInterval = 4 + Math.random() * 3; // 4-7 секунд
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ МГУ ===
 const mguCollisionZones = [
-  { x: Math.round(204 * 1.26), y: Math.round(65 * 1.26), w: Math.round(22 * 1.26), h: Math.round(94 * 1.26) },
-  { x: Math.round(190.5 * 1.26), y: Math.round(159 * 1.26), w: Math.round(53 * 1.26), h: Math.round(50 * 1.26) },
-  { x: Math.round(174 * 1.26), y: Math.round(210 * 1.26), w: Math.round(85 * 1.26), h: Math.round(107 * 1.26) },
-  { x: Math.round(155 * 1.26), y: Math.round(318 * 1.26), w: Math.round(124 * 1.26), h: Math.round(80 * 1.26) },
-  { x: Math.round(28 * 1.26), y: Math.round(398 * 1.26), w: Math.round(374 * 1.26), h: Math.round(159 * 1.26) }
+  { 
+    get x() { return Math.round(204 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get y() { return Math.round(65 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get w() { return Math.round(22 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get h() { return Math.round(94 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+  },
+  { 
+    get x() { return Math.round(190.5 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get y() { return Math.round(159 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get w() { return Math.round(53 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get h() { return Math.round(50 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+  },
+  { 
+    get x() { return Math.round(174 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get y() { return Math.round(210 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get w() { return Math.round(85 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get h() { return Math.round(107 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+  },
+  { 
+    get x() { return Math.round(155 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get y() { return Math.round(318 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get w() { return Math.round(124 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get h() { return Math.round(80 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+  },
+  { 
+    get x() { return Math.round(28 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get y() { return Math.round(398 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get w() { return Math.round(374 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get h() { return Math.round(159 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+  }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
@@ -573,24 +598,84 @@ const mguCollisionZones = [
 const lubyanka_img = new Image();
 lubyanka_img.src = "img/separated/Lubyanka.png";
 const lubyankaObstacleTemplate = {
-    width: 865,
-    height: 466
+    get width() { return Math.round(865 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get height() { return Math.round(466 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
 };
 let lubyankaObstacles = [];
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ ЛУБЯНКИ ===
 const lubyankaCollisionZones = [
-  { x: 23/2, y: 203/2, w: 124/2, h: 774/2 },
-  { x: 144/2, y: 329/2, w: 1479/2, h: 649/2 },
-  { x: 1622/2, y: 206/2, w: 117/2, h: 775/2 },
-  { x: 755/2, y: 243/2, w: 247/2, h: 90/2 },
-  { x: 809/2, y: 181/2, w: 155/2, h: 62/2 },
-  { x: 825/2, y: 165/2, w: 114/2, h: 18/2 },
-  { x: 837/2, y: 155/2, w: 92/2, h: 10/2 },
-  { x: 844/2, y: 144/2, w: 78/2, h: 11/2 },
-  { x: 851/2, y: 132/2, w: 60/2, h: 12/2 },
-  { x: 859/2, y: 113/2, w: 51/2, h: 19/2 },
-  { x: 865/2, y: 98/2, w: 38/2, h: 15/2 },
-  { x: 878/2, y: 51/2, w: 6/2, h: 47/2 }
+  { 
+    get x() { return (23/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get y() { return (203/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get w() { return (124/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get h() { return (774/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+  },
+  { 
+    get x() { return (144/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get y() { return (329/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get w() { return (1479/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get h() { return (649/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+  },
+  { 
+    get x() { return (1622/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get y() { return (206/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get w() { return (117/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get h() { return (775/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+  },
+  { 
+    get x() { return (755/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get y() { return (243/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get w() { return (247/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get h() { return (90/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+  },
+  { 
+    get x() { return (809/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get y() { return (181/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get w() { return (155/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get h() { return (62/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+  },
+  { 
+    get x() { return (825/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get y() { return (165/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get w() { return (114/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get h() { return (18/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+  },
+  { 
+    get x() { return (837/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get y() { return (155/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get w() { return (92/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get h() { return (10/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+  },
+  { 
+    get x() { return (844/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get y() { return (144/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get w() { return (78/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get h() { return (11/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+  },
+  { 
+    get x() { return (851/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get y() { return (132/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get w() { return (60/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get h() { return (12/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+  },
+  { 
+    get x() { return (859/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get y() { return (113/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get w() { return (51/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get h() { return (19/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+  },
+  { 
+    get x() { return (865/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get y() { return (98/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get w() { return (38/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get h() { return (15/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+  },
+  { 
+    get x() { return (878/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get y() { return (51/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get w() { return (6/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
+    get h() { return (47/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+  }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
@@ -598,16 +683,31 @@ const lubyankaCollisionZones = [
 const ostankino_img = new Image();
 ostankino_img.src = "img/separated/OstankinoTowe1r.png";
 const ostankinoObstacleTemplate = {
-    width: Math.round(256 * 1.05),
-    height: Math.round(878 * 1.05)
+    get width() { return Math.round(256 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get height() { return Math.round(878 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
 };
 let ostankinoObstacles = [];
 let ostankinoSpawnTimer = 0;
 let ostankinoSpawnInterval = 4 + Math.random() * 3;
 const ostankinoCollisionZones = [
-    { x: Math.round(70 * 1.05), y: Math.round(766 * 1.05), w: Math.round(139 * 1.05), h: Math.round(107 * 1.05) },
-    { x: Math.round(121 * 1.05), y: Math.round(332 * 1.05), w: Math.round(44 * 1.05), h: Math.round(436 * 1.05) },
-    { x: Math.round(131 * 1.05), y: Math.round(142 * 1.05), w: Math.round(17 * 1.05), h: Math.round(189 * 1.05) }
+    { 
+      get x() { return Math.round(70 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+      get y() { return Math.round(766 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+      get w() { return Math.round(139 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+      get h() { return Math.round(107 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+    },
+    { 
+      get x() { return Math.round(121 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+      get y() { return Math.round(332 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+      get w() { return Math.round(44 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+      get h() { return Math.round(436 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+    },
+    { 
+      get x() { return Math.round(131 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+      get y() { return Math.round(142 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+      get w() { return Math.round(17 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+      get h() { return Math.round(189 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+    }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
@@ -1076,8 +1176,8 @@ coin_img.src = "img/separated/coins.png";
 
 const coins = {
     position: [],
-    w: 32, // ширина монеты (будет адаптироваться в canvasScale)
-    h: 32, // высота монеты (будет адаптироваться в canvasScale)
+    get w() { return Math.round(32 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get h() { return Math.round(32 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
     spawnTimer: 0,
     spawnInterval: 2 + Math.random() * 2, // 2-4 секунды
     dx: 2, // скорость движения монеты

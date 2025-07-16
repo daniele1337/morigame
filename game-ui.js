@@ -546,29 +546,8 @@ canvasScale = function() {
     score.best.y = cvs.height * 0.545;
     score.space = cvs.width * 0.016;
     
-    // === АДАПТАЦИЯ РАЗМЕРОВ ЗДАНИЙ К РАЗМЕРУ ЭКРАНА ===
-    if (typeof mguObstacleTemplate !== 'undefined') {
-        let scale = Math.min(1, cvs.height / 800);
-        mguObstacleTemplate.width = Math.round(403 * 1.26 * scale);
-        mguObstacleTemplate.height = Math.round(514 * 1.26 * scale);
-    }
-    if (typeof lubyankaObstacleTemplate !== 'undefined') {
-        let scale = Math.min(1, cvs.height / 800);
-        lubyankaObstacleTemplate.width = Math.round(865 * scale);
-        lubyankaObstacleTemplate.height = Math.round(466 * scale);
-    }
-    if (typeof ostankinoObstacleTemplate !== 'undefined') {
-        let scale = Math.min(1, cvs.height / 800);
-        ostankinoObstacleTemplate.width = Math.round(256 * 1.05 * scale);
-        ostankinoObstacleTemplate.height = Math.round(878 * 1.05 * scale);
-    }
-    // === АДАПТАЦИЯ РАЗМЕРОВ МОНЕТ ===
-    if (typeof coins !== 'undefined') {
-        let scale = Math.min(1, cvs.height / 800);
-        coins.w = Math.round(32 * scale);
-        coins.h = Math.round(32 * scale);
-    }
-    // === КОНЕЦ АДАПТАЦИИ ===
+    // === РАЗМЕРЫ ЗДАНИЙ И МОНЕТ ТЕПЕРЬ ВЫЧИСЛЯЮТСЯ ДИНАМИЧЕСКИ ===
+    // см. game-objects.js - используются геттеры для адаптивного масштабирования
 } 
 
 // === Обработчики hover для всех главных кнопок ===
