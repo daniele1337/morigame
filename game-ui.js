@@ -51,11 +51,11 @@ score = {
 gameButtons = {
     mute_button: {spriteX: 171, spriteY: 63, spriteW: 55, spriteH: 62},
     unmute_button: {spriteX: 171, spriteY: 0, spriteW: 55, spriteH: 62},
-    start_button: {spriteX: 227, spriteY: 0, spriteW: 160, spriteH: 56, x: 0, y: 0, w: 0, h: 0, y_pressed: 0, isPressed: false},
+    start_button: {spriteX: 227, spriteY: 0, spriteW: 160, spriteH: 56, x: 0, y: 0, w: 0, h: 0, y_pressed: 0, isPressed: false, pressTime: 0, hover: false, shineAnim: 0},
     pause_button: {spriteX: 280, spriteY: 114, spriteW: 52, spriteH: 56},
     resume_button: {spriteX: 227, spriteY: 114, spriteW: 52, spriteH: 56},
-    home_button: {spriteX: 388, spriteY: 171, spriteW: 160, spriteH: 56, x: 0, y: 0, w: 0, h: 0, y_pressed: 0, isPressed: false},
-    restart_button: {spriteX: 227, spriteY: 57, spriteW: 160, spriteH: 56, x: 0, y: 0, w: 0, h: 0, y_pressed: 0, isPressed: false},
+    home_button: {spriteX: 388, spriteY: 171, spriteW: 160, spriteH: 56, x: 0, y: 0, w: 0, h: 0, y_pressed: 0, isPressed: false, pressTime: 0},
+    restart_button: {spriteX: 227, spriteY: 57, spriteW: 160, spriteH: 56, x: 0, y: 0, w: 0, h: 0, y_pressed: 0, isPressed: false, pressTime: 0},
     night_button: {spriteX: 280, spriteY: 171, spriteW: 56, spriteH: 60, x: 0, isPressed: false},
     day_button: {spriteX: 223, spriteY: 171, spriteW: 56, spriteH: 60, x: 0, isPressed: false},
     x: 0, y: 0, w: 0, h: 0, y_pressed: 0, isPressed: false,
@@ -66,7 +66,9 @@ gameButtons = {
         let start_button_y = this.start_button.isPressed ? this.start_button.y_pressed : this.start_button.y;
         let restart_button_y = this.restart_button.isPressed ? this.restart_button.y_pressed : this.restart_button.y;
         let home_button_y = this.home_button.isPressed ? this.home_button.y_pressed : this.home_button.y;
-
+        const now = performance.now();
+        // --- Рисуем главные кнопки с эффектом или без ---
+        // --- Удалён универсальный цикл для кнопок с эффектом ---
         if(state.current == state.home) {
             // Звук
             if(!mute) {
@@ -80,8 +82,28 @@ gameButtons = {
             } else {
                 ctx.drawImage(btnNightModeImg, this.night_button.x, night_button_y, this.w, this.h);
             }
-            // Старт
-            ctx.drawImage(btnStartImg, this.start_button.x, start_button_y, this.start_button.w, this.start_button.h);
+            // --- Кнопка старт с анимацией ---
+            let t = performance.now() * 0.001;
+            let pulse = 1 + 0.04 * Math.sin(t * 2);
+            let centerX = this.start_button.x + this.start_button.w/2;
+            let centerY = start_button_y + this.start_button.h/2;
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.scale(pulse, pulse);
+            ctx.drawImage(btnStartImg, -this.start_button.w/2, -this.start_button.h/2, this.start_button.w, this.start_button.h);
+            ctx.restore();
+            if (this.start_button.hover || this.start_button.isPressed) {
+                ctx.save();
+                let grad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, this.start_button.w*0.5);
+                grad.addColorStop(0, 'rgba(255,255,255,0.25)');
+                grad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.globalAlpha = 1;
+                ctx.beginPath();
+                ctx.ellipse(centerX, centerY, this.start_button.w*0.5, this.start_button.h*0.3, 0, 0, 2*Math.PI);
+                ctx.fillStyle = grad;
+                ctx.fill();
+                ctx.restore();
+            }
         } else if(state.current == state.game) {
             // Пауза/Продолжить
             if(!gamePaused) {
@@ -90,17 +112,83 @@ gameButtons = {
                 ctx.drawImage(btnPlayImg, this.x, button_y, this.w, this.h);
             }
         } else if(state.current == state.gameOver) {
-            // Рестарт
-            ctx.drawImage(btnRestartImg, this.restart_button.x, restart_button_y, this.restart_button.w, this.restart_button.h);
-            // Домой
-            ctx.drawImage(btnHomeImg, this.home_button.x, home_button_y, this.home_button.w, this.home_button.h);
-            // (Если есть кнопки share, score, ok)
-            // ctx.drawImage(btnShareImg, ...);
-            // ctx.drawImage(btnScoreImg, ...);
-            // ctx.drawImage(btnOkImg, ...);
+            // --- Кнопка рестарт с анимацией ---
+            let t2 = performance.now() * 0.001;
+            let pulse2 = 1 + 0.04 * Math.sin(t2 * 2);
+            let centerX2 = this.restart_button.x + this.restart_button.w/2;
+            let centerY2 = restart_button_y + this.restart_button.h/2;
+            ctx.save();
+            ctx.translate(centerX2, centerY2);
+            ctx.scale(pulse2, pulse2);
+            ctx.drawImage(btnRestartImg, -this.restart_button.w/2, -this.restart_button.h/2, this.restart_button.w, this.restart_button.h);
+            ctx.restore();
+            if (this.restart_button.hover || this.restart_button.isPressed) {
+                ctx.save();
+                let grad = ctx.createRadialGradient(centerX2, centerY2, 0, centerX2, centerY2, this.restart_button.w*0.5);
+                grad.addColorStop(0, 'rgba(255,255,255,0.25)');
+                grad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.globalAlpha = 1;
+                ctx.beginPath();
+                ctx.ellipse(centerX2, centerY2, this.restart_button.w*0.5, this.restart_button.h*0.3, 0, 0, 2*Math.PI);
+                ctx.fillStyle = grad;
+                ctx.fill();
+                ctx.restore();
+            }
+            // --- Кнопка home с анимацией ---
+            let centerX3 = this.home_button.x + this.home_button.w/2;
+            let centerY3 = home_button_y + this.home_button.h/2;
+            ctx.save();
+            ctx.translate(centerX3, centerY3);
+            ctx.scale(pulse2, pulse2);
+            ctx.drawImage(btnHomeImg, -this.home_button.w/2, -this.home_button.h/2, this.home_button.w, this.home_button.h);
+            ctx.restore();
+            if (this.home_button.hover || this.home_button.isPressed) {
+                ctx.save();
+                let grad = ctx.createRadialGradient(centerX3, centerY3, 0, centerX3, centerY3, this.home_button.w*0.5);
+                grad.addColorStop(0, 'rgba(255,255,255,0.25)');
+                grad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.globalAlpha = 1;
+                ctx.beginPath();
+                ctx.ellipse(centerX3, centerY3, this.home_button.w*0.5, this.home_button.h*0.3, 0, 0, 2*Math.PI);
+                ctx.fillStyle = grad;
+                ctx.fill();
+                ctx.restore();
+            }
         }
     }
 };
+
+// === Универсальная функция shine и вспышки для кнопок ===
+function drawButtonShine(button, ctx, y_override) {
+    let t = performance.now() * 0.001;
+    let glossX = button.x + button.w * (0.2 + 0.6 * ((Math.sin(t) + 1) / 2));
+    let glossY = (y_override !== undefined ? y_override : button.y) + button.h * 0.18;
+    let glossW = button.w * 0.6;
+    let glossH = button.h * 0.38;
+    let grad = ctx.createLinearGradient(glossX, glossY, glossX + glossW, glossY + glossH);
+    grad.addColorStop(0, 'rgba(255,255,255,0)');
+    grad.addColorStop(0.5, 'rgba(255,255,255,0.16)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.globalAlpha = 0.6;
+    ctx.beginPath();
+    ctx.ellipse(glossX + glossW/2, glossY + glossH/2, glossW/2, glossH/2, 0, 0, 2 * Math.PI);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    // Вспышка при нажатии
+    if (button.isPressed && button.pressTime) {
+        let dt = performance.now() - button.pressTime;
+        if (dt < 160) {
+            let pressAlpha = 0.32 * (1 - dt/160);
+            ctx.globalAlpha = pressAlpha;
+            ctx.beginPath();
+            ctx.ellipse(button.x + button.w/2, (y_override !== undefined ? y_override : button.y) + button.h/2, button.w*0.45, button.h*0.35, 0, 0, 2 * Math.PI);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+    }
+}
 
 // Главный экран
 home = {
@@ -428,3 +516,35 @@ canvasScale = function() {
     score.best.y = cvs.height * 0.545;
     score.space = cvs.width * 0.016;
 } 
+
+// === Обработчики hover для всех главных кнопок ===
+cvs.addEventListener('mousemove', function(event) {
+    const { x, y } = getCanvasRelativeCoords(event);
+    if (state.current === state.home) {
+        gameButtons.start_button.hover = (
+            x >= gameButtons.start_button.x && x <= gameButtons.start_button.x + gameButtons.start_button.w &&
+            y >= gameButtons.start_button.y && y <= gameButtons.start_button.y + gameButtons.start_button.h
+        );
+        gameButtons.restart_button.hover = false;
+        gameButtons.home_button.hover = false;
+    } else if (state.current === state.gameOver) {
+        gameButtons.start_button.hover = false;
+        gameButtons.restart_button.hover = (
+            x >= gameButtons.restart_button.x && x <= gameButtons.restart_button.x + gameButtons.restart_button.w &&
+            y >= gameButtons.restart_button.y && y <= gameButtons.restart_button.y + gameButtons.restart_button.h
+        );
+        gameButtons.home_button.hover = (
+            x >= gameButtons.home_button.x && x <= gameButtons.home_button.x + gameButtons.home_button.w &&
+            y >= gameButtons.home_button.y && y <= gameButtons.home_button.y + gameButtons.home_button.h
+        );
+    } else {
+        gameButtons.start_button.hover = false;
+        gameButtons.restart_button.hover = false;
+        gameButtons.home_button.hover = false;
+    }
+});
+cvs.addEventListener('mouseleave', function() {
+    gameButtons.start_button.hover = false;
+    gameButtons.restart_button.hover = false;
+    gameButtons.home_button.hover = false;
+}); 

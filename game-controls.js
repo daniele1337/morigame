@@ -48,21 +48,21 @@ cvs.addEventListener("mousedown", function(event)
                 }
             }  
             // Start button
-            else if(clickX >= gameButtons.start_button.x && clickX <= gameButtons.start_button.x + gameButtons.start_button.w &&
-                    clickY >= gameButtons.start_button.y && clickY <= gameButtons.start_button.y + gameButtons.start_button.h)
+            if(clickX >= gameButtons.start_button.x && clickX <= gameButtons.start_button.x + gameButtons.start_button.w &&
+                clickY >= gameButtons.start_button.y && clickY <= gameButtons.start_button.y + gameButtons.start_button.h)
             {
+                gameButtons.start_button.pressTime = performance.now();
                 state.current = state.getReady;
                 if(!mute)
                 {
                     SWOOSH.currentTime = 0;
                     SWOOSH.play();
                 }
-                
                 // Скрываем кнопку Telegram при начале игры
                 if (tg) {
                     tg.MainButton.hide();
                 }
-            }         
+            }
             break;
         case state.getReady:
             bird.flap();
@@ -101,6 +101,7 @@ cvs.addEventListener("mousedown", function(event)
             if(clickX >= gameButtons.restart_button.x && clickX <= gameButtons.restart_button.x + gameButtons.restart_button.w &&
                clickY >= gameButtons.restart_button.y && clickY <= gameButtons.restart_button.y + gameButtons.restart_button.h)
             {
+                gameButtons.restart_button.pressTime = performance.now();
                 pipes.pipesReset();
                 bird.speedReset();
                 score.scoreReset();
@@ -124,6 +125,7 @@ cvs.addEventListener("mousedown", function(event)
             else if(clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
                     clickY >= gameButtons.home_button.y && clickY <= gameButtons.home_button.y + gameButtons.home_button.h)
             {
+                gameButtons.home_button.pressTime = performance.now();
                 pipes.pipesReset();
                 bird.speedReset();
                 score.scoreReset();
@@ -197,21 +199,21 @@ cvs.addEventListener("touchstart", function(event)
                 }
             }  
             // Start button
-            else if(clickX >= gameButtons.start_button.x && clickX <= gameButtons.start_button.x + gameButtons.start_button.w &&
-                    clickY >= gameButtons.start_button.y && clickY <= gameButtons.start_button.y + gameButtons.start_button.h)
+            if(clickX >= gameButtons.start_button.x && clickX <= gameButtons.start_button.x + gameButtons.start_button.w &&
+                clickY >= gameButtons.start_button.y && clickY <= gameButtons.start_button.y + gameButtons.start_button.h)
             {
+                gameButtons.start_button.pressTime = performance.now();
                 state.current = state.getReady;
                 if(!mute)
                 {
                     SWOOSH.currentTime = 0;
                     SWOOSH.play();
                 }
-                
                 // Скрываем кнопку Telegram при начале игры
                 if (tg) {
                     tg.MainButton.hide();
                 }
-            }         
+            }
             break;
         case state.getReady:
             bird.flap();
@@ -250,6 +252,7 @@ cvs.addEventListener("touchstart", function(event)
             if(clickX >= gameButtons.restart_button.x && clickX <= gameButtons.restart_button.x + gameButtons.restart_button.w &&
                clickY >= gameButtons.restart_button.y && clickY <= gameButtons.restart_button.y + gameButtons.restart_button.h)
             {
+                gameButtons.restart_button.pressTime = performance.now();
                 pipes.pipesReset();
                 bird.speedReset();
                 score.scoreReset();
@@ -272,6 +275,7 @@ cvs.addEventListener("touchstart", function(event)
             else if(clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
                     clickY >= gameButtons.home_button.y && clickY <= gameButtons.home_button.y + gameButtons.home_button.h)
             {
+                gameButtons.home_button.pressTime = performance.now();
                 pipes.pipesReset();
                 bird.speedReset();
                 score.scoreReset();
