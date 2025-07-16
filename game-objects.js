@@ -1,5 +1,33 @@
 // Игровые объекты (оптимизированные)
 
+// === ПЕРЕМЕННЫЕ ДЛЯ УСКОРЕНИЯ РАКЕТЫ ===
+let baseEnginePower = 0; // Базовая мощность двигателя
+let speedBoostMultiplier = 1.0; // Множитель ускорения
+let lastSpeedBoostScore = 0; // Последний счет, при котором было ускорение
+// === КОНЕЦ ПЕРЕМЕННЫХ УСКОРЕНИЯ ===
+
+// === ФУНКЦИЯ ДЛЯ ПРОВЕРКИ И ПРИМЕНЕНИЯ УСКОРЕНИЯ ===
+function checkAndApplySpeedBoost() {
+    if (typeof score !== 'undefined' && typeof score.game_score !== 'undefined') {
+        const currentScore = score.game_score;
+        
+        // Проверяем, достигли ли мы нового кратного 5 счета
+        if (currentScore > 0 && currentScore % 5 === 0 && currentScore > lastSpeedBoostScore) {
+            // Устанавливаем множитель ускорения на 15% от базовой скорости
+            speedBoostMultiplier = 1.0 + (currentScore / 5) * 0.15;
+            lastSpeedBoostScore = currentScore;
+            
+            // Применяем ускорение к ракете
+            if (typeof bird !== 'undefined' && typeof bird.enginePower !== 'undefined') {
+                bird.enginePower = baseEnginePower * speedBoostMultiplier;
+            }
+            
+            console.log(`🚀 Ускорение активировано! Счет: ${currentScore}, Множитель: ${speedBoostMultiplier.toFixed(2)}`);
+        }
+    }
+}
+// === КОНЕЦ ФУНКЦИИ УСКОРЕНИЯ ===
+
 // Новый дневной фон
 const background_day_img = new Image();
 background_day_img.src = "img/separated/background_day.png";
@@ -379,8 +407,6 @@ pipes = {
                 circleCenterY: circleCenterY,
                 flyAway: false // флаг улёта
             });
-            console.log('Вертолёт добавлен:', {x: cvs.width - drawW, y});
-            console.log('Всего вертолётов:', this.position.length);
             this.spawnTimer = 0;
         }
         
@@ -391,8 +417,11 @@ pipes = {
                 for (let j = 0; j < ostankinoObstacles.length; j++) {
                     let ost = ostankinoObstacles[j];
                     let heliCenterX = p.x + drawW / 2;
-                    let ostCenterX = ost.x + ost.width / 2;
-                    if (Math.abs(heliCenterX - ostCenterX) < 150) {
+                    let heliCenterY = p.y + this.h / 2;
+                    let ostTopX = ost.x + ost.width / 2;
+                    let ostTopY = ost.y;
+                    // Проверка попадания в квадрат 100х100 вокруг вершины Останкино
+                    if (Math.abs(heliCenterX - ostTopX) < 100 && Math.abs(heliCenterY - ostTopY) < 100) {
                         p.flyAway = true;
                         p.flyAwaySpeed = 400 + Math.random() * 100; // px/sec
                         break;
@@ -486,15 +515,8 @@ pipes = {
             }
             
             if (p.x + this.w < bird.x - bird.radius_x && !p.scored) {
-                console.log('Удаляем вертолёт:', {x: p.x, w: this.w, birdX: bird.x, birdRadiusX: bird.radius_x});
-                score.game_score++;
-                if(!mute) POINT.play();
-                
-                if(score.game_score > score.best_score) {
-                    score.best_score = score.game_score;
-                    score.new_best_score = true;
-                }
-                localStorage.setItem("best_score", score.best_score);
+                // Убрано начисление очков за прохождение труб
+                // Очки теперь начисляются только за собранные монеты
                 p.scored = true;
             }
         }
@@ -663,6 +685,15 @@ function checkCollisionZones(newX, newY, newW, newH, newZones, existingObstacles
                     nzY < ezY + ezH &&
                     nzY + nzH > ezY
                 ) {
+                    // Детальный лог для диагностики
+                    console.log('=== ДЕТАЛЬНАЯ ДИАГНОСТИКА КОЛЛИЗИИ ===');
+                    console.log('Координаты объекта:', obj.x, obj.y, obj.width, obj.height);
+                    console.log('Координаты зоны объекта:', ezX, ezY, ezW, ezH);
+                    console.log('Координаты птицы:', newX, newY, newW, newH);
+                    console.log('Координаты зоны птицы:', nzX, nzY, nzW, nzH);
+                    console.log('Масштаб объекта:', scaleX, scaleY);
+                    console.log('Масштаб птицы:', nScaleX, nScaleY);
+                    console.log('==========================================');
                     return true;
                 }
             }
@@ -671,312 +702,186 @@ function checkCollisionZones(newX, newY, newW, newH, newZones, existingObstacles
     return false;
 }
 
+// === ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ОБЪЕДИНЕНИЯ ВСЕХ ЗДАНИЙ ===
+function getAllObstacles() {
+    return [...mguObstacles, ...lubyankaObstacles, ...ostankinoObstacles];
+}
+
 // Функции обновления и отрисовки
 function update(delta) {
     if (explosionActive) {
-        explosionTimer += delta;
-        if (explosionTimer > EXPLOSION_DURATION) { // 3 секунды
-            explosionActive = false;
-        }
+        updateExplosion(delta);
+        return;
     }
-    if (state.current == state.game) {
-        if (engineHeld) {
-            bird.flap();
-            bird.isReleased = false;
-        } else if (!bird.isReleased) {
-            bird.release();
-            bird.isReleased = true;
+    coins.update(delta); // монеты не трогаем
+    bird.update(delta);
+    foreground.update(delta);
+    pipes.update(delta);
+    // === ДВИЖЕНИЕ И СПАВН МГУ ===
+    for (let i = mguObstacles.length - 1; i >= 0; i--) {
+        let mgu = mguObstacles[i];
+        mgu.x -= pipes.dx * (delta || 1);
+        if (mgu.x < -mgu.width) {
+            mguObstacles.splice(i, 1);
+            continue;
         }
-    }
-    if(!gamePaused) {
-        bird.update(delta);
-        foreground.update(delta);
-        pipes.update(delta);
-        background.update(delta); // Обновляем фон
-
-        // === СПАВН КРУПНЫХ ОБЪЕКТОВ (только один за кадр) ===
-        let spawnedThisFrame = false;
-
-        // === СПАВН ЛУБЯНКИ ===
-        lubyankaSpawnTimer += delta;
-        if (!spawnedThisFrame && lubyankaSpawnTimer >= lubyankaSpawnInterval) {
-            let lubyankaX = cvs.width;
-            let lubyankaY = cvs.height - lubyankaObstacleTemplate.height;
-            let lubyankaW = lubyankaObstacleTemplate.width;
-            let lubyankaH = lubyankaObstacleTemplate.height;
-            let overlaps = false;
-            // Проверка по зонам коллизии с МГУ
-            overlaps = overlaps || checkCollisionZones(
-                lubyankaX, lubyankaY, lubyankaW, lubyankaH, lubyankaCollisionZones,
-                mguObstacles, mguObstacleTemplate, mguCollisionZones
-            );
-            // Проверка по зонам коллизии с другими Лубянками
-            overlaps = overlaps || checkCollisionZones(
-                lubyankaX, lubyankaY, lubyankaW, lubyankaH, lubyankaCollisionZones,
-                lubyankaObstacles, lubyankaObstacleTemplate, lubyankaCollisionZones
-            );
-            // Проверка по зонам коллизии с Останкино
-            overlaps = overlaps || checkCollisionZones(
-                lubyankaX, lubyankaY, lubyankaW, lubyankaH, lubyankaCollisionZones,
-                ostankinoObstacles, ostankinoObstacleTemplate, ostankinoCollisionZones
-            );
-            if (!overlaps && Math.random() < 0.6) {
-                console.log('СПАВН ЛУБЯНКА', cvs.width);
-                lubyankaObstacles.push({
-                    x: lubyankaX,
-                    y: lubyankaY,
-                    width: lubyankaW,
-                    height: lubyankaH,
-                    collisionZones: lubyankaCollisionZones
-                });
-                spawnedThisFrame = true;
-            } else if (overlaps) {
-                console.log('Лубянка не заспавнена: пересечение по зонам коллизии');
-            } else {
-                console.log('ЛУБЯНКА: пропуск по вероятности');
-            }
-            lubyankaSpawnTimer = 0;
-            lubyankaSpawnInterval = 4 + Math.random() * 3;
-        }
-        // === СПАВН МГУ ===
-        mguSpawnTimer += delta;
-        if (!spawnedThisFrame && mguSpawnTimer >= mguSpawnInterval) {
-            let mguX = cvs.width;
-            let mguY = cvs.height - mguObstacleTemplate.height;
-            let mguW = mguObstacleTemplate.width;
-            let mguH = mguObstacleTemplate.height;
-            let overlaps = false;
-            // Проверка по зонам коллизии с Лубянкой
-            overlaps = overlaps || checkCollisionZones(
-                mguX, mguY, mguW, mguH, mguCollisionZones,
-                lubyankaObstacles, lubyankaObstacleTemplate, lubyankaCollisionZones
-            );
-            // Проверка по зонам коллизии с другими МГУ
-            overlaps = overlaps || checkCollisionZones(
-                mguX, mguY, mguW, mguH, mguCollisionZones,
-                mguObstacles, mguObstacleTemplate, mguCollisionZones
-            );
-            // Проверка по зонам коллизии с Останкино
-            overlaps = overlaps || checkCollisionZones(
-                mguX, mguY, mguW, mguH, mguCollisionZones,
-                ostankinoObstacles, ostankinoObstacleTemplate, ostankinoCollisionZones
-            );
-            if (!overlaps && Math.random() < 0.7) {
-                console.log('СПАВН МГУ', cvs.width);
-                mguObstacles.push({
-                    x: mguX,
-                    y: mguY,
-                    width: mguW,
-                    height: mguH,
-                    collisionZones: mguCollisionZones
-                });
-                spawnedThisFrame = true;
-            } else if (overlaps) {
-                console.log('МГУ не заспавнен: пересечение по зонам коллизии');
-            } else {
-                console.log('МГУ: пропуск по вероятности');
-            }
-            mguSpawnTimer = 0;
-            mguSpawnInterval = 4 + Math.random() * 3;
-        }
-        // === СПАВН ОСТАНКИНСКОЙ БАШНИ ===
-        ostankinoSpawnTimer += delta;
-        if (!spawnedThisFrame && ostankinoSpawnTimer >= ostankinoSpawnInterval) {
-            let ostankinoW = ostankinoObstacleTemplate.width;
-            let ostankinoH = ostankinoObstacleTemplate.height;
-            let ostankinoX = cvs.width;
-            let ostankinoY = cvs.height - ostankinoObstacleTemplate.height;
-            let overlaps = false;
-            // Проверка по зонам коллизии с МГУ
-            overlaps = overlaps || checkCollisionZones(
-                ostankinoX, ostankinoY, ostankinoW, ostankinoH, ostankinoCollisionZones,
-                mguObstacles, mguObstacleTemplate, mguCollisionZones
-            );
-            // Проверка по зонам коллизии с Лубянкой
-            overlaps = overlaps || checkCollisionZones(
-                ostankinoX, ostankinoY, ostankinoW, ostankinoH, ostankinoCollisionZones,
-                lubyankaObstacles, lubyankaObstacleTemplate, lubyankaCollisionZones
-            );
-            // Проверка по зонам коллизии с другими башнями
-            overlaps = overlaps || checkCollisionZones(
-                ostankinoX, ostankinoY, ostankinoW, ostankinoH, ostankinoCollisionZones,
-                ostankinoObstacles, ostankinoObstacleTemplate, ostankinoCollisionZones
-            );
-            if (!overlaps && Math.random() < 0.7) {
-                console.log('СПАВН ОСТАНКИНО', ostankinoX);
-                ostankinoObstacles.push({
-                    x: ostankinoX,
-                    y: ostankinoY,
-                    width: ostankinoW,
-                    height: ostankinoH,
-                    collisionZones: ostankinoCollisionZones
-                });
-                spawnedThisFrame = true;
-            } else if (overlaps) {
-                console.log('Останкино не заспавнена: пересечение по зонам коллизии');
-            } else {
-                console.log('ОСТАНКИНО: пропуск по вероятности');
-            }
-            ostankinoSpawnTimer = 0;
-            ostankinoSpawnInterval = 4 + Math.random() * 3;
-        }
-        // === ДВИЖЕНИЕ И УДАЛЕНИЕ ЛУБЯНКИ ===
-        for (let i = lubyankaObstacles.length - 1; i >= 0; i--) {
-            lubyankaObstacles[i].x -= pipes.dx * (delta || 1);
-            if (lubyankaObstacles[i].x + lubyankaObstacles[i].width < 0) {
-                lubyankaObstacles.splice(i, 1);
-                continue;
-            }
-            // === ПРОВЕРКА КОЛЛИЗИИ С ПТИЦЕЙ ===
-            if (state.current === state.game) {
-                for (let zone of lubyankaObstacles[i].collisionZones) {
-                    let lubyankaScaleX = lubyankaObstacles[i].width / lubyankaObstacleTemplate.width;
-                    let lubyankaScaleY = lubyankaObstacles[i].height / lubyankaObstacleTemplate.height;
-                    let lubyankaZoneAbsX = lubyankaObstacles[i].x + zone.x * lubyankaScaleX;
-                    let lubyankaZoneAbsY = lubyankaObstacles[i].y + zone.y * lubyankaScaleY;
-                    let lubyankaZoneW = zone.w * lubyankaScaleX;
-                    let lubyankaZoneH = zone.h * lubyankaScaleY;
-                    for (let birdZone of bird.collisionZones) {
-                        let scaleX = bird.w / birdSpriteW;
-                        let scaleY = (bird.h * 1.452) / birdSpriteH;
-                        let birdAbsX = bird.x - bird.w/2 + birdZone.x * scaleX;
-                        let birdAbsY = bird.y - (bird.h * 1.452)/2 + birdZone.y * scaleY;
-                        let zoneW = birdZone.w * scaleX;
-                        let zoneH = birdZone.h * scaleY;
-                        if (
-                            birdAbsX < lubyankaZoneAbsX + lubyankaZoneW &&
-                            birdAbsX + zoneW > lubyankaZoneAbsX &&
-                            birdAbsY < lubyankaZoneAbsY + lubyankaZoneH &&
-                            birdAbsY + zoneH > lubyankaZoneAbsY
-                        ) {
-                            console.log('GAME OVER: столкновение с Лубянкой');
-                            state.current = state.gameOver;
-                            explosionActive = true;
-                            explosion_dx = pipes.dx;
-                            explosionX = bird.x;
-                            explosionY = bird.y;
-                            explosionTimer = 0;
-                            if(!mute) {
-                                HIT.play();
-                                setTimeout(function() {
-                                    if (state.current == state.gameOver) {
-                                        DIE.currentTime = 0;
-                                        DIE.play();
-                                    }
-                                }, 500)
-                            }
-                            break;
+        if (mgu.x < cvs.width && mgu.x + mgu.width > 0) {
+            if (state.current == state.game &&
+                checkCollisionZones(
+                    bird.x - bird.w/2, bird.y - bird.h/2, bird.w, bird.h, bird.collisionZones,
+                    [mgu], mguObstacleTemplate, mguCollisionZones
+                )
+            ) {
+                console.log('Коллизия с МГУ! Птица:', bird.x, bird.y, 'МГУ:', mgu.x, mgu.y);
+                state.current = state.gameOver;
+                explosionActive = true;
+                explosion_dx = pipes.dx;
+                explosionX = bird.x;
+                explosionY = bird.y;
+                explosionTimer = 0;
+                if(!mute) {
+                    HIT.play();
+                    setTimeout(function() {
+                        if (state.current == state.gameOver) {
+                            DIE.currentTime = 0;
+                            DIE.play();
                         }
-                    }
-                }
-            }
-        }
-        // === ДВИЖЕНИЕ И УДАЛЕНИЕ МГУ ===
-        for (let i = mguObstacles.length - 1; i >= 0; i--) {
-            mguObstacles[i].x -= pipes.dx * (delta || 1);
-            if (mguObstacles[i].x + mguObstacles[i].width < 0) {
-                mguObstacles.splice(i, 1);
-                continue;
-            }
-            // === ПРОВЕРКА КОЛЛИЗИИ С ПТИЦЕЙ ===
-            if (state.current === state.game) {
-                for (let zone of mguObstacles[i].collisionZones) {
-                    let mguScaleX = mguObstacles[i].width / mguObstacleTemplate.width;
-                    let mguScaleY = mguObstacles[i].height / mguObstacleTemplate.height;
-                    let mguZoneAbsX = mguObstacles[i].x + zone.x * mguScaleX;
-                    let mguZoneAbsY = mguObstacles[i].y + zone.y * mguScaleY;
-                    let mguZoneW = zone.w * mguScaleX;
-                    let mguZoneH = zone.h * mguScaleY;
-                    for (let birdZone of bird.collisionZones) {
-                        let scaleX = bird.w / birdSpriteW;
-                        let scaleY = (bird.h * 1.452) / birdSpriteH;
-                        let birdAbsX = bird.x - bird.w/2 + birdZone.x * scaleX;
-                        let birdAbsY = bird.y - (bird.h * 1.452)/2 + birdZone.y * scaleY;
-                        let zoneW = birdZone.w * scaleX;
-                        let zoneH = birdZone.h * scaleY;
-                        if (
-                            birdAbsX < mguZoneAbsX + mguZoneW &&
-                            birdAbsX + zoneW > mguZoneAbsX &&
-                            birdAbsY < mguZoneAbsY + mguZoneH &&
-                            birdAbsY + zoneH > mguZoneAbsY
-                        ) {
-                            console.log('GAME OVER: столкновение с МГУ');
-                            state.current = state.gameOver;
-                            explosionActive = true;
-                            explosion_dx = pipes.dx;
-                            explosionX = bird.x;
-                            explosionY = bird.y;
-                            explosionTimer = 0;
-                            if(!mute) {
-                                HIT.play();
-                                setTimeout(function() {
-                                    if (state.current == state.gameOver) {
-                                        DIE.currentTime = 0;
-                                        DIE.play();
-                                    }
-                                }, 500)
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        // === ДВИЖЕНИЕ И УДАЛЕНИЕ ОСТАНКИНСКОЙ БАШНИ ===
-        for (let i = ostankinoObstacles.length - 1; i >= 0; i--) {
-            ostankinoObstacles[i].x -= pipes.dx * (delta || 1);
-            if (ostankinoObstacles[i].x + ostankinoObstacles[i].width < 0) {
-                ostankinoObstacles.splice(i, 1);
-                continue;
-            }
-            // === ПРОВЕРКА КОЛЛИЗИИ С ПТИЦЕЙ ===
-            if (state.current === state.game) {
-                for (let zone of ostankinoObstacles[i].collisionZones) {
-                    // Масштабируем зону Останкино
-                    let ostankinoScaleX = ostankinoObstacles[i].width / ostankinoObstacleTemplate.width;
-                    let ostankinoScaleY = ostankinoObstacles[i].height / ostankinoObstacleTemplate.height;
-                    let ostankinoZoneAbsX = ostankinoObstacles[i].x + zone.x * ostankinoScaleX;
-                    let ostankinoZoneAbsY = ostankinoObstacles[i].y + zone.y * ostankinoScaleY;
-                    let ostankinoZoneW = zone.w * ostankinoScaleX;
-                    let ostankinoZoneH = zone.h * ostankinoScaleY;
-
-                    // Проверяем каждую зону игрока
-                    for (let birdZone of bird.collisionZones) {
-                        let birdScaleX = bird.w / birdSpriteW;
-                        let birdScaleY = (bird.h * 1.452) / birdSpriteH;
-                        let birdAbsX = bird.x - bird.w/2 + birdZone.x * birdScaleX;
-                        let birdAbsY = bird.y - (bird.h * 1.452)/2 + birdZone.y * birdScaleY;
-                        let zoneW = birdZone.w * birdScaleX;
-                        let zoneH = birdZone.h * birdScaleY;
-                        if (
-                            birdAbsX < ostankinoZoneAbsX + ostankinoZoneW &&
-                            birdAbsX + zoneW > ostankinoZoneAbsX &&
-                            birdAbsY < ostankinoZoneAbsY + ostankinoZoneH &&
-                            birdAbsY + zoneH > ostankinoZoneAbsY
-                        ) {
-                            console.log('GAME OVER: столкновение с Останкино');
-                            state.current = state.gameOver;
-                            explosionActive = true;
-                            explosion_dx = pipes.dx;
-                            explosionX = bird.x;
-                            explosionY = bird.y;
-                            explosionTimer = 0;
-                            if(!mute) {
-                                HIT.play();
-                                setTimeout(function() {
-                                    if (state.current == state.gameOver) {
-                                        DIE.currentTime = 0;
-                                        DIE.play();
-                                    }
-                                }, 500)
-                            }
-                            break;
-                        }
-                    }
+                    }, 500)
                 }
             }
         }
     }
+    mguSpawnTimer += delta;
+    if (mguSpawnTimer >= mguSpawnInterval) {
+        let x = cvs.width;
+        let y = cvs.height - mguObstacleTemplate.height;
+        let allObstacles = getAllObstacles();
+        let overlaps = checkCollisionZones(
+            x, y, mguObstacleTemplate.width, mguObstacleTemplate.height, mguCollisionZones,
+            allObstacles, mguObstacleTemplate, mguCollisionZones
+        );
+        if (!overlaps) {
+            mguObstacles.push({
+                x: x,
+                y: y,
+                width: mguObstacleTemplate.width,
+                height: mguObstacleTemplate.height
+            });
+        }
+        mguSpawnTimer = 0;
+        mguSpawnInterval = 4 + Math.random() * 3;
+    }
+
+    // === ДВИЖЕНИЕ И СПАВН ЛУБЯНКИ ===
+    for (let i = lubyankaObstacles.length - 1; i >= 0; i--) {
+        let lubyanka = lubyankaObstacles[i];
+        lubyanka.x -= pipes.dx * (delta || 1);
+        if (lubyanka.x < -lubyanka.width) {
+            lubyankaObstacles.splice(i, 1);
+            continue;
+        }
+        if (lubyanka.x < cvs.width && lubyanka.x + lubyanka.width > 0) {
+            if (state.current == state.game &&
+                checkCollisionZones(
+                    bird.x - bird.w/2, bird.y - bird.h/2, bird.w, bird.h, bird.collisionZones,
+                    [lubyanka], lubyankaObstacleTemplate, lubyankaCollisionZones
+                )
+            ) {
+                console.log('Коллизия с Лубянкой! Птица:', bird.x, bird.y, 'Лубянка:', lubyanka.x, lubyanka.y);
+                state.current = state.gameOver;
+                explosionActive = true;
+                explosion_dx = pipes.dx;
+                explosionX = bird.x;
+                explosionY = bird.y;
+                explosionTimer = 0;
+                if(!mute) {
+                    HIT.play();
+                    setTimeout(function() {
+                        if (state.current == state.gameOver) {
+                            DIE.currentTime = 0;
+                            DIE.play();
+                        }
+                    }, 500)
+                }
+            }
+        }
+    }
+    lubyankaSpawnTimer += delta;
+    if (lubyankaSpawnTimer >= lubyankaSpawnInterval) {
+        let x = cvs.width;
+        let y = cvs.height - lubyankaObstacleTemplate.height;
+        let allObstacles = getAllObstacles();
+        let overlaps = checkCollisionZones(
+            x, y, lubyankaObstacleTemplate.width, lubyankaObstacleTemplate.height, lubyankaCollisionZones,
+            allObstacles, lubyankaObstacleTemplate, lubyankaCollisionZones
+        );
+        if (!overlaps) {
+            lubyankaObstacles.push({
+                x: x,
+                y: y,
+                width: lubyankaObstacleTemplate.width,
+                height: lubyankaObstacleTemplate.height
+            });
+        }
+        lubyankaSpawnTimer = 0;
+        lubyankaSpawnInterval = 4 + Math.random() * 3;
+    }
+
+    // === ДВИЖЕНИЕ И СПАВН ОСТАНКИНО ===
+    for (let i = ostankinoObstacles.length - 1; i >= 0; i--) {
+        let ostankino = ostankinoObstacles[i];
+        ostankino.x -= pipes.dx * (delta || 1);
+        if (ostankino.x < -ostankino.width) {
+            ostankinoObstacles.splice(i, 1);
+            continue;
+        }
+        if (ostankino.x < cvs.width && ostankino.x + ostankino.width > 0) {
+            if (state.current == state.game &&
+                checkCollisionZones(
+                    bird.x - bird.w/2, bird.y - bird.h/2, bird.w, bird.h, bird.collisionZones,
+                    [ostankino], ostankinoObstacleTemplate, ostankinoCollisionZones
+                )
+            ) {
+                console.log('Коллизия с Останкино! Птица:', bird.x, bird.y, 'Останкино:', ostankino.x, ostankino.y);
+                state.current = state.gameOver;
+                explosionActive = true;
+                explosion_dx = pipes.dx;
+                explosionX = bird.x;
+                explosionY = bird.y;
+                explosionTimer = 0;
+                if(!mute) {
+                    HIT.play();
+                    setTimeout(function() {
+                        if (state.current == state.gameOver) {
+                            DIE.currentTime = 0;
+                            DIE.play();
+                        }
+                    }, 500)
+                }
+            }
+        }
+    }
+    ostankinoSpawnTimer += delta;
+    if (ostankinoSpawnTimer >= ostankinoSpawnInterval) {
+        let x = cvs.width;
+        let y = cvs.height - ostankinoObstacleTemplate.height;
+        let allObstacles = getAllObstacles();
+        let overlaps = checkCollisionZones(
+            x, y, ostankinoObstacleTemplate.width, ostankinoObstacleTemplate.height, ostankinoCollisionZones,
+            allObstacles, ostankinoObstacleTemplate, ostankinoCollisionZones
+        );
+        if (!overlaps) {
+            ostankinoObstacles.push({
+                x: x,
+                y: y,
+                width: ostankinoObstacleTemplate.width,
+                height: ostankinoObstacleTemplate.height
+            });
+        }
+        ostankinoSpawnTimer = 0;
+        ostankinoSpawnInterval = 4 + Math.random() * 3;
+    }
+    background.update(delta); // Обновляем фон
     home.update(delta);
 }
 
@@ -996,6 +901,7 @@ function draw() {
     ctx.fillRect(0, 0, cvs.width, cvs.height); 
 
     background.draw();
+    coins.draw(); // <--- добавлено
     pipes.draw();
     // === ОТРИСОВКА ВСЕХ МГУ ===
     for (let i = 0; i < mguObstacles.length; i++) {
@@ -1025,6 +931,10 @@ function draw() {
     gameButtons.draw();
     gameOver.draw();
     score.draw();
+    // === Чекбокс только в главном меню ===
+    if (typeof state !== 'undefined' && state.current === state.home) {
+        drawCollisionCheckbox(ctx);
+    }
     // === ВИЗУАЛИЗАЦИЯ ЗОН КОЛЛИЗИИ ГЕРОЯ ===
     if (showCollisionTest && typeof bird !== 'undefined' && birdVisible) {
         ctx.save();
@@ -1103,7 +1013,11 @@ function draw() {
     if (typeof state !== 'undefined' && state.current === state.home) {
         drawCollisionCheckbox(ctx);
     }
-} 
+    // === КОНЕЦ draw ===
+}
+
+// === ПРОВЕРКА КОЛЛИЗИЙ ПТИЦЫ СО ВСЕМИ ЗДАНИЯМИ ===
+// Удаляю функцию checkAllCollisions и её вызов из gameLoop в game-core.js вручную.
 
 // === Глобальная переменная для теста коллизий ===
 window.showCollisionTest = false;
@@ -1149,3 +1063,72 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 }); 
+
+// === МОНЕТЫ ===
+const coin_img = new Image();
+coin_img.src = "img/separated/coins.png";
+
+const coins = {
+    position: [],
+    w: 32, // ширина монеты (подберите под ваш спрайт)
+    h: 32, // высота монеты
+    spawnTimer: 0,
+    spawnInterval: 2 + Math.random() * 2, // 2-4 секунды
+    dx: 2, // скорость движения монеты
+    
+    draw: function() {
+        for (let i = 0; i < this.position.length; i++) {
+            let c = this.position[i];
+            ctx.drawImage(coin_img, c.x, c.y, this.w, this.h);
+        }
+    },
+    
+    update: function(delta) {
+        if (state.current != state.game) return;
+        this.spawnTimer += delta;
+        if (this.spawnTimer >= this.spawnInterval) {
+            // Появление монеты на случайной высоте
+            let y = Math.random() * (cvs.height - this.h * 2) + this.h;
+            this.position.push({ x: cvs.width, y: y, collected: false });
+            this.spawnTimer = 0;
+            this.spawnInterval = 2 + Math.random() * 2;
+        }
+        for (let i = this.position.length - 1; i >= 0; i--) {
+            let c = this.position[i];
+            c.x -= pipes.dx * (delta || 1); // теперь монеты двигаются как трубы/вертолёты
+            // Проверка коллизии с птицей
+            if (!c.collected &&
+                bird.x + bird.w/2 > c.x &&
+                bird.x - bird.w/2 < c.x + this.w &&
+                bird.y + bird.h/2 > c.y &&
+                bird.y - bird.h/2 < c.y + this.h
+            ) {
+                c.collected = true;
+                score.game_score++;
+                if(!mute && typeof POINT !== 'undefined') POINT.play();
+                
+                // Проверяем и применяем ускорение при достижении очков, кратных 5
+                checkAndApplySpeedBoost();
+                
+                // Обновляем лучший счет при сборе монеты
+                if(score.game_score > score.best_score) {
+                    score.best_score = score.game_score;
+                    score.new_best_score = true;
+                }
+                localStorage.setItem("best_score", score.best_score);
+            }
+            // Удаляем монету, если она собрана или ушла за экран
+            if (c.collected || c.x + this.w < 0) {
+                this.position.splice(i, 1);
+            }
+        }
+    },
+    reset: function() {
+        this.position = [];
+        this.spawnTimer = 0;
+        this.spawnInterval = 2 + Math.random() * 2;
+    }
+};
+
+// === Сброс монет при старте новой игры ===
+// Найдите все места, где вызывается pipes.pipesReset() или score.scoreReset(), и добавьте coins.reset(); 

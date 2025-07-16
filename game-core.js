@@ -36,7 +36,6 @@ initGame = function() {
     canvasScale();
     window.addEventListener("resize", canvasScale);
     initTelegram();
-    console.log('Game initialized');
 }
 
 // Telegram инициализация
@@ -45,7 +44,6 @@ initTelegram = function() {
         if (window.Telegram && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
             currentUser = tg.initDataUnsafe?.user;
-            console.log('Telegram initialized');
         }
     }, 200);
 }
@@ -56,6 +54,7 @@ function gameLoop(now) {
     let delta = (now - lastTime) / 1000; // в секундах
     window.lastDelta = delta; // для передачи в draw-функции
     update(delta);
+    // checkAllCollisions(); // удаляем вызов
     updateExplosion(delta);
     draw();
     drawExplosion();
@@ -77,8 +76,4 @@ window.addEventListener("load", () => {
 oldDraw = draw;
 draw = function() {
     oldDraw();
-    console.log('bird:', bird.x, bird.y, bird.w, bird.h);
-    console.log('home.logo:', home.logo.x, home.logo.y, home.logo.w, home.logo.h);
-    console.log('foreground:', foreground.x, foreground.y, foreground.w, foreground.h);
-    console.log('background:', background.x, background.y, background.w, background.h);
 } 

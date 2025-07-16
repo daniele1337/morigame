@@ -44,6 +44,15 @@ score = {
     scoreReset: function() {
         this.game_score = 0;
         this.new_best_score = false;
+        
+        // Сбрасываем ускорение при начале новой игры
+        if (typeof speedBoostMultiplier !== 'undefined') {
+            speedBoostMultiplier = 1.0;
+            lastSpeedBoostScore = 0;
+            if (typeof bird !== 'undefined' && typeof bird.enginePower !== 'undefined' && typeof baseEnginePower !== 'undefined') {
+                bird.enginePower = baseEnginePower;
+            }
+        }
     }
 };
 
@@ -432,6 +441,12 @@ canvasScale = function() {
     bird.jump = 1500;
     bird.acceleration = 500;
     bird.enginePower = 1000;
+    // Инициализируем базовую мощность двигателя для ускорения
+    if (typeof baseEnginePower !== 'undefined') {
+        baseEnginePower = 1000;
+        speedBoostMultiplier = 1.0;
+        lastSpeedBoostScore = 0;
+    }
     bird.maxSpeed = 1500;
     bird.minSpeed = -1500;
     bird.rotationSpeed = 0.06;

@@ -103,8 +103,10 @@ cvs.addEventListener("mousedown", function(event)
             {
                 gameButtons.restart_button.pressTime = performance.now();
                 pipes.pipesReset();
+                coins.reset();
                 bird.speedReset();
                 score.scoreReset();
+                coins.reset();
                 gameButtons.restart_button.isPressed = false;
                 gameOver.scoreSaved = false; // Сбрасываем флаг сохранения
                 state.current = state.getReady;
@@ -120,6 +122,9 @@ cvs.addEventListener("mousedown", function(event)
                 if (tg && tg.BackButton && tg.version && parseFloat(tg.version) >= 6.1 && typeof tg.BackButton.hide === 'function') {
                     tg.BackButton.hide();
                 }
+                mguObstacles = [];
+                lubyankaObstacles = [];
+                ostankinoObstacles = [];
             }
             // Home button
             else if(clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
@@ -127,8 +132,10 @@ cvs.addEventListener("mousedown", function(event)
             {
                 gameButtons.home_button.pressTime = performance.now();
                 pipes.pipesReset();
+                coins.reset();
                 bird.speedReset();
                 score.scoreReset();
+                coins.reset();
                 gameButtons.home_button.isPressed = false;
                 state.current = state.home;
                 if(!mute)
@@ -144,6 +151,9 @@ cvs.addEventListener("mousedown", function(event)
                 if (tg && tg.BackButton && tg.version && parseFloat(tg.version) >= 6.1 && typeof tg.BackButton.hide === 'function') {
                     tg.BackButton.hide();
                 }
+                mguObstacles = [];
+                lubyankaObstacles = [];
+                ostankinoObstacles = [];
             }
             break;
     }        
@@ -254,8 +264,10 @@ cvs.addEventListener("touchstart", function(event)
             {
                 gameButtons.restart_button.pressTime = performance.now();
                 pipes.pipesReset();
+                coins.reset();
                 bird.speedReset();
                 score.scoreReset();
+                coins.reset();
                 gameButtons.restart_button.isPressed = false;
                 gameOver.scoreSaved = false; // Сбрасываем флаг сохранения
                 state.current = state.getReady;
@@ -270,6 +282,9 @@ cvs.addEventListener("touchstart", function(event)
                     tg.MainButton.hide();
                     tg.BackButton.hide();
                 }
+                mguObstacles = [];
+                lubyankaObstacles = [];
+                ostankinoObstacles = [];
             }
             // Home button
             else if(clickX >= gameButtons.home_button.x && clickX <= gameButtons.home_button.x + gameButtons.home_button.w &&
@@ -277,8 +292,10 @@ cvs.addEventListener("touchstart", function(event)
             {
                 gameButtons.home_button.pressTime = performance.now();
                 pipes.pipesReset();
+                coins.reset();
                 bird.speedReset();
                 score.scoreReset();
+                coins.reset();
                 gameButtons.home_button.isPressed = false;
                 state.current = state.home;
                 if(!mute)
@@ -293,6 +310,9 @@ cvs.addEventListener("touchstart", function(event)
                     tg.MainButton.show();
                     tg.BackButton.hide();
                 }
+                mguObstacles = [];
+                lubyankaObstacles = [];
+                ostankinoObstacles = [];
             }
             break;
     }        
