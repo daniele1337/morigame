@@ -13,8 +13,8 @@ function checkAndApplySpeedBoost() {
         
         // Проверяем, достигли ли мы нового кратного 5 счета
         if (currentScore > 0 && currentScore % 5 === 0 && currentScore > lastSpeedBoostScore) {
-            // Устанавливаем множитель ускорения на 15% от базовой скорости
-            speedBoostMultiplier = 1.0 + (currentScore / 5) * 0.15;
+            // Устанавливаем множитель ускорения на 50% от базовой скорости
+            speedBoostMultiplier = 1.0 + (currentScore / 5) * 0.50;
             lastSpeedBoostScore = currentScore;
             
             // Применяем ускорение к ракете
@@ -296,7 +296,7 @@ pipes = {
     nextHelicopterFrame: 80,
     helicopterFrameTime: 0, // для анимации по времени
     spawnTimer: 0, // таймер появления
-    spawnInterval: 2.88, // увеличено на 15% для уменьшения количества вертолётов
+    spawnInterval: 3.31, // увеличено на 30% для уменьшения количества вертолётов на 15%
 
     draw: function() {
         this.helicopterFrameTime += (typeof window !== 'undefined' && window.lastDelta) ? window.lastDelta : 0.016;
