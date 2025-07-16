@@ -268,7 +268,7 @@ pipes = {
     nextHelicopterFrame: 80,
     helicopterFrameTime: 0, // для анимации по времени
     spawnTimer: 0, // таймер появления
-    spawnInterval: 2.5, // базовый интервал появления в секундах (эквивалентно 400 кадров при 160 FPS)
+    spawnInterval: 2.88, // увеличено на 15% для уменьшения количества вертолётов
 
     draw: function() {
         this.helicopterFrameTime += (typeof window !== 'undefined' && window.lastDelta) ? window.lastDelta : 0.016;
@@ -376,30 +376,51 @@ pipes = {
                 circleAngle: circleAngle,
                 circleSpeed: circleSpeed,
                 circleRadius: circleRadius,
-                circleCenterY: circleCenterY
+                circleCenterY: circleCenterY,
+                flyAway: false // флаг улёта
             });
             console.log('Вертолёт добавлен:', {x: cvs.width - drawW, y});
             console.log('Всего вертолётов:', this.position.length);
             this.spawnTimer = 0;
         }
         
-        for(let i = 0; i < this.position.length; i++) {
+        for(let i = this.position.length - 1; i >= 0; i--) {
             let p = this.position[i];
+            // === Проверка близости к Останкино ===
+            if (!p.flyAway && Array.isArray(ostankinoObstacles)) {
+                for (let j = 0; j < ostankinoObstacles.length; j++) {
+                    let ost = ostankinoObstacles[j];
+                    let heliCenterX = p.x + drawW / 2;
+                    let ostCenterX = ost.x + ost.width / 2;
+                    if (Math.abs(heliCenterX - ostCenterX) < 150) {
+                        p.flyAway = true;
+                        p.flyAwaySpeed = 400 + Math.random() * 100; // px/sec
+                        break;
+                    }
+                }
+            }
             // === ДВИЖЕНИЕ ВЕРТОЛЁТА ===
-            p.x -= this.dx * delta;
-
-            // Вертикальное движение для 40% вертолётов
-            if (p.moveY) {
-                p.y += p.moveDir * p.moveSpeed * delta;
-                // Отскок от границ (например, верх и низ экрана)
-                if (p.y < 0) {
-                    p.y = 0;
-                    p.moveDir = 1;
+            if (p.flyAway) {
+                p.y -= (p.flyAwaySpeed || 400) * delta;
+            } else {
+                p.x -= this.dx * delta;
+                // Вертикальное движение для 40% вертолётов
+                if (p.moveY) {
+                    p.y += p.moveDir * p.moveSpeed * delta;
+                    if (p.y < 0) {
+                        p.y = 0;
+                        p.moveDir = 1;
+                    }
+                    if (p.y + this.h > cvs.height) {
+                        p.y = cvs.height - this.h;
+                        p.moveDir = -1;
+                    }
                 }
-                if (p.y + this.h > cvs.height) {
-                    p.y = cvs.height - this.h;
-                    p.moveDir = -1;
-                }
+            }
+            // === Удаление вертолёта, если он улетел за верх экрана ===
+            if (p.flyAway && (p.y + this.h < 0)) {
+                this.position.splice(i, 1);
+                continue;
             }
             let foundCollision = false;
             // === В pipes.update: масштабируем зоны коллизии героя с учётом реального масштаба по высоте ===
