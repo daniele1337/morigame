@@ -414,6 +414,17 @@ canvasScale = function() {
         screenHeight = window.innerHeight;
     }
     
+    // Ограничиваем максимальный размер canvas для предотвращения огромных объектов
+    const maxCanvasHeight = 800; // максимальная высота canvas
+    const maxCanvasWidth = 600;  // максимальная ширина canvas
+    
+    if (screenHeight > maxCanvasHeight) {
+        screenHeight = maxCanvasHeight;
+    }
+    if (screenWidth > maxCanvasWidth) {
+        screenWidth = maxCanvasWidth;
+    }
+    
     cvs.height = screenHeight;
     cvs.width = screenHeight * 0.72;
 

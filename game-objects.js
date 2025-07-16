@@ -1076,7 +1076,7 @@ coin_img.src = "img/separated/coins.png";
 
 const coins = {
     position: [],
-    w: 32, // ширина монеты (подберите под ваш спрайт)
+    w: 32, // ширина монеты
     h: 32, // высота монеты
     spawnTimer: 0,
     spawnInterval: 2 + Math.random() * 2, // 2-4 секунды
