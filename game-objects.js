@@ -888,6 +888,7 @@ function update(delta) {
     }
     background.update(delta); // Обновляем фон
     home.update(delta);
+    coins.trySpawnCoinAfterObstacles();
 }
 
 function draw() {
@@ -1091,13 +1092,7 @@ const coins = {
     update: function(delta) {
         if (state.current != state.game) return;
         this.spawnTimer += delta;
-        if (this.spawnTimer >= this.spawnInterval) {
-            // Появление монеты на случайной высоте
-            let y = Math.random() * (cvs.height - this.h * 2) + this.h;
-            this.position.push({ x: cvs.width, y: y, collected: false });
-            this.spawnTimer = 0;
-            this.spawnInterval = 2 + Math.random() * 2;
-        }
+        // Спавн монеты теперь происходит после спавна препятствий, см. coins.trySpawnCoinAfterObstacles()
         for (let i = this.position.length - 1; i >= 0; i--) {
             let c = this.position[i];
             c.x -= pipes.dx * (delta || 1); // теперь монеты двигаются как трубы/вертолёты
@@ -1111,11 +1106,7 @@ const coins = {
                 c.collected = true;
                 score.game_score++;
                 if(!mute && typeof POINT !== 'undefined') POINT.play();
-                
-                // Проверяем и применяем ускорение при достижении очков, кратных 5
                 checkAndApplySpeedBoost();
-                
-                // Обновляем лучший счет при сборе монеты
                 if(score.game_score > score.best_score) {
                     score.best_score = score.game_score;
                     score.new_best_score = true;
@@ -1127,6 +1118,37 @@ const coins = {
                 this.position.splice(i, 1);
             }
         }
+    },
+    trySpawnCoinAfterObstacles: function() {
+        if (state.current != state.game) return;
+        if (this.spawnTimer < this.spawnInterval) return;
+        // Появление монеты на случайной высоте
+        let y = Math.random() * (cvs.height - this.h * 2) + this.h;
+        let x = cvs.width;
+        // Проверяем радиус 300px от всех препятствий
+        let minDist = 300;
+        let allObstacles = getAllObstacles();
+        // Добавим вертолёты
+        if (Array.isArray(pipes.position)) {
+            for (let p of pipes.position) {
+                let heliW = Math.round(360 / 1.5) * 0.8 * 1.1; // drawW из pipes.update
+                let heliH = heliW * (305 / 360); // приблизительно
+                allObstacles.push({x: p.x, y: p.y, width: heliW, height: heliH});
+            }
+        }
+        let coinCenter = {x: x + this.w/2, y: y + this.h/2};
+        let tooClose = allObstacles.some(obj => {
+            let objCenter = {x: obj.x + obj.width/2, y: obj.y + obj.height/2};
+            let dx = coinCenter.x - objCenter.x;
+            let dy = coinCenter.y - objCenter.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            return dist < minDist;
+        });
+        if (!tooClose) {
+            this.position.push({ x: x, y: y, collected: false });
+            this.spawnTimer = 0;
+            this.spawnInterval = 2 + Math.random() * 2;
+        } // иначе — попробуем на следующем тике
     },
     reset: function() {
         this.position = [];
