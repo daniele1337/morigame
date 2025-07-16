@@ -111,7 +111,6 @@ home = {
         {spriteX: 0, spriteY: 342, spriteW: 180, spriteH: 136}
     ],
     bird: {x: 0, y: 0, w: 0, h: 0},
-    studio_name: {spriteX: 172, spriteY: 284, spriteW: 380, spriteH: 28, x: 0, y: 0, w: 0, h: 0},
     frame: 0, logoGoUp: true,
 
     draw: function() {
@@ -120,7 +119,6 @@ home = {
         if(state.current == state.home) {
             ctx.drawImage(sprite_sheet, this.logo.spriteX, this.logo.spriteY, this.logo.spriteW, this.logo.spriteH, this.logo.x, this.logo.y, this.logo.w, this.logo.h);
             ctx.drawImage(mori_model_sprite, bird.spriteX, bird.spriteY, bird.spriteW, bird.spriteH, this.bird.x, this.bird.y, this.bird.w, this.bird.h);
-            ctx.drawImage(sprite_sheet, this.studio_name.spriteX, this.studio_name.spriteY, this.studio_name.spriteW, this.studio_name.spriteH, this.studio_name.x, this.studio_name.y, this.studio_name.w, this.studio_name.h);
         }
     },
 
@@ -275,10 +273,6 @@ canvasScale = function() {
     home.bird.y = cvs.height * 0.294;
     home.bird.w = cvs.width * 0.117;
     home.bird.h = cvs.height * 0.059;
-    home.studio_name.x = cvs.width * 0.171;
-    home.studio_name.y = cvs.height * 0.897;
-    home.studio_name.w = cvs.width * 0.659;
-    home.studio_name.h = cvs.height * 0.034; 
 
     // GET READY
     getReady.get_ready.x = cvs.width * 0.197;
