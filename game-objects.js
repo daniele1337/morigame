@@ -551,8 +551,8 @@ let explosion_dx = 0;
 const mgu_img = new Image();
 mgu_img.src = "img/separated/MGU.png";
 const mguObstacleTemplate = {
-    get width() { return Math.round(403 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get height() { return Math.round(514 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+    get width() { return Math.round(403 * 1.26 * (window.gameScale || 1)); },
+    get height() { return Math.round(514 * 1.26 * (window.gameScale || 1)); }
 };
 let mguObstacles = [];
 let mguSpawnTimer = 0;
@@ -562,34 +562,34 @@ let lubyankaSpawnInterval = 4 + Math.random() * 3; // 4-7 секунд
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ МГУ ===
 const mguCollisionZones = [
   { 
-    get x() { return Math.round(204 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get y() { return Math.round(65 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get w() { return Math.round(22 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get h() { return Math.round(94 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+    get x() { return Math.round(204 * 1.26 * (window.gameScale || 1)); },
+    get y() { return Math.round(65 * 1.26 * (window.gameScale || 1)); },
+    get w() { return Math.round(22 * 1.26 * (window.gameScale || 1)); },
+    get h() { return Math.round(94 * 1.26 * (window.gameScale || 1)); }
   },
   { 
-    get x() { return Math.round(190.5 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get y() { return Math.round(159 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get w() { return Math.round(53 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get h() { return Math.round(50 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+    get x() { return Math.round(190.5 * 1.26 * (window.gameScale || 1)); },
+    get y() { return Math.round(159 * 1.26 * (window.gameScale || 1)); },
+    get w() { return Math.round(53 * 1.26 * (window.gameScale || 1)); },
+    get h() { return Math.round(50 * 1.26 * (window.gameScale || 1)); }
   },
   { 
-    get x() { return Math.round(174 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get y() { return Math.round(210 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get w() { return Math.round(85 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get h() { return Math.round(107 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+    get x() { return Math.round(174 * 1.26 * (window.gameScale || 1)); },
+    get y() { return Math.round(210 * 1.26 * (window.gameScale || 1)); },
+    get w() { return Math.round(85 * 1.26 * (window.gameScale || 1)); },
+    get h() { return Math.round(107 * 1.26 * (window.gameScale || 1)); }
   },
   { 
-    get x() { return Math.round(155 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get y() { return Math.round(318 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get w() { return Math.round(124 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get h() { return Math.round(80 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+    get x() { return Math.round(155 * 1.26 * (window.gameScale || 1)); },
+    get y() { return Math.round(318 * 1.26 * (window.gameScale || 1)); },
+    get w() { return Math.round(124 * 1.26 * (window.gameScale || 1)); },
+    get h() { return Math.round(80 * 1.26 * (window.gameScale || 1)); }
   },
   { 
-    get x() { return Math.round(28 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get y() { return Math.round(398 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get w() { return Math.round(374 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get h() { return Math.round(159 * 1.26 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+    get x() { return Math.round(28 * 1.26 * (window.gameScale || 1)); },
+    get y() { return Math.round(398 * 1.26 * (window.gameScale || 1)); },
+    get w() { return Math.round(374 * 1.26 * (window.gameScale || 1)); },
+    get h() { return Math.round(159 * 1.26 * (window.gameScale || 1)); }
   }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
@@ -598,83 +598,83 @@ const mguCollisionZones = [
 const lubyanka_img = new Image();
 lubyanka_img.src = "img/separated/Lubyanka.png";
 const lubyankaObstacleTemplate = {
-    get width() { return Math.round(865 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get height() { return Math.round(466 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+    get width() { return Math.round(865 * (window.gameScale || 1)); },
+    get height() { return Math.round(466 * (window.gameScale || 1)); }
 };
 let lubyankaObstacles = [];
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ ЛУБЯНКИ ===
 const lubyankaCollisionZones = [
   { 
-    get x() { return (23/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get y() { return (203/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get w() { return (124/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get h() { return (774/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+    get x() { return (23/2) * (window.gameScale || 1); },
+    get y() { return (203/2) * (window.gameScale || 1); },
+    get w() { return (124/2) * (window.gameScale || 1); },
+    get h() { return (774/2) * (window.gameScale || 1); }
   },
   { 
-    get x() { return (144/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get y() { return (329/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get w() { return (1479/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get h() { return (649/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+    get x() { return (144/2) * (window.gameScale || 1); },
+    get y() { return (329/2) * (window.gameScale || 1); },
+    get w() { return (1479/2) * (window.gameScale || 1); },
+    get h() { return (649/2) * (window.gameScale || 1); }
   },
   { 
-    get x() { return (1622/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get y() { return (206/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get w() { return (117/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get h() { return (775/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+    get x() { return (1622/2) * (window.gameScale || 1); },
+    get y() { return (206/2) * (window.gameScale || 1); },
+    get w() { return (117/2) * (window.gameScale || 1); },
+    get h() { return (775/2) * (window.gameScale || 1); }
   },
   { 
-    get x() { return (755/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get y() { return (243/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get w() { return (247/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get h() { return (90/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+    get x() { return (755/2) * (window.gameScale || 1); },
+    get y() { return (243/2) * (window.gameScale || 1); },
+    get w() { return (247/2) * (window.gameScale || 1); },
+    get h() { return (90/2) * (window.gameScale || 1); }
   },
   { 
-    get x() { return (809/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get y() { return (181/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get w() { return (155/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get h() { return (62/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+    get x() { return (809/2) * (window.gameScale || 1); },
+    get y() { return (181/2) * (window.gameScale || 1); },
+    get w() { return (155/2) * (window.gameScale || 1); },
+    get h() { return (62/2) * (window.gameScale || 1); }
   },
   { 
-    get x() { return (825/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get y() { return (165/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get w() { return (114/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get h() { return (18/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+    get x() { return (825/2) * (window.gameScale || 1); },
+    get y() { return (165/2) * (window.gameScale || 1); },
+    get w() { return (114/2) * (window.gameScale || 1); },
+    get h() { return (18/2) * (window.gameScale || 1); }
   },
   { 
-    get x() { return (837/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get y() { return (155/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get w() { return (92/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get h() { return (10/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+    get x() { return (837/2) * (window.gameScale || 1); },
+    get y() { return (155/2) * (window.gameScale || 1); },
+    get w() { return (92/2) * (window.gameScale || 1); },
+    get h() { return (10/2) * (window.gameScale || 1); }
   },
   { 
-    get x() { return (844/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get y() { return (144/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get w() { return (78/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get h() { return (11/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+    get x() { return (844/2) * (window.gameScale || 1); },
+    get y() { return (144/2) * (window.gameScale || 1); },
+    get w() { return (78/2) * (window.gameScale || 1); },
+    get h() { return (11/2) * (window.gameScale || 1); }
   },
   { 
-    get x() { return (851/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get y() { return (132/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get w() { return (60/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get h() { return (12/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+    get x() { return (851/2) * (window.gameScale || 1); },
+    get y() { return (132/2) * (window.gameScale || 1); },
+    get w() { return (60/2) * (window.gameScale || 1); },
+    get h() { return (12/2) * (window.gameScale || 1); }
   },
   { 
-    get x() { return (859/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get y() { return (113/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get w() { return (51/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get h() { return (19/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+    get x() { return (859/2) * (window.gameScale || 1); },
+    get y() { return (113/2) * (window.gameScale || 1); },
+    get w() { return (51/2) * (window.gameScale || 1); },
+    get h() { return (19/2) * (window.gameScale || 1); }
   },
   { 
-    get x() { return (865/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get y() { return (98/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get w() { return (38/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get h() { return (15/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+    get x() { return (865/2) * (window.gameScale || 1); },
+    get y() { return (98/2) * (window.gameScale || 1); },
+    get w() { return (38/2) * (window.gameScale || 1); },
+    get h() { return (15/2) * (window.gameScale || 1); }
   },
   { 
-    get x() { return (878/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get y() { return (51/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get w() { return (6/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); },
-    get h() { return (47/2) * (cvs ? Math.min(1, cvs.height / 800) : 1); }
+    get x() { return (878/2) * (window.gameScale || 1); },
+    get y() { return (51/2) * (window.gameScale || 1); },
+    get w() { return (6/2) * (window.gameScale || 1); },
+    get h() { return (47/2) * (window.gameScale || 1); }
   }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
@@ -683,38 +683,48 @@ const lubyankaCollisionZones = [
 const ostankino_img = new Image();
 ostankino_img.src = "img/separated/OstankinoTowe1r.png";
 const ostankinoObstacleTemplate = {
-    get width() { return Math.round(256 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get height() { return Math.round(878 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+    get width() { return Math.round(256 * 1.05 * (window.gameScale || 1)); },
+    get height() { return Math.round(878 * 1.05 * (window.gameScale || 1)); }
 };
 let ostankinoObstacles = [];
 let ostankinoSpawnTimer = 0;
 let ostankinoSpawnInterval = 4 + Math.random() * 3;
 const ostankinoCollisionZones = [
     { 
-      get x() { return Math.round(70 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-      get y() { return Math.round(766 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-      get w() { return Math.round(139 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-      get h() { return Math.round(107 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+      get x() { return Math.round(70 * 1.05 * (window.gameScale || 1)); },
+      get y() { return Math.round(766 * 1.05 * (window.gameScale || 1)); },
+      get w() { return Math.round(139 * 1.05 * (window.gameScale || 1)); },
+      get h() { return Math.round(107 * 1.05 * (window.gameScale || 1)); }
     },
     { 
-      get x() { return Math.round(121 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-      get y() { return Math.round(332 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-      get w() { return Math.round(44 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-      get h() { return Math.round(436 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+      get x() { return Math.round(121 * 1.05 * (window.gameScale || 1)); },
+      get y() { return Math.round(332 * 1.05 * (window.gameScale || 1)); },
+      get w() { return Math.round(44 * 1.05 * (window.gameScale || 1)); },
+      get h() { return Math.round(436 * 1.05 * (window.gameScale || 1)); }
     },
     { 
-      get x() { return Math.round(131 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-      get y() { return Math.round(142 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-      get w() { return Math.round(17 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-      get h() { return Math.round(189 * 1.05 * (cvs ? Math.min(1, cvs.height / 800) : 1)); }
+      get x() { return Math.round(131 * 1.05 * (window.gameScale || 1)); },
+      get y() { return Math.round(142 * 1.05 * (window.gameScale || 1)); },
+      get w() { return Math.round(17 * 1.05 * (window.gameScale || 1)); },
+      get h() { return Math.round(189 * 1.05 * (window.gameScale || 1)); }
     }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ ГЛАВНОГО ГЕРОЯ ===
 bird.collisionZones = [
-  { x: 94, y: 0, w: 61, h: 70 },
-  { x: 25, y: 69, w: 154, h: 66 }
+  { 
+    get x() { return 94 * (window.gameScale || 1); },
+    get y() { return 0 * (window.gameScale || 1); },
+    get w() { return 61 * (window.gameScale || 1); },
+    get h() { return 70 * (window.gameScale || 1); }
+  },
+  { 
+    get x() { return 25 * (window.gameScale || 1); },
+    get y() { return 69 * (window.gameScale || 1); },
+    get w() { return 154 * (window.gameScale || 1); },
+    get h() { return 66 * (window.gameScale || 1); }
+  }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
@@ -726,8 +736,18 @@ const helicopterFrames = [
 ];
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ ВЕРТОЛЁТА ===
 const helicopterCollisionZones = [
-    { x: 0, y: 0, w: 360, h: 140 },
-    { x: 44, y: 141, w: 112, h: 167 }
+    { 
+      get x() { return 0 * (window.gameScale || 1); },
+      get y() { return 0 * (window.gameScale || 1); },
+      get w() { return 360 * (window.gameScale || 1); },
+      get h() { return 140 * (window.gameScale || 1); }
+    },
+    { 
+      get x() { return 44 * (window.gameScale || 1); },
+      get y() { return 141 * (window.gameScale || 1); },
+      get w() { return 112 * (window.gameScale || 1); },
+      get h() { return 167 * (window.gameScale || 1); }
+    }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
@@ -765,20 +785,20 @@ function updateExplosion(delta) {
 
 function checkCollisionZones(newX, newY, newW, newH, newZones, existingObstacles, existingTemplate, existingZones) {
     for (let obj of existingObstacles) {
-        let scaleX = obj.width / existingTemplate.width;
-        let scaleY = obj.height / existingTemplate.height;
         for (let ez of existingZones) {
-            let ezX = obj.x + ez.x * scaleX;
-            let ezY = obj.y + ez.y * scaleY;
-            let ezW = ez.w * scaleX;
-            let ezH = ez.h * scaleY;
+            // Зоны коллизий уже масштабированы, используем их напрямую
+            let ezX = obj.x + ez.x;
+            let ezY = obj.y + ez.y;
+            let ezW = ez.w;
+            let ezH = ez.h;
             for (let nz of newZones) {
-                let nScaleX = newW / existingTemplate.width;
-                let nScaleY = newH / existingTemplate.height;
-                let nzX = newX + nz.x * nScaleX;
-                let nzY = newY + nz.y * nScaleY;
-                let nzW = nz.w * nScaleX;
-                let nzH = nz.h * nScaleY;
+                // Масштабируем зоны птицы относительно её размера
+                let birdScaleX = newW / birdSpriteW;
+                let birdScaleY = (newH * 1.452) / birdSpriteH;
+                let nzX = newX + nz.x * birdScaleX;
+                let nzY = newY + nz.y * birdScaleY;
+                let nzW = nz.w * birdScaleX;
+                let nzH = nz.h * birdScaleY;
                 if (
                     nzX < ezX + ezW &&
                     nzX + nzW > ezX &&
@@ -791,8 +811,7 @@ function checkCollisionZones(newX, newY, newW, newH, newZones, existingObstacles
                     console.log('Координаты зоны объекта:', ezX, ezY, ezW, ezH);
                     console.log('Координаты птицы:', newX, newY, newW, newH);
                     console.log('Координаты зоны птицы:', nzX, nzY, nzW, nzH);
-                    console.log('Масштаб объекта:', scaleX, scaleY);
-                    console.log('Масштаб птицы:', nScaleX, nScaleY);
+                    console.log('Масштаб птицы:', birdScaleX, birdScaleY);
                     console.log('==========================================');
                     return true;
                 }
@@ -1176,8 +1195,8 @@ coin_img.src = "img/separated/coins.png";
 
 const coins = {
     position: [],
-    get w() { return Math.round(32 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
-    get h() { return Math.round(32 * (cvs ? Math.min(1, cvs.height / 800) : 1)); },
+    get w() { return Math.round(32 * (window.gameScale || 1)); },
+    get h() { return Math.round(32 * (window.gameScale || 1)); },
     spawnTimer: 0,
     spawnInterval: 2 + Math.random() * 2, // 2-4 секунды
     dx: 2, // скорость движения монеты
@@ -1226,7 +1245,7 @@ const coins = {
         let y = Math.random() * (cvs.height - this.h * 2) + this.h;
         let x = cvs.width;
         // Проверяем радиус 300px от всех препятствий
-        let minDist = Math.max(300, cvs.width * 0.15); // минимум 300px или 15% от ширины экрана
+        let minDist = Math.max(300, cvs.width * 0.15) * (window.gameScale || 1); // минимум 300px или 15% от ширины экрана, масштабируется
         let allObstacles = getAllObstacles();
         // Добавим вертолёты
         if (Array.isArray(pipes.position)) {

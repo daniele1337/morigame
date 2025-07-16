@@ -402,6 +402,10 @@ const btnStartImg = new Image(); btnStartImg.src = "img/separated/buttons/start.
 const mainLogoImg = new Image();
 mainLogoImg.src = "img/separated/main_logo_text.png";
 
+// === ГЛОБАЛЬНАЯ ПЕРЕМЕННАЯ ДЛЯ МАСШТАБА ===
+window.gameScale = 1;
+// === КОНЕЦ ДОБАВЛЕНИЯ ===
+
 // Функция масштабирования canvas
 canvasScale = function() {
     let screenWidth, screenHeight;
@@ -416,6 +420,10 @@ canvasScale = function() {
     
     cvs.height = screenHeight;
     cvs.width = screenHeight * 0.72;
+
+    // === ОБНОВЛЕНИЕ ГЛОБАЛЬНОГО МАСШТАБА ===
+    window.gameScale = Math.min(1, cvs.height / 800);
+    // === КОНЕЦ ОБНОВЛЕНИЯ ===
 
     // BACKGROUND
     background.x = 0;
