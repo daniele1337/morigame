@@ -84,6 +84,7 @@ cvs.addEventListener("mousedown", function(event)
                 clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
             {
                 gamePaused = !gamePaused;
+                // console.log('Пауза переключена (mouse):', gamePaused);
             }
             // Управление ракетой - включаем двигатель при нажатии ЛКМ
             else if (!gamePaused) {
@@ -245,6 +246,7 @@ cvs.addEventListener("touchstart", function(event)
                 clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
             {
                 gamePaused = !gamePaused;
+                // console.log('Пауза переключена (touch):', gamePaused);
             }
             // Управление ракетой - включаем двигатель при нажатии пальца
             else if (!gamePaused) {

@@ -53,11 +53,18 @@ let lastTime = performance.now();
 function gameLoop(now) {
     let delta = (now - lastTime) / 1000; // в секундах
     window.lastDelta = delta; // для передачи в draw-функции
-    update(delta);
-    // checkAllCollisions(); // удаляем вызов
-    updateExplosion(delta);
+    
+    // Обновляем игру только если не на паузе
+    if (!gamePaused) {
+        update(delta);
+        // checkAllCollisions(); // удаляем вызов
+        updateExplosion(delta);
+    }
+    
+    // Отрисовка всегда происходит (чтобы показать состояние паузы)
     draw();
     drawExplosion();
+    
     if (!gamePaused) frames++;
     lastTime = now;
     requestAnimationFrame(gameLoop);

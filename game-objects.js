@@ -420,8 +420,8 @@ pipes = {
                     let heliCenterY = p.y + this.h / 2;
                     let ostTopX = ost.x + ost.width / 2;
                     let ostTopY = ost.y;
-                    // Проверка попадания в квадрат 100х100 вокруг вершины Останкино
-                    if (Math.abs(heliCenterX - ostTopX) < 100 && Math.abs(heliCenterY - ostTopY) < 100) {
+                    // Проверка попадания в квадрат 300х300 вокруг вершины Останкино
+                    if (Math.abs(heliCenterX - ostTopX) < 300 && Math.abs(heliCenterY - ostTopY) < 300) {
                         p.flyAway = true;
                         p.flyAwaySpeed = 400 + Math.random() * 100; // px/sec
                         break;
@@ -709,6 +709,11 @@ function getAllObstacles() {
 
 // Функции обновления и отрисовки
 function update(delta) {
+    // Проверяем паузу
+    if (typeof gamePaused !== 'undefined' && gamePaused) {
+        return; // Выходим из функции, если игра на паузе
+    }
+    
     if (explosionActive) {
         updateExplosion(delta);
         return;

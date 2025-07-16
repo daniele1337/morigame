@@ -121,6 +121,8 @@ gameButtons = {
             } else {
                 ctx.drawImage(btnPlayImg, this.x, button_y, this.w, this.h);
             }
+            // Отладочная информация (закомментировано)
+            // console.log('Состояние паузы:', gamePaused, 'Координаты кнопки:', this.x, button_y, this.w, this.h);
         } else if(state.current == state.gameOver) {
             // --- Кнопка рестарт с анимацией ---
             let t2 = performance.now() * 0.001;
