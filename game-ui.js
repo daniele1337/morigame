@@ -112,37 +112,64 @@ home = {
     ],
     bird: {x: 0, y: 0, w: 0, h: 0},
     frame: 0,
-    // === Для анимации логотипа ===
-    logoFadeIn: 0, // 0..1
-    logoBlink: 0, // 0..1
-    logoFadeInDuration: 0.7, // сек
+    // === Для эффекта круглого прожектора ===
+    spotlightPos: 0, // 0..1 по X
+    spotlightYPos: 0.5, // 0..1 по Y (относительно логотипа)
+    spotlightSpeed: 0.22, // базовая скорость по X
+    spotlightYSpeed: 0, // текущая скорость по Y
+    spotlightTargetY: 0.5, // целевая позиция по Y
+    spotlightDir: 1, // направление по X
+    spotlightTimer: 0, // для смены направления
     draw: function() {
         let bird = this.animation[this.frame];
         if(state.current == state.home) {
-            // === Анимация плавного появления и мерцания ===
-            let alpha = 1;
-            if (this.logoFadeIn < 1) {
-                alpha = this.logoFadeIn;
-            } else {
-                // Мерцание: прозрачность меняется между 0.85 и 1.0
-                alpha = 0.925 + 0.075 * Math.sin(frames * 0.2);
-            }
             ctx.save();
-            ctx.globalAlpha = alpha;
             ctx.drawImage(mainLogoImg, this.logo.x, this.logo.y, this.logo.w, this.logo.h);
+            // Эффект круглого прожектора
+            let spotX = this.logo.x + this.logo.w * this.spotlightPos;
+            let spotY = this.logo.y + this.logo.h * this.spotlightYPos;
+            let radius = Math.max(this.logo.w, this.logo.h) * 0.137; // уменьшено ещё на 30%
+            let grad = ctx.createRadialGradient(spotX, spotY, radius * 0.15, spotX, spotY, radius);
+            grad.addColorStop(0, 'rgba(255,255,220,0.45)');
+            grad.addColorStop(0.25, 'rgba(255,255,220,0.18)');
+            grad.addColorStop(0.5, 'rgba(255,255,220,0.08)');
+            grad.addColorStop(1, 'rgba(255,255,220,0)');
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.beginPath();
+            ctx.arc(spotX, spotY, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
             ctx.restore();
             ctx.drawImage(mori_model_sprite, bird.spriteX, bird.spriteY, bird.spriteW, bird.spriteH, this.bird.x, this.bird.y, this.bird.w, this.bird.h);
         }
     },
     update: function() {
         if (state.current == state.home) {
-            // === Плавное появление логотипа ===
-            if (this.logoFadeIn < 1) {
-                this.logoFadeIn += window.lastDelta / this.logoFadeInDuration;
-                if (this.logoFadeIn > 1) this.logoFadeIn = 1;
+            // Хаотичное движение по X
+            this.spotlightPos += this.spotlightSpeed * this.spotlightDir * window.lastDelta;
+            if (this.spotlightPos > 1) { this.spotlightPos = 1; this.spotlightDir = -1; }
+            if (this.spotlightPos < 0) { this.spotlightPos = 0; this.spotlightDir = 1; }
+            // Иногда меняем направление по X случайно
+            this.spotlightTimer += window.lastDelta;
+            if (this.spotlightTimer > 1.2 + Math.random()*1.2) {
+                if (Math.random() < 0.5) this.spotlightDir *= -1;
+                this.spotlightTimer = 0;
+                // Случайная новая цель по Y
+                this.spotlightTargetY = 0.15 + 0.7 * Math.random();
             }
+            // Плавное движение по Y к цели
+            let dy = this.spotlightTargetY - this.spotlightYPos;
+            this.spotlightYPos += dy * 0.08 + (Math.random()-0.5)*0.01;
+            // Ограничения по Y
+            if (this.spotlightYPos < 0.15) this.spotlightYPos = 0.15;
+            if (this.spotlightYPos > 0.85) this.spotlightYPos = 0.85;
         } else {
-            this.logoFadeIn = 0;
+            this.spotlightPos = 0;
+            this.spotlightYPos = 0.5;
+            this.spotlightDir = 1;
+            this.spotlightTargetY = 0.5;
+            this.spotlightTimer = 0;
         }
         this.period = isMobile ? 24 : 36;
         this.frame += frames % this.period == 0 ? 1 : 0;
