@@ -1,7 +1,7 @@
 // Игровые объекты (оптимизированные)
 
 // === ПЕРЕМЕННЫЕ ДЛЯ УСКОРЕНИЯ РАКЕТЫ ===
-let baseEnginePower = 0; // Базовая мощность двигателя
+let baseHorizontalSpeed = 0; // Базовая горизонтальная скорость
 let speedBoostMultiplier = 1.0; // Множитель ускорения
 let lastSpeedBoostScore = 0; // Последний счет, при котором было ускорение
 // === КОНЕЦ ПЕРЕМЕННЫХ УСКОРЕНИЯ ===
@@ -17,12 +17,12 @@ function checkAndApplySpeedBoost() {
             speedBoostMultiplier = 1.0 + (currentScore / 5) * 0.70;
             lastSpeedBoostScore = currentScore;
             
-            // Применяем ускорение к ракете
-            if (typeof bird !== 'undefined' && typeof bird.enginePower !== 'undefined') {
-                bird.enginePower = baseEnginePower * speedBoostMultiplier;
+            // Применяем ускорение к горизонтальной скорости
+            if (typeof pipes !== 'undefined' && typeof pipes.dx !== 'undefined' && typeof baseHorizontalSpeed !== 'undefined') {
+                pipes.dx = baseHorizontalSpeed * speedBoostMultiplier;
             }
             
-            console.log(`🚀 Ускорение активировано! Счет: ${currentScore}, Множитель: ${speedBoostMultiplier.toFixed(2)}`);
+            console.log(`🚀 Ускорение активировано! Счет: ${currentScore}, Множитель: ${speedBoostMultiplier.toFixed(2)}, Скорость: ${pipes.dx.toFixed(1)}`);
         }
     }
 }

@@ -49,8 +49,8 @@ score = {
         if (typeof speedBoostMultiplier !== 'undefined') {
             speedBoostMultiplier = 1.0;
             lastSpeedBoostScore = 0;
-            if (typeof bird !== 'undefined' && typeof bird.enginePower !== 'undefined' && typeof baseEnginePower !== 'undefined') {
-                bird.enginePower = baseEnginePower;
+            if (typeof pipes !== 'undefined' && typeof pipes.dx !== 'undefined' && typeof baseHorizontalSpeed !== 'undefined') {
+                pipes.dx = baseHorizontalSpeed;
             }
         }
     }
@@ -441,9 +441,9 @@ canvasScale = function() {
     bird.jump = 1500;
     bird.acceleration = 500;
     bird.enginePower = 1000;
-    // Инициализируем базовую мощность двигателя для ускорения
-    if (typeof baseEnginePower !== 'undefined') {
-        baseEnginePower = 1000;
+    // Инициализируем базовую горизонтальную скорость для ускорения
+    if (typeof baseHorizontalSpeed !== 'undefined') {
+        baseHorizontalSpeed = 180;
         speedBoostMultiplier = 1.0;
         lastSpeedBoostScore = 0;
     }
