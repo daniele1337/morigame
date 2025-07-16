@@ -13,8 +13,8 @@ function checkAndApplySpeedBoost() {
         
         // Проверяем, достигли ли мы нового кратного 5 счета
         if (currentScore > 0 && currentScore % 5 === 0 && currentScore > lastSpeedBoostScore) {
-            // Устанавливаем множитель ускорения на 50% от базовой скорости
-            speedBoostMultiplier = 1.0 + (currentScore / 5) * 0.50;
+            // Устанавливаем множитель ускорения на 70% от базовой скорости
+            speedBoostMultiplier = 1.0 + (currentScore / 5) * 0.70;
             lastSpeedBoostScore = currentScore;
             
             // Применяем ускорение к ракете
