@@ -1076,7 +1076,7 @@ coin_img.src = "img/separated/coins.png";
 
 const coins = {
     position: [],
-    w: 32, // ширина монеты
+    w: 32, // ширина монеты (подберите под ваш спрайт)
     h: 32, // высота монеты
     spawnTimer: 0,
     spawnInterval: 2 + Math.random() * 2, // 2-4 секунды
@@ -1126,7 +1126,7 @@ const coins = {
         let y = Math.random() * (cvs.height - this.h * 2) + this.h;
         let x = cvs.width;
         // Проверяем радиус 300px от всех препятствий
-        let minDist = 300;
+        let minDist = Math.max(300, cvs.width * 0.15); // минимум 300px или 15% от ширины экрана
         let allObstacles = getAllObstacles();
         // Добавим вертолёты
         if (Array.isArray(pipes.position)) {
