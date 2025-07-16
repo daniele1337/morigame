@@ -123,50 +123,73 @@ home = {
     policeRedPos: 0, // 0..1 (слева направо)
     policeBluePos: 1, // 1..0 (справа налево)
     policeSpeed: 0.45, // скорость движения лучей
+    logoAlpha: 0, // прозрачность логотипа
+    logoFadeIn: true,
+    logoBlinkTimer: 0,
+    logoBlinkState: false,
+    logoSpotlightNoiseSeed: 0,
     draw: function() {
         let bird = this.animation[this.frame];
         if(state.current == state.home) {
             ctx.save();
+            let now = performance.now() * 0.001;
+            const policeAlphaBoost = 1.15;
+            // === Логотип без прозрачности и мигания ===
+            ctx.globalAlpha = 1;
             ctx.drawImage(mainLogoImg, this.logo.x, this.logo.y, this.logo.w, this.logo.h);
-            // Эффект круглого прожектора
-            let spotX = this.logo.x + this.logo.w * this.spotlightPos;
-            let spotY = this.logo.y + this.logo.h * this.spotlightYPos;
+            // Пульсация (мигание) яркости для огней
+            let redPulse = 0.45 + 0.35 * Math.abs(Math.sin(now * 3.1)); // 0.45..0.8
+            let bluePulse = 0.45 + 0.35 * Math.abs(Math.cos(now * 3.1 + 1.2));
+            // === Эффект круглого прожектора с шумом и такой же прозрачностью, как у огней ===
+            this.logoSpotlightNoiseSeed += window.lastDelta * 0.25;
+            let noiseX = Math.sin(this.logoSpotlightNoiseSeed * 1.3 + Math.cos(this.logoSpotlightNoiseSeed * 0.7)) * 0.04;
+            let noiseY = Math.cos(this.logoSpotlightNoiseSeed * 1.1 + Math.sin(this.logoSpotlightNoiseSeed * 0.9)) * 0.04;
+            let spotX = this.logo.x + this.logo.w * (this.spotlightPos + noiseX);
+            let spotY = this.logo.y + this.logo.h * (this.spotlightYPos + noiseY);
             let radius = Math.max(this.logo.w, this.logo.h) * 0.137;
-            let grad = ctx.createRadialGradient(spotX, spotY, radius * 0.15, spotX, spotY, radius);
-            grad.addColorStop(0, 'rgba(255,255,220,0.45)');
-            grad.addColorStop(0.25, 'rgba(255,255,220,0.18)');
-            grad.addColorStop(0.5, 'rgba(255,255,220,0.08)');
+            // Берём среднее значение пульсации для белого света
+            let whitePulse = (redPulse + bluePulse) / 2;
+            let grad = ctx.createRadialGradient(spotX, spotY, radius * 0.08, spotX, spotY, radius);
+            grad.addColorStop(0, `rgba(255,255,220,${(0.55 * policeAlphaBoost * whitePulse).toFixed(3)})`);
+            grad.addColorStop(0.18, `rgba(255,255,220,${(0.22 * policeAlphaBoost * whitePulse).toFixed(3)})`);
+            grad.addColorStop(0.45, `rgba(255,255,220,${(0.09 * policeAlphaBoost * whitePulse).toFixed(3)})`);
             grad.addColorStop(1, 'rgba(255,255,220,0)');
             ctx.globalCompositeOperation = 'lighter';
             ctx.beginPath();
             ctx.arc(spotX, spotY, radius, 0, 2 * Math.PI);
             ctx.fillStyle = grad;
             ctx.fill();
-            // === Эффект полицейских мигалок ===
-            // Красный луч
-            let redX = this.logo.x + this.logo.w * this.policeRedPos;
-            let redY = this.logo.y + this.logo.h * (0.25 + 0.5 * Math.abs(Math.sin(frames * 0.01)));
-            let redRadius = radius * 1.1;
-            let redGrad = ctx.createRadialGradient(redX, redY, redRadius * 0.1, redX, redY, redRadius);
-            redGrad.addColorStop(0, 'rgba(255,40,40,0.32)');
-            redGrad.addColorStop(0.3, 'rgba(255,40,40,0.13)');
-            redGrad.addColorStop(0.7, 'rgba(255,40,40,0.04)');
+            // === Эффект полицейских мигалок внутри логотипа, огни двигаются вместе и мигают ===
+            // Огни движутся по синусоиде внутри логотипа
+            let centerY = this.logo.y + this.logo.h / 2;
+            let minX = this.logo.x + this.logo.w * 0.15;
+            let maxX = this.logo.x + this.logo.w * 0.85;
+            let travel = (Math.sin(now * 1.2) + 1) / 2; // 0..1
+            let policeX = minX + (maxX - minX) * travel;
+            let policeY = centerY + Math.sin(now * 2.1) * this.logo.h * 0.18;
+            let policeRadius = radius * (1.05 + 0.08*Math.sin(now*2.1));
+            // Красный огонь (слева)
+            let redX = policeX - this.logo.w * 0.08;
+            let redY = policeY;
+            let redGrad = ctx.createRadialGradient(redX, redY, policeRadius * 0.1, redX, redY, policeRadius);
+            redGrad.addColorStop(0, `rgba(255,40,40,${(0.22 * redPulse * policeAlphaBoost).toFixed(3)})`);
+            redGrad.addColorStop(0.22, `rgba(255,40,40,${(0.09 * redPulse * policeAlphaBoost).toFixed(3)})`);
+            redGrad.addColorStop(0.7, `rgba(255,40,40,${(0.03 * redPulse * policeAlphaBoost).toFixed(3)})`);
             redGrad.addColorStop(1, 'rgba(255,40,40,0)');
             ctx.beginPath();
-            ctx.arc(redX, redY, redRadius, 0, 2 * Math.PI);
+            ctx.arc(redX, redY, policeRadius, 0, 2 * Math.PI);
             ctx.fillStyle = redGrad;
             ctx.fill();
-            // Синий луч
-            let blueX = this.logo.x + this.logo.w * this.policeBluePos;
-            let blueY = this.logo.y + this.logo.h * (0.75 - 0.5 * Math.abs(Math.sin(frames * 0.01)));
-            let blueRadius = radius * 1.1;
-            let blueGrad = ctx.createRadialGradient(blueX, blueY, blueRadius * 0.1, blueX, blueY, blueRadius);
-            blueGrad.addColorStop(0, 'rgba(40,40,255,0.32)');
-            blueGrad.addColorStop(0.3, 'rgba(40,40,255,0.13)');
-            blueGrad.addColorStop(0.7, 'rgba(40,40,255,0.04)');
+            // Синий огонь (справа)
+            let blueX = policeX + this.logo.w * 0.08;
+            let blueY = policeY;
+            let blueGrad = ctx.createRadialGradient(blueX, blueY, policeRadius * 0.1, blueX, blueY, policeRadius);
+            blueGrad.addColorStop(0, `rgba(40,40,255,${(0.22 * bluePulse * policeAlphaBoost).toFixed(3)})`);
+            blueGrad.addColorStop(0.22, `rgba(40,40,255,${(0.09 * bluePulse * policeAlphaBoost).toFixed(3)})`);
+            blueGrad.addColorStop(0.7, `rgba(40,40,255,${(0.03 * bluePulse * policeAlphaBoost).toFixed(3)})`);
             blueGrad.addColorStop(1, 'rgba(40,40,255,0)');
             ctx.beginPath();
-            ctx.arc(blueX, blueY, blueRadius, 0, 2 * Math.PI);
+            ctx.arc(blueX, blueY, policeRadius, 0, 2 * Math.PI);
             ctx.fillStyle = blueGrad;
             ctx.fill();
             ctx.globalCompositeOperation = 'source-over';
@@ -203,6 +226,10 @@ home = {
             this.spotlightTimer = 0;
             this.policeRedPos = 0;
             this.policeBluePos = 1;
+            this.logoAlpha = 0;
+            this.logoFadeIn = true;
+            this.logoBlinkTimer = 0;
+            this.logoBlinkState = false;
         }
         this.period = isMobile ? 24 : 36;
         this.frame += frames % this.period == 0 ? 1 : 0;
