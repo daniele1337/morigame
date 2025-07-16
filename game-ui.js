@@ -61,7 +61,6 @@ gameButtons = {
     x: 0, y: 0, w: 0, h: 0, y_pressed: 0, isPressed: false,
 
     draw: function() {
-        mute = true; // Принудительно выключаем звук при первом рендере
         let button_y = this.isPressed ? this.y_pressed : this.y;
         let night_button_y = this.night_button.isPressed ? this.y_pressed : this.y;
         let start_button_y = this.start_button.isPressed ? this.start_button.y_pressed : this.start_button.y;
@@ -69,77 +68,39 @@ gameButtons = {
         let home_button_y = this.home_button.isPressed ? this.home_button.y_pressed : this.home_button.y;
 
         if(state.current == state.home) {
+            // Звук
             if(!mute) {
-                ctx.drawImage(sprite_sheet, this.unmute_button.spriteX, this.unmute_button.spriteY, this.unmute_button.spriteW, this.unmute_button.spriteH, this.x, button_y, this.w, this.h);
+                ctx.drawImage(btnSoundOnImg, this.x, button_y, this.w, this.h);
             } else {
-                ctx.drawImage(sprite_sheet, this.mute_button.spriteX, this.mute_button.spriteY, this.mute_button.spriteW, this.mute_button.spriteH, this.x, button_y, this.w, this.h); 
-            } 
-
+                ctx.drawImage(btnSoundOffImg, this.x, button_y, this.w, this.h);
+            }
+            // День/ночь
             if(!night) {
-                ctx.drawImage(sprite_sheet, this.day_button.spriteX, this.day_button.spriteY, this.day_button.spriteW, this.day_button.spriteH, this.night_button.x, night_button_y, this.w, this.h);
+                ctx.drawImage(btnDayModeImg, this.night_button.x, night_button_y, this.w, this.h);
             } else {
-                ctx.drawImage(sprite_sheet, this.night_button.spriteX, this.night_button.spriteY, this.night_button.spriteW, this.night_button.spriteH, this.night_button.x, night_button_y, this.w, this.h);
-            }  
-                       
-            ctx.drawImage(sprite_sheet, this.start_button.spriteX, this.start_button.spriteY, this.start_button.spriteW, this.start_button.spriteH, this.start_button.x, start_button_y, this.start_button.w, this.start_button.h);
-
-            // === Отрисовка ползунка громкости под mute ===
-            drawVolumeSlider();
+                ctx.drawImage(btnNightModeImg, this.night_button.x, night_button_y, this.w, this.h);
+            }
+            // Старт
+            ctx.drawImage(btnStartImg, this.start_button.x, start_button_y, this.start_button.w, this.start_button.h);
         } else if(state.current == state.game) {
+            // Пауза/Продолжить
             if(!gamePaused) {
-                ctx.drawImage(sprite_sheet, this.pause_button.spriteX, this.pause_button.spriteY, this.pause_button.spriteW, this.pause_button.spriteH, this.x, button_y, this.w, this.h);
+                ctx.drawImage(btnPauseImg, this.x, button_y, this.w, this.h);
             } else {
-                ctx.drawImage(sprite_sheet, this.resume_button.spriteX, this.resume_button.spriteY, this.resume_button.spriteW, this.resume_button.spriteH, this.x, button_y, this.w, this.h); 
+                ctx.drawImage(btnPlayImg, this.x, button_y, this.w, this.h);
             }
         } else if(state.current == state.gameOver) {
-            ctx.drawImage(sprite_sheet, this.restart_button.spriteX, this.restart_button.spriteY, this.restart_button.spriteW, this.restart_button.spriteH, this.restart_button.x, restart_button_y, this.restart_button.w, this.restart_button.h);
-            ctx.drawImage(sprite_sheet, this.home_button.spriteX, this.home_button.spriteY, this.home_button.spriteW, this.home_button.spriteH, this.home_button.x, home_button_y, this.home_button.w, this.home_button.h);
+            // Рестарт
+            ctx.drawImage(btnRestartImg, this.restart_button.x, restart_button_y, this.restart_button.w, this.restart_button.h);
+            // Домой
+            ctx.drawImage(btnHomeImg, this.home_button.x, home_button_y, this.home_button.w, this.home_button.h);
+            // (Если есть кнопки share, score, ok)
+            // ctx.drawImage(btnShareImg, ...);
+            // ctx.drawImage(btnScoreImg, ...);
+            // ctx.drawImage(btnOkImg, ...);
         }
     }
 };
-
-// === Функция для отрисовки ползунка громкости на canvas ===
-function drawVolumeSlider() {
-    // Параметры ползунка
-    const sliderWidth = gameButtons.w * 2.2;
-    const sliderHeight = gameButtons.h * 0.28;
-    const sliderX = gameButtons.x; // Левый край совпадает с кнопкой mute
-    const sliderY = gameButtons.y + gameButtons.h + 20; // сдвинуть ниже
-    const knobRadius = sliderHeight * 0.55; // круг в 2 раза меньше
-    // Фон
-    ctx.save();
-    ctx.globalAlpha = 0.92;
-    ctx.fillStyle = '#e0e0e0'; // серый фон
-    ctx.strokeStyle = '#bbb';
-    ctx.lineWidth = 2;
-    ctx.roundRect(sliderX-6, sliderY-6, sliderWidth+12, sliderHeight+12, 8);
-    ctx.fill();
-    ctx.stroke();
-    ctx.globalAlpha = 1.0;
-    // Линия
-    ctx.strokeStyle = '#bbb';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(sliderX, sliderY + sliderHeight/2);
-    ctx.lineTo(sliderX + sliderWidth, sliderY + sliderHeight/2);
-    ctx.stroke();
-    // Активная часть
-    ctx.strokeStyle = '#ff9800'; // оранжевая активная часть
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(sliderX, sliderY + sliderHeight/2);
-    ctx.lineTo(sliderX + sliderWidth * volumeSliderValue, sliderY + sliderHeight/2);
-    ctx.stroke();
-    // Круглый бегунок
-    ctx.beginPath();
-    ctx.arc(sliderX + sliderWidth * volumeSliderValue, sliderY + sliderHeight/2, knobRadius, 0, 2*Math.PI);
-    ctx.fillStyle = '#ff9800'; // оранжевый круг
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.restore();
-}
 
 // Главный экран
 home = {
@@ -157,7 +118,7 @@ home = {
         let bird = this.animation[this.frame];
 
         if(state.current == state.home) {
-            ctx.drawImage(mainLogoImg, this.logo.x, this.logo.y, this.logo.w, this.logo.h);
+            ctx.drawImage(sprite_sheet, this.logo.spriteX, this.logo.spriteY, this.logo.spriteW, this.logo.spriteH, this.logo.x, this.logo.y, this.logo.w, this.logo.h);
             ctx.drawImage(mori_model_sprite, bird.spriteX, bird.spriteY, bird.spriteW, bird.spriteH, this.bird.x, this.bird.y, this.bird.w, this.bird.h);
             ctx.drawImage(sprite_sheet, this.studio_name.spriteX, this.studio_name.spriteY, this.studio_name.spriteW, this.studio_name.spriteH, this.studio_name.x, this.studio_name.y, this.studio_name.w, this.studio_name.h);
         }
@@ -222,15 +183,19 @@ getReadyImg.src = "img/separated/get_ready.png";
 const gameOverImg = new Image();
 gameOverImg.src = "img/separated/game_over.png";
 
-// === Загрузка отдельного изображения для главного логотипа ===
-const mainLogoImg = new Image();
-mainLogoImg.src = "img/separated/main_logo_text.png";
-
-// === Глобальная переменная для значения громкости ===
-var volumeSliderValue = 1.0;
-
-// === Принудительно выключаем звук по умолчанию ===
-if (typeof mute === 'undefined') mute = true;
+// === Загрузка отдельных изображений для кнопок ===
+const btnDayModeImg = new Image(); btnDayModeImg.src = "img/separated/day_mode.png";
+const btnHomeImg = new Image(); btnHomeImg.src = "img/separated/home.png";
+const btnNightModeImg = new Image(); btnNightModeImg.src = "img/separated/night_mode.png";
+const btnOkImg = new Image(); btnOkImg.src = "img/separated/ok.png";
+const btnPauseImg = new Image(); btnPauseImg.src = "img/separated/pause.png";
+const btnPlayImg = new Image(); btnPlayImg.src = "img/separated/play.png";
+const btnRestartImg = new Image(); btnRestartImg.src = "img/separated/restart.png";
+const btnScoreImg = new Image(); btnScoreImg.src = "img/separated/score.png";
+const btnSoundOffImg = new Image(); btnSoundOffImg.src = "img/separated/sound_off.png";
+const btnShareImg = new Image(); btnShareImg.src = "img/separated/share.png";
+const btnSoundOnImg = new Image(); btnSoundOnImg.src = "img/separated/sound_on.png";
+const btnStartImg = new Image(); btnStartImg.src = "img/separated/start.png";
 
 // Функция масштабирования canvas
 canvasScale = function() {
@@ -374,16 +339,3 @@ canvasScale = function() {
     score.best.y = cvs.height * 0.545;
     score.space = cvs.width * 0.016;
 } 
-
-// === Синхронизация состояния иконки звука с mute ===
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof mute !== 'undefined' && mute) {
-        if (typeof soundButton !== 'undefined') {
-            soundButton.state = 'off';
-        }
-        // Если есть функция для обновления UI, вызвать её
-        if (typeof updateSoundButtonUI === 'function') {
-            updateSoundButtonUI();
-        }
-    }
-}); 
