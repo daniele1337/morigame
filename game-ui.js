@@ -104,42 +104,46 @@ gameButtons = {
 
 // Главный экран
 home = {
-    logo: {spriteX: 552, spriteY: 233, spriteW: 384, spriteH: 87, x: 0, y: 0, w: 0, h: 0, MAXY: 0, MINY: 0, dy: 0},
+    logo: {spriteX: 552, spriteY: 233, spriteW: 384, spriteH: 87, x: 0, y: 0, w: 0, h: 0},
     animation: [
         {spriteX: 0, spriteY: 0, spriteW: 180, spriteH: 136},
         {spriteX: 0, spriteY: 174, spriteW: 180, spriteH: 136},
         {spriteX: 0, spriteY: 342, spriteW: 180, spriteH: 136}
     ],
     bird: {x: 0, y: 0, w: 0, h: 0},
-    frame: 0, logoGoUp: true,
-
+    frame: 0,
+    // === Для анимации логотипа ===
+    logoFadeIn: 0, // 0..1
+    logoBlink: 0, // 0..1
+    logoFadeInDuration: 0.7, // сек
     draw: function() {
         let bird = this.animation[this.frame];
-
         if(state.current == state.home) {
-            ctx.drawImage(sprite_sheet, this.logo.spriteX, this.logo.spriteY, this.logo.spriteW, this.logo.spriteH, this.logo.x, this.logo.y, this.logo.w, this.logo.h);
+            // === Анимация плавного появления и мерцания ===
+            let alpha = 1;
+            if (this.logoFadeIn < 1) {
+                alpha = this.logoFadeIn;
+            } else {
+                // Мерцание: прозрачность меняется между 0.85 и 1.0
+                alpha = 0.925 + 0.075 * Math.sin(frames * 0.2);
+            }
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.drawImage(mainLogoImg, this.logo.x, this.logo.y, this.logo.w, this.logo.h);
+            ctx.restore();
             ctx.drawImage(mori_model_sprite, bird.spriteX, bird.spriteY, bird.spriteW, bird.spriteH, this.bird.x, this.bird.y, this.bird.w, this.bird.h);
         }
     },
-
     update: function() {
         if (state.current == state.home) {
-            if (this.logoGoUp) {
-                this.logo.y -= this.logo.dy;
-                this.bird.y -= this.logo.dy;
-                if(this.logo.y <= this.logo.MAXY) {
-                    this.logoGoUp = false;
-                }
+            // === Плавное появление логотипа ===
+            if (this.logoFadeIn < 1) {
+                this.logoFadeIn += window.lastDelta / this.logoFadeInDuration;
+                if (this.logoFadeIn > 1) this.logoFadeIn = 1;
             }
-            if (!this.logoGoUp) {
-                this.logo.y += this.logo.dy;
-                this.bird.y += this.logo.dy;
-                if(this.logo.y >= this.logo.MINY) {
-                    this.logoGoUp = true;
-                }
-            }
+        } else {
+            this.logoFadeIn = 0;
         }
-
         this.period = isMobile ? 24 : 36;
         this.frame += frames % this.period == 0 ? 1 : 0;
         this.frame = this.frame % this.animation.length; 
@@ -194,6 +198,10 @@ const btnSoundOffImg = new Image(); btnSoundOffImg.src = "img/separated/buttons/
 const btnShareImg = new Image(); btnShareImg.src = "img/separated/buttons/share.png";
 const btnSoundOnImg = new Image(); btnSoundOnImg.src = "img/separated/buttons/sound_on.png";
 const btnStartImg = new Image(); btnStartImg.src = "img/separated/buttons/start.png";
+
+// === Загрузка отдельного изображения для логотипа ===
+const mainLogoImg = new Image();
+mainLogoImg.src = "img/main_logo_text.png";
 
 // Функция масштабирования canvas
 canvasScale = function() {
