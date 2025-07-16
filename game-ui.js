@@ -120,6 +120,9 @@ home = {
     spotlightTargetY: 0.5, // целевая позиция по Y
     spotlightDir: 1, // направление по X
     spotlightTimer: 0, // для смены направления
+    policeRedPos: 0, // 0..1 (слева направо)
+    policeBluePos: 1, // 1..0 (справа налево)
+    policeSpeed: 0.45, // скорость движения лучей
     draw: function() {
         let bird = this.animation[this.frame];
         if(state.current == state.home) {
@@ -128,7 +131,7 @@ home = {
             // Эффект круглого прожектора
             let spotX = this.logo.x + this.logo.w * this.spotlightPos;
             let spotY = this.logo.y + this.logo.h * this.spotlightYPos;
-            let radius = Math.max(this.logo.w, this.logo.h) * 0.137; // уменьшено ещё на 30%
+            let radius = Math.max(this.logo.w, this.logo.h) * 0.137;
             let grad = ctx.createRadialGradient(spotX, spotY, radius * 0.15, spotX, spotY, radius);
             grad.addColorStop(0, 'rgba(255,255,220,0.45)');
             grad.addColorStop(0.25, 'rgba(255,255,220,0.18)');
@@ -139,6 +142,33 @@ home = {
             ctx.arc(spotX, spotY, radius, 0, 2 * Math.PI);
             ctx.fillStyle = grad;
             ctx.fill();
+            // === Эффект полицейских мигалок ===
+            // Красный луч
+            let redX = this.logo.x + this.logo.w * this.policeRedPos;
+            let redY = this.logo.y + this.logo.h * (0.25 + 0.5 * Math.abs(Math.sin(frames * 0.01)));
+            let redRadius = radius * 1.1;
+            let redGrad = ctx.createRadialGradient(redX, redY, redRadius * 0.1, redX, redY, redRadius);
+            redGrad.addColorStop(0, 'rgba(255,40,40,0.32)');
+            redGrad.addColorStop(0.3, 'rgba(255,40,40,0.13)');
+            redGrad.addColorStop(0.7, 'rgba(255,40,40,0.04)');
+            redGrad.addColorStop(1, 'rgba(255,40,40,0)');
+            ctx.beginPath();
+            ctx.arc(redX, redY, redRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = redGrad;
+            ctx.fill();
+            // Синий луч
+            let blueX = this.logo.x + this.logo.w * this.policeBluePos;
+            let blueY = this.logo.y + this.logo.h * (0.75 - 0.5 * Math.abs(Math.sin(frames * 0.01)));
+            let blueRadius = radius * 1.1;
+            let blueGrad = ctx.createRadialGradient(blueX, blueY, blueRadius * 0.1, blueX, blueY, blueRadius);
+            blueGrad.addColorStop(0, 'rgba(40,40,255,0.32)');
+            blueGrad.addColorStop(0.3, 'rgba(40,40,255,0.13)');
+            blueGrad.addColorStop(0.7, 'rgba(40,40,255,0.04)');
+            blueGrad.addColorStop(1, 'rgba(40,40,255,0)');
+            ctx.beginPath();
+            ctx.arc(blueX, blueY, blueRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = blueGrad;
+            ctx.fill();
             ctx.globalCompositeOperation = 'source-over';
             ctx.restore();
             ctx.drawImage(mori_model_sprite, bird.spriteX, bird.spriteY, bird.spriteW, bird.spriteH, this.bird.x, this.bird.y, this.bird.w, this.bird.h);
@@ -146,30 +176,33 @@ home = {
     },
     update: function() {
         if (state.current == state.home) {
-            // Хаотичное движение по X
+            // Хаотичное движение прожектора
             this.spotlightPos += this.spotlightSpeed * this.spotlightDir * window.lastDelta;
             if (this.spotlightPos > 1) { this.spotlightPos = 1; this.spotlightDir = -1; }
             if (this.spotlightPos < 0) { this.spotlightPos = 0; this.spotlightDir = 1; }
-            // Иногда меняем направление по X случайно
             this.spotlightTimer += window.lastDelta;
             if (this.spotlightTimer > 1.2 + Math.random()*1.2) {
                 if (Math.random() < 0.5) this.spotlightDir *= -1;
                 this.spotlightTimer = 0;
-                // Случайная новая цель по Y
                 this.spotlightTargetY = 0.15 + 0.7 * Math.random();
             }
-            // Плавное движение по Y к цели
             let dy = this.spotlightTargetY - this.spotlightYPos;
             this.spotlightYPos += dy * 0.08 + (Math.random()-0.5)*0.01;
-            // Ограничения по Y
             if (this.spotlightYPos < 0.15) this.spotlightYPos = 0.15;
             if (this.spotlightYPos > 0.85) this.spotlightYPos = 0.85;
+            // === Движение полицейских лучей ===
+            this.policeRedPos += this.policeSpeed * window.lastDelta;
+            this.policeBluePos -= this.policeSpeed * window.lastDelta;
+            if (this.policeRedPos > 1.1) this.policeRedPos = -0.1;
+            if (this.policeBluePos < -0.1) this.policeBluePos = 1.1;
         } else {
             this.spotlightPos = 0;
             this.spotlightYPos = 0.5;
             this.spotlightDir = 1;
             this.spotlightTargetY = 0.5;
             this.spotlightTimer = 0;
+            this.policeRedPos = 0;
+            this.policeBluePos = 1;
         }
         this.period = isMobile ? 24 : 36;
         this.frame += frames % this.period == 0 ? 1 : 0;
