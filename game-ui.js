@@ -234,13 +234,17 @@ home = {
             let noiseY = Math.cos(this.logoSpotlightNoiseSeed * 1.1 + Math.sin(this.logoSpotlightNoiseSeed * 0.9)) * 0.04;
             let spotX = this.logo.x + this.logo.w * (this.spotlightPos + noiseX);
             let spotY = this.logo.y + this.logo.h * (this.spotlightYPos + noiseY);
+            // Радиус: исходный размер
             let radius = Math.max(this.logo.w, this.logo.h) * 0.137;
             // Берём среднее значение пульсации для белого света
             let whitePulse = (redPulse + bluePulse) / 2;
+            // Менее яркий градиент для белого прожектора (на 30% меньше)
             let grad = ctx.createRadialGradient(spotX, spotY, radius * 0.08, spotX, spotY, radius);
-            grad.addColorStop(0, `rgba(255,255,220,${(0.55 * policeAlphaBoost * whitePulse).toFixed(3)})`);
-            grad.addColorStop(0.18, `rgba(255,255,220,${(0.22 * policeAlphaBoost * whitePulse).toFixed(3)})`);
-            grad.addColorStop(0.45, `rgba(255,255,220,${(0.09 * policeAlphaBoost * whitePulse).toFixed(3)})`);
+            grad.addColorStop(0, `rgba(255,255,220,${(0.308 * policeAlphaBoost * whitePulse).toFixed(3)})`);
+            grad.addColorStop(0.12, `rgba(255,255,220,${(0.182 * policeAlphaBoost * whitePulse).toFixed(3)})`);
+            grad.addColorStop(0.25, `rgba(255,255,220,${(0.098 * policeAlphaBoost * whitePulse).toFixed(3)})`);
+            grad.addColorStop(0.45, `rgba(255,255,220,${(0.042 * policeAlphaBoost * whitePulse).toFixed(3)})`);
+            grad.addColorStop(0.7, `rgba(255,255,220,${(0.014 * policeAlphaBoost * whitePulse).toFixed(3)})`);
             grad.addColorStop(1, 'rgba(255,255,220,0)');
             ctx.globalCompositeOperation = 'lighter';
             ctx.beginPath();
@@ -255,32 +259,40 @@ home = {
             let travel = (Math.sin(now * 1.2) + 1) / 2; // 0..1
             let policeX = minX + (maxX - minX) * travel;
             let policeY = centerY + Math.sin(now * 2.1) * this.logo.h * 0.18;
+            // Радиус для полицейских огней: исходный, как у прожектора
             let policeRadius = radius * (1.05 + 0.08*Math.sin(now*2.1));
             // Красный огонь (слева)
             let redX = policeX - this.logo.w * 0.08;
             let redY = policeY;
+            // Синий огонь (справа)
+            let blueX = policeX + this.logo.w * 0.08;
+            let blueY = policeY;
+            // Более плавные градиенты для красного и синего огней
             let redGrad = ctx.createRadialGradient(redX, redY, policeRadius * 0.1, redX, redY, policeRadius);
-            redGrad.addColorStop(0, `rgba(255,40,40,${(0.22 * redPulse * policeAlphaBoost).toFixed(3)})`);
-            redGrad.addColorStop(0.22, `rgba(255,40,40,${(0.09 * redPulse * policeAlphaBoost).toFixed(3)})`);
-            redGrad.addColorStop(0.7, `rgba(255,40,40,${(0.03 * redPulse * policeAlphaBoost).toFixed(3)})`);
+            redGrad.addColorStop(0, `rgba(255,40,40,${(0.308 * redPulse * policeAlphaBoost).toFixed(3)})`);
+            redGrad.addColorStop(0.12, `rgba(255,40,40,${(0.182 * redPulse * policeAlphaBoost).toFixed(3)})`);
+            redGrad.addColorStop(0.25, `rgba(255,40,40,${(0.098 * redPulse * policeAlphaBoost).toFixed(3)})`);
+            redGrad.addColorStop(0.45, `rgba(255,40,40,${(0.042 * redPulse * policeAlphaBoost).toFixed(3)})`);
+            redGrad.addColorStop(0.7, `rgba(255,40,40,${(0.014 * redPulse * policeAlphaBoost).toFixed(3)})`);
             redGrad.addColorStop(1, 'rgba(255,40,40,0)');
+            let blueGrad = ctx.createRadialGradient(blueX, blueY, policeRadius * 0.1, blueX, blueY, policeRadius);
+            blueGrad.addColorStop(0, `rgba(40,40,255,${(0.308 * bluePulse * policeAlphaBoost).toFixed(3)})`);
+            blueGrad.addColorStop(0.12, `rgba(40,40,255,${(0.182 * bluePulse * policeAlphaBoost).toFixed(3)})`);
+            blueGrad.addColorStop(0.25, `rgba(40,40,255,${(0.098 * bluePulse * policeAlphaBoost).toFixed(3)})`);
+            blueGrad.addColorStop(0.45, `rgba(40,40,255,${(0.042 * bluePulse * policeAlphaBoost).toFixed(3)})`);
+            blueGrad.addColorStop(0.7, `rgba(40,40,255,${(0.014 * bluePulse * policeAlphaBoost).toFixed(3)})`);
+            blueGrad.addColorStop(1, 'rgba(40,40,255,0)');
+            ctx.globalCompositeOperation = 'source-over';
+            // Красный прожектор
             ctx.beginPath();
             ctx.arc(redX, redY, policeRadius, 0, 2 * Math.PI);
             ctx.fillStyle = redGrad;
             ctx.fill();
-            // Синий огонь (справа)
-            let blueX = policeX + this.logo.w * 0.08;
-            let blueY = policeY;
-            let blueGrad = ctx.createRadialGradient(blueX, blueY, policeRadius * 0.1, blueX, blueY, policeRadius);
-            blueGrad.addColorStop(0, `rgba(40,40,255,${(0.22 * bluePulse * policeAlphaBoost).toFixed(3)})`);
-            blueGrad.addColorStop(0.22, `rgba(40,40,255,${(0.09 * bluePulse * policeAlphaBoost).toFixed(3)})`);
-            blueGrad.addColorStop(0.7, `rgba(40,40,255,${(0.03 * bluePulse * policeAlphaBoost).toFixed(3)})`);
-            blueGrad.addColorStop(1, 'rgba(40,40,255,0)');
+            // Синий прожектор
             ctx.beginPath();
             ctx.arc(blueX, blueY, policeRadius, 0, 2 * Math.PI);
             ctx.fillStyle = blueGrad;
             ctx.fill();
-            ctx.globalCompositeOperation = 'source-over';
             ctx.restore();
             ctx.drawImage(mori_model_sprite, bird.spriteX, bird.spriteY, bird.spriteW, bird.spriteH, this.bird.x, this.bird.y, this.bird.w, this.bird.h);
         }
@@ -347,7 +359,7 @@ gameOver = {
     draw: function() {
         if(state.current == state.gameOver) {
             ctx.drawImage(gameOverImg, this.game_over.x, this.game_over.y, this.game_over.w, this.game_over.h);
-            ctx.drawImage(sprite_sheet, this.scoreboard.spriteX, this.scoreboard.spriteY, this.scoreboard.spriteW, this.scoreboard.spriteH, this.scoreboard.x, this.scoreboard.y, this.scoreboard.w, this.scoreboard.h);
+            // ctx.drawImage(sprite_sheet, this.scoreboard.spriteX, this.scoreboard.spriteY, this.scoreboard.spriteW, this.scoreboard.spriteH, this.scoreboard.x, this.scoreboard.y, this.scoreboard.w, this.scoreboard.h); // временно скрыто
         }
     }
 };
