@@ -77,11 +77,12 @@ gameButtons = {
                 ctx.drawImage(btnSoundOffImg, this.x, button_y, this.w, this.h);
             }
             // День/ночь
-            if(!night) {
-                ctx.drawImage(btnDayModeImg, this.night_button.x, night_button_y, this.w, this.h);
-            } else {
-                ctx.drawImage(btnNightModeImg, this.night_button.x, night_button_y, this.w, this.h);
-            }
+            // ctx.drawImage(btnDayModeImg, this.night_button.x, night_button_y, this.w, this.h); // временно скрыто
+            // if(!night) {
+            //     ctx.drawImage(btnNightModeImg, this.night_button.x, night_button_y, this.w, this.h);
+            // } else {
+            //     ctx.drawImage(btnDayModeImg, this.night_button.x, night_button_y, this.w, this.h);
+            // }
             // --- Кнопка старт с анимацией ---
             let t = performance.now() * 0.001;
             let pulse = 1 + 0.04 * Math.sin(t * 2);
