@@ -312,6 +312,7 @@ pipes = {
     spawnInterval: 3.31, // увеличено на 30% для уменьшения количества вертолётов на 15%
 
     draw: function() {
+        if (state.current != state.game) return;
         this.helicopterFrameTime += (typeof window !== 'undefined' && window.lastDelta) ? window.lastDelta : 0.016;
         let framePeriod = 0.24; // было 0.12 сек, теперь в 2 раза медленнее
         if (this.helicopterFrameTime > framePeriod) {
@@ -328,48 +329,103 @@ pipes = {
         this.h = drawH;
         for(let i = 0; i < this.position.length; i++) {
             let p = this.position[i];
+            // === КОРРЕКТНОЕ ОБЪЯВЛЕНИЕ ПЕРЕМЕННЫХ ДЛЯ КАЖДОГО ВЕРТОЛЁТА ===
             const frame = this.helicopterFrame || 0;
             const f = helicopterFrames[frame];
-            const localDrawW = drawW;
-            const localDrawH = drawW * (f.sh / f.sw);
+            if (!f || !f.sw || !f.sh) continue; // защита от ошибок
+            const localDrawW = Math.round(f.sw / 1.5) * 0.8 * 1.1;
+            const localDrawH = localDrawW * (f.sh / f.sw);
             const topYPos = p.y;
-            // === Актуальные размеры кадра ===
-            // drawW оставляем прежним, drawH рассчитываем пропорционально кадру
-            // === ОТРИСОВКА ВЕРТОЛЁТА ===
-            if (typeof helicopter_sprite !== 'undefined' && helicopter_sprite.complete && helicopter_sprite.naturalWidth > 0) {
+            // === Удаление вертолёта, если он улетел за верх экрана ===
+            if (p.flyAway && (p.y + this.h < 0)) {
+                this.position.splice(i, 1);
+                continue;
+            }
+            let foundCollision = false;
+            // === КОЛЛИЗИЯ С ВЕРТОЛЁТОМ (две зоны) ===
+            if (p.x > 0 && p.x < cvs.width) {
+                for (let heliZone of helicopterCollisionZones) {
+                    let scaleX = localDrawW / f.sw;
+                    let scaleY = localDrawH / f.sh;
+                    let heliAbsX = p.x + heliZone.x * scaleX;
+                    let heliAbsY = p.y + heliZone.y * scaleY;
+                    let heliZoneW = heliZone.w * scaleX;
+                    let heliZoneH = heliZone.h * scaleY;
+                    for (let birdZone of bird.collisionZones) {
+                        let scaleXb = bird.w / birdSpriteW;
+                        let scaleYb = (bird.h * 1.452) / birdSpriteH;
+                        let birdAbsX = bird.x - bird.w/2 + birdZone.x * scaleXb;
+                        let birdAbsY = bird.y - (bird.h * 1.452)/2 + birdZone.y * scaleYb;
+                        let birdZoneW = birdZone.w * scaleXb;
+                        let birdZoneH = birdZone.h * scaleYb;
+                        let xOverlap = birdAbsX < heliAbsX + heliZoneW && birdAbsX + birdZoneW > heliAbsX;
+                        let yOverlap = birdAbsY < heliAbsY + heliZoneH && birdAbsY + birdZoneH > heliAbsY;
+                        if (xOverlap && yOverlap) {
+                            console.log('СТОЛКНОВЕНИЕ С ВЕРТОЛЁТОМ!');
+                            console.log('Птица:', {x: bird.x, y: bird.y, w: bird.w, h: bird.h});
+                            console.log('Вертолёт:', {x: p.x, y: p.y, w: localDrawW, h: localDrawH});
+                            state.current = state.gameOver;
+                            explosion_dx = this.dx;
+                            explosionActive = true;
+                            explosionX = bird.x;
+                            explosionY = bird.y;
+                            explosionTimer = 0;
+                            birdVisible = false;
+                            if(!mute) {
+                                HIT.play();
+                                setTimeout(function() {
+                                    if (state.current == state.gameOver) {
+                                        DIE.currentTime = 0;
+                                        DIE.play();
+                                    }
+                                }, 500)
+                            }
+                            foundCollision = true;
+                            // === ЛОГ ДЛЯ ВЗРЫВА ===
+                            console.log('ВЗРЫВ: столкновение с ВЕРТОЛЁТОМ');
+                            break;
+                        }
+                    }
+                    if (foundCollision) break;
+                }
+            }
+            if (foundCollision) continue;
+            
+            // Нарисовать спрайт вертолёта (если есть изображение)
+            if (typeof helicopter_sprite !== 'undefined' && helicopter_sprite.complete) {
                 ctx.drawImage(
                     helicopter_sprite,
                     f.sx, f.sy, f.sw, f.sh,
-                    p.x, topYPos, localDrawW, localDrawH
+                    p.x, p.y, localDrawW, localDrawH
                 );
-                // === ВИЗУАЛИЗАЦИЯ ЗОН КОЛЛИЗИИ ВЕРТОЛЁТА ===
-                if (showCollisionTest) {
-                    ctx.save();
-                    ctx.globalAlpha = 0.3;
-                    ctx.fillStyle = 'orange';
-                    for (let zone of helicopterCollisionZones) {
-                        let scaleX = localDrawW / f.sw;
-                        let scaleY = localDrawH / f.sh;
-                        ctx.fillRect(
-                            p.x + zone.x * scaleX,
-                            topYPos + zone.y * scaleY,
-                            zone.w * scaleX,
-                            zone.h * scaleY
-                        );
-                    }
-                    ctx.restore();
+            }
+
+            // Нарисовать красную рамку для отладки
+            ctx.save();
+            ctx.globalAlpha = 1;
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(p.x, p.y, localDrawW, localDrawH);
+            ctx.restore();
+
+            // Визуализация зон коллизии вертолёта
+            if (window.showCollisionTest) {
+                ctx.save();
+                ctx.globalAlpha = 0.3;
+                ctx.fillStyle = 'orange';
+                for (let heliZone of helicopterCollisionZones) {
+                    let scaleX = localDrawW / f.sw;
+                    let scaleY = localDrawH / f.sh;
+                    ctx.fillRect(
+                        p.x + heliZone.x * scaleX,
+                        p.y + heliZone.y * scaleY,
+                        heliZone.w * scaleX,
+                        heliZone.h * scaleY
+                    );
                 }
+                ctx.restore();
             }
         }
-        // Удаляю тестовые прямоугольники:
-        // ctx.fillStyle = 'lime';
-        // ctx.fillRect(100, 100, 100, 100);
-        // if (this.position.length > 0) {
-        //     let p = this.position[0];
-        //     ctx.fillStyle = 'blue';
-        //     ctx.fillRect(p.x, p.y, drawW, drawH);
-        // }
-        // console.log('Размеры canvas:', cvs.width, cvs.height);
     },
 
     update: function(delta) {
@@ -405,7 +461,7 @@ pipes = {
             }
             const frameHeight = 394;
             const spriteH = 306;
-            const drawH = Math.round(spriteH / 1.5) * 0.8 * 1.1;
+            const drawH = Math.round(spriteW / 1.5) * 0.8 * 1.1;
             this.position.push({
                 x: cvs.width + drawW, // появление заранее, за пределами экрана
                 y: y,
@@ -422,29 +478,9 @@ pipes = {
             });
             this.spawnTimer = 0;
         }
-        
+        // === ДВИЖЕНИЕ ВЕРТОЛЁТОВ ===
         for(let i = this.position.length - 1; i >= 0; i--) {
             let p = this.position[i];
-            // === Проверка близости к Останкино ===
-            // Вычисляем размеры вертолёта для всех проверок
-            const spriteW = 256;
-            const drawW = Math.round(spriteW / 1.5) * 0.8 * 1.1;
-            if (!p.flyAway && Array.isArray(ostankinoObstacles)) {
-                for (let j = 0; j < ostankinoObstacles.length; j++) {
-                    let ost = ostankinoObstacles[j];
-                    let heliCenterX = p.x + drawW / 2;
-                    let heliCenterY = p.y + this.h / 2;
-                    let ostTopX = ost.x + ost.width / 2;
-                    let ostTopY = ost.y;
-                    // Проверка попадания в квадрат 300х300 вокруг вершины Останкино
-                    if (Math.abs(heliCenterX - ostTopX) < 300 && Math.abs(heliCenterY - ostTopY) < 300) {
-                        p.flyAway = true;
-                        p.flyAwaySpeed = 400 + Math.random() * 100; // px/sec
-                        break;
-                    }
-                }
-            }
-            // === ДВИЖЕНИЕ ВЕРТОЛЁТА ===
             if (p.flyAway) {
                 p.y -= (p.flyAwaySpeed || 400) * delta;
             } else {
@@ -462,109 +498,28 @@ pipes = {
                     }
                 }
             }
-            // === Удаление вертолёта, если он улетел за верх экрана ===
-            if (p.flyAway && (p.y + this.h < 0)) {
-                this.position.splice(i, 1);
-                continue;
-            }
-            let foundCollision = false;
-            // === В pipes.update: масштабируем зоны коллизии героя с учётом реального масштаба по высоте ===
-            let scaleX = bird.w / birdSpriteW;
-            let scaleY = (bird.h * 1.452) / birdSpriteH;
-            for (let zone of bird.collisionZones) {
-                let birdAbsX = bird.x - bird.w/2 + zone.x * scaleX;
-                let birdAbsY = bird.y - (bird.h * 1.452)/2 + zone.y * scaleY;
-                let zoneW = zone.w * scaleX;
-                let zoneH = zone.h * scaleY;
-               
-            }
-            if (foundCollision) continue;
-            
-            // === КОЛЛИЗИЯ С ВЕРТОЛЁТОМ (сложные зоны) ===
-            // Проверяем, что вертолёт видим на экране (левая граница должна быть справа от левого края)
-            if (p.x > 0 && p.x + drawW < cvs.width) {
-            const frame = this.helicopterFrame || 0;
-            const f = helicopterFrames[frame];
-            const localDrawW = drawW;
-            const localDrawH = drawW * (f.sh / f.sw);
-            const topYPos = p.y;
-            for (let heliZone of helicopterCollisionZones) {
-                // Масштабируем зоны коллизий вертолёта
-                let scale = getGameScale();
-                let heliAbsX = p.x + heliZone.x * scale;
-                let heliAbsY = topYPos + heliZone.y * scale;
-                let heliZoneW = heliZone.w * scale;
-                let heliZoneH = heliZone.h * scale;
-
-                for (let birdZone of bird.collisionZones) {
-                    // Зоны птицы уже масштабированы через getGameScale(), используем их напрямую
-                    let birdAbsX = bird.x - bird.w/2 + birdZone.x;
-                    let birdAbsY = bird.y - bird.h/2 + birdZone.y;
-                    let birdZoneW = birdZone.w;
-                    let birdZoneH = birdZone.h;
-                    // Проверяем каждое условие отдельно для отладки
-                    let xOverlap = birdAbsX < heliAbsX + heliZoneW && birdAbsX + birdZoneW > heliAbsX;
-                    let yOverlap = birdAbsY < heliAbsY + heliZoneH && birdAbsY + birdZoneH > heliAbsY;
-                    
-                    // Дополнительная проверка: птица не должна быть полностью ниже вертолёта
-                    let birdNotBelowHelicopter = birdAbsY + birdZoneH <= heliAbsY + heliZoneH;
-                    
-                    // Отладка всех условий
-                    console.log('=== ОТЛАДКА КОЛЛИЗИИ ===');
-                    console.log('X пересечение:', xOverlap);
-                    console.log('Y пересечение:', yOverlap);
-                    console.log('Птица не ниже вертолёта:', birdNotBelowHelicopter);
-                    console.log('Все условия:', xOverlap && yOverlap && birdNotBelowHelicopter);
-                    console.log('========================');
-                    
-                    if (xOverlap && yOverlap && birdNotBelowHelicopter) {
-                        console.log('=== ДЕТАЛЬНАЯ КОЛЛИЗИЯ ===');
-                        console.log('Птица зона:', birdAbsX, birdAbsY, birdZoneW, birdZoneH);
-                        console.log('Вертолёт зона:', heliAbsX, heliAbsY, heliZoneW, heliZoneH);
-                        console.log('Пересечение по X:', xOverlap, '(', birdAbsX, '<', heliAbsX + heliZoneW, '&&', birdAbsX + birdZoneW, '>', heliAbsX, ')');
-                        console.log('Пересечение по Y:', yOverlap, '(', birdAbsY, '<', heliAbsY + heliZoneH, '&&', birdAbsY + birdZoneH, '>', heliAbsY, ')');
-                        console.log('Номер зоны вертолёта:', helicopterCollisionZones.indexOf(heliZone));
-                        console.log('Птица X диапазон:', birdAbsX, 'до', birdAbsX + birdZoneW);
-                        console.log('Вертолёт X диапазон:', heliAbsX, 'до', heliAbsX + heliZoneW);
-                        console.log('========================');
-                        console.log('GAME OVER: столкновение с вертолётом (сложная зона)');
-                        console.log('Птица позиция:', bird.x, bird.y, 'размеры:', bird.w, bird.h);
-                        const spriteH = 306;
-                        const drawH = Math.round(spriteH / 1.5) * 0.8 * 1.1;
-                        console.log('Вертолёт позиция:', p.x, p.y, 'размеры:', drawW, drawH);
-                        console.log('Зона птицы:', birdAbsX, birdAbsY, birdZoneW, birdZoneH);
-                        console.log('Зона вертолёта:', heliAbsX, heliAbsY, heliZoneW, heliZoneH);
-                        console.log('Масштаб игры:', getGameScale());
-                        console.log('Птица Y диапазон:', birdAbsY, 'до', birdAbsY + birdZoneH);
-                        console.log('Вертолёт Y диапазон:', heliAbsY, 'до', heliAbsY + heliZoneH);
-                state.current = state.gameOver;
-                        explosion_dx = this.dx;
-                explosionActive = true;
-                explosionX = bird.x;
-                explosionY = bird.y;
-                explosionTimer = 0;
-                        birdVisible = false;
-                if(!mute) {
-                    HIT.play();
-                    setTimeout(function() {
-                        if (state.current == state.gameOver) {
-                            DIE.currentTime = 0;
-                            DIE.play();
+        }
+        // === Проверка близости к Останкино ===
+        const spriteW2 = 256;
+        const drawW2 = Math.round(spriteW2 / 1.5) * 0.8 * 1.1;
+        if (Array.isArray(ostankinoObstacles)) {
+            for(let i = this.position.length - 1; i >= 0; i--) {
+                let p = this.position[i];
+                if (!p.flyAway) {
+                    for (let j = 0; j < ostankinoObstacles.length; j++) {
+                        let ost = ostankinoObstacles[j];
+                        let heliCenterX = p.x + drawW2 / 2;
+                        let heliCenterY = p.y + this.h / 2;
+                        let ostTopX = ost.x + ost.width / 2;
+                        let ostTopY = ost.y;
+                        // Проверка попадания в квадрат 300х300 вокруг вершины Останкино
+                        if (Math.abs(heliCenterX - ostTopX) < 300 && Math.abs(heliCenterY - ostTopY) < 300) {
+                            p.flyAway = true;
+                            p.flyAwaySpeed = 400 + Math.random() * 100; // px/sec
+                            break;
                         }
-                    }, 500)   
-                }   
-                        foundCollision = true;
-                        break;
                     }
                 }
-                if (foundCollision) break;
-            }
-            } // Закрываем блок проверки видимости вертолёта
-            
-            if (p.x + this.w < bird.x - bird.radius_x && !p.scored) {
-                // Убрано начисление очков за прохождение труб
-                // Очки теперь начисляются только за собранные монеты
-                p.scored = true;
             }
         }
     },
@@ -789,13 +744,41 @@ const helicopterFrames = [
 ];
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ ВЕРТОЛЁТА ===
 const helicopterCollisionZones = [
-    { 
-      x: 0, y: 0, w: 360, h: 140
+    {
+        get x() { return 0 * getHelicopterScaleX(); },
+        get y() { return 0 * getHelicopterScaleY(); },
+        get w() { return 360 * getHelicopterScaleX(); },
+        get h() { return 134 * getHelicopterScaleY(); }
     },
-    { 
-      x: 44, y: 141, w: 112, h: 167
+    {
+        get x() { return 43 * getHelicopterScaleX(); },
+        get y() { return 135 * getHelicopterScaleY(); },
+        get w() { return 114 * getHelicopterScaleX(); },
+        get h() { return 169 * getHelicopterScaleY(); }
     }
 ];
+// Функции масштабирования для вертолёта
+function getHelicopterScaleX() {
+    // Оригинальная ширина спрайта: 360
+    // Текущая ширина drawW (используется в движении и отрисовке)
+    const spriteW = 360;
+    // drawW вычисляется как: Math.round(spriteW / 1.5) * 0.8 * 1.1;
+    // Но для универсальности берём текущий drawW из кода, если есть
+    if (typeof getCurrentHelicopterDrawW === 'function') {
+        return getCurrentHelicopterDrawW() / spriteW;
+    }
+    return 1;
+}
+function getHelicopterScaleY() {
+    // Оригинальная высота спрайта: 320 (по изображению), но для коллизии берём максимальную Y+H
+    // drawH вычисляется аналогично drawW, но с учётом пропорций
+    // Для универсальности возвращаем тот же коэффициент, что и по X (если пропорции не меняются)
+    if (typeof getCurrentHelicopterDrawH === 'function') {
+        return getCurrentHelicopterDrawH() / 320;
+    }
+    return 1;
+}
+// Для совместимости: если drawW/drawH вычисляются динамически, можно добавить функции getCurrentHelicopterDrawW/H
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
 // === Функция для отрисовки взрыва ===
@@ -891,6 +874,24 @@ function update(delta) {
     for (let i = mguObstacles.length - 1; i >= 0; i--) {
         let mgu = mguObstacles[i];
         mgu.x -= pipes.dx * (delta || 1);
+        // Проверка на пересечение с другими зданиями
+        let otherBuildings = [...lubyankaObstacles, ...ostankinoObstacles];
+        let collision = false;
+        for (let other of otherBuildings) {
+            if (
+                mgu.x < other.x + other.width &&
+                mgu.x + mgu.width > other.x &&
+                mgu.y < other.y + other.height &&
+                mgu.y + mgu.height > other.y
+            ) {
+                collision = true;
+                break;
+            }
+        }
+        if (collision) {
+            mguObstacles.splice(i, 1);
+            continue;
+        }
         if (mgu.x < -mgu.width) {
             mguObstacles.splice(i, 1);
             continue;
@@ -919,6 +920,8 @@ function update(delta) {
                         }
                     }, 500)
                 }
+                // === ЛОГ ДЛЯ ВЗРЫВА ===
+                console.log('ВЗРЫВ: столкновение с МГУ');
             }
         }
     }
@@ -926,12 +929,23 @@ function update(delta) {
     if (mguSpawnTimer >= mguSpawnInterval) {
         let x = cvs.width;
         let y = cvs.height - mguObstacleTemplate.height;
-        let allObstacles = getAllObstacles();
+        let onlyBuildings = [...mguObstacles, ...lubyankaObstacles, ...ostankinoObstacles];
+        // Проверка минимального расстояния между зданиями
+        let canSpawn = true;
+        for (let other of onlyBuildings) {
+            let centerNew = x + mguObstacleTemplate.width / 2;
+            let centerOther = other.x + other.width / 2;
+            let minDist = (mguObstacleTemplate.width / 2) + (other.width / 2);
+            if (Math.abs(centerNew - centerOther) < minDist) {
+                canSpawn = false;
+                break;
+            }
+        }
         let overlaps = checkCollisionZones(
             x, y, mguObstacleTemplate.width, mguObstacleTemplate.height, mguCollisionZones,
-            allObstacles, mguObstacleTemplate, mguCollisionZones
+            onlyBuildings, mguObstacleTemplate, mguCollisionZones
         );
-        if (!overlaps) {
+        if (!overlaps && canSpawn) {
             mguObstacles.push({
                 x: x,
                 y: y,
@@ -947,6 +961,24 @@ function update(delta) {
     for (let i = lubyankaObstacles.length - 1; i >= 0; i--) {
         let lubyanka = lubyankaObstacles[i];
         lubyanka.x -= pipes.dx * (delta || 1);
+        // Проверка на пересечение с другими зданиями
+        let otherBuildings = [...mguObstacles, ...ostankinoObstacles];
+        let collision = false;
+        for (let other of otherBuildings) {
+            if (
+                lubyanka.x < other.x + other.width &&
+                lubyanka.x + lubyanka.width > other.x &&
+                lubyanka.y < other.y + other.height &&
+                lubyanka.y + lubyanka.height > other.y
+            ) {
+                collision = true;
+                break;
+            }
+        }
+        if (collision) {
+            lubyankaObstacles.splice(i, 1);
+            continue;
+        }
         if (lubyanka.x < -lubyanka.width) {
             lubyankaObstacles.splice(i, 1);
             continue;
@@ -975,6 +1007,8 @@ function update(delta) {
                         }
                     }, 500)
                 }
+                // === ЛОГ ДЛЯ ВЗРЫВА ===
+                console.log('ВЗРЫВ: столкновение с ЛУБЯНКОЙ');
             }
         }
     }
@@ -982,12 +1016,23 @@ function update(delta) {
     if (lubyankaSpawnTimer >= lubyankaSpawnInterval) {
         let x = cvs.width;
         let y = cvs.height - lubyankaObstacleTemplate.height;
-        let allObstacles = getAllObstacles();
+        let onlyBuildings = [...mguObstacles, ...lubyankaObstacles, ...ostankinoObstacles];
+        // Проверка минимального расстояния между зданиями
+        let canSpawn = true;
+        for (let other of onlyBuildings) {
+            let centerNew = x + lubyankaObstacleTemplate.width / 2;
+            let centerOther = other.x + other.width / 2;
+            let minDist = (lubyankaObstacleTemplate.width / 2) + (other.width / 2);
+            if (Math.abs(centerNew - centerOther) < minDist) {
+                canSpawn = false;
+                break;
+            }
+        }
         let overlaps = checkCollisionZones(
             x, y, lubyankaObstacleTemplate.width, lubyankaObstacleTemplate.height, lubyankaCollisionZones,
-            allObstacles, lubyankaObstacleTemplate, lubyankaCollisionZones
+            onlyBuildings, lubyankaObstacleTemplate, lubyankaCollisionZones
         );
-        if (!overlaps) {
+        if (!overlaps && canSpawn) {
             lubyankaObstacles.push({
                 x: x,
                 y: y,
@@ -1003,6 +1048,24 @@ function update(delta) {
     for (let i = ostankinoObstacles.length - 1; i >= 0; i--) {
         let ostankino = ostankinoObstacles[i];
         ostankino.x -= pipes.dx * (delta || 1);
+        // Проверка на пересечение с другими зданиями
+        let otherBuildings = [...mguObstacles, ...lubyankaObstacles];
+        let collision = false;
+        for (let other of otherBuildings) {
+            if (
+                ostankino.x < other.x + other.width &&
+                ostankino.x + ostankino.width > other.x &&
+                ostankino.y < other.y + other.height &&
+                ostankino.y + ostankino.height > other.y
+            ) {
+                collision = true;
+                break;
+            }
+        }
+        if (collision) {
+            ostankinoObstacles.splice(i, 1);
+            continue;
+        }
         if (ostankino.x < -ostankino.width) {
             ostankinoObstacles.splice(i, 1);
             continue;
@@ -1031,6 +1094,8 @@ function update(delta) {
                         }
                     }, 500)
                 }
+                // === ЛОГ ДЛЯ ВЗРЫВА ===
+                console.log('ВЗРЫВ: столкновение с ОСТАНКИНО');
             }
         }
     }
@@ -1038,12 +1103,23 @@ function update(delta) {
     if (ostankinoSpawnTimer >= ostankinoSpawnInterval) {
         let x = cvs.width;
         let y = cvs.height - ostankinoObstacleTemplate.height;
-        let allObstacles = getAllObstacles();
+        let onlyBuildings = [...mguObstacles, ...lubyankaObstacles, ...ostankinoObstacles];
+        // Проверка минимального расстояния между зданиями
+        let canSpawn = true;
+        for (let other of onlyBuildings) {
+            let centerNew = x + ostankinoObstacleTemplate.width / 2;
+            let centerOther = other.x + other.width / 2;
+            let minDist = (ostankinoObstacleTemplate.width / 2) + (other.width / 2);
+            if (Math.abs(centerNew - centerOther) < minDist) {
+                canSpawn = false;
+                break;
+            }
+        }
         let overlaps = checkCollisionZones(
             x, y, ostankinoObstacleTemplate.width, ostankinoObstacleTemplate.height, ostankinoCollisionZones,
-            allObstacles, ostankinoObstacleTemplate, ostankinoCollisionZones
+            onlyBuildings, ostankinoObstacleTemplate, ostankinoCollisionZones
         );
-        if (!overlaps) {
+        if (!overlaps && canSpawn) {
             ostankinoObstacles.push({
                 x: x,
                 y: y,
