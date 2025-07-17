@@ -320,11 +320,9 @@ pipes = {
             this.helicopterFrameTime = 0;
         }
 
-        const frameHeight = 394;
-        const spriteW = 360;
-        const spriteH = 306;
-        const drawW = Math.round(spriteW / 1.5) * 0.8 * 1.1 * 0.8;
-        const drawH = Math.round(spriteH / 1.5) * 0.8 * 1.1 * 0.8;
+        // Новый масштаб: ширина как доля от ширины канваса
+        const drawW = cvs.width * helicopterWidthRatio;
+        const drawH = drawW * (helicopterSpriteH / helicopterSpriteW);
         this.w = drawW;
         this.h = drawH;
         for(let i = 0; i < this.position.length; i++) {
@@ -333,8 +331,9 @@ pipes = {
             const frame = this.helicopterFrame || 0;
             const f = helicopterFrames[frame];
             if (!f || !f.sw || !f.sh) continue; // защита от ошибок
-            const localDrawW = Math.round(f.sw / 1.5) * 0.8 * 1.1 * 0.8;
-            const localDrawH = localDrawW * (f.sh / f.sw);
+            // drawW/drawH теперь масштабируются
+            const localDrawW = drawW;
+            const localDrawH = drawH;
             const topYPos = p.y;
             // === Удаление вертолёта, если он улетел за верх экрана ===
             if (p.flyAway && (p.y + this.h < 0)) {
@@ -400,13 +399,13 @@ pipes = {
                 );
             }
 
-            // Нарисовать красную рамку для отладки
-            ctx.save();
-            ctx.globalAlpha = 1;
-            ctx.strokeStyle = 'red';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(p.x, p.y, localDrawW, localDrawH);
-            ctx.restore();
+            // Удаляю/комментирую отрисовку красных рамок вокруг вертолётов
+            // ctx.save();
+            // ctx.globalAlpha = 1;
+            // ctx.strokeStyle = 'red';
+            // ctx.lineWidth = 3;
+            // ctx.strokeRect(p.x, p.y, localDrawW, localDrawH);
+            // ctx.restore();
 
             // Визуализация зон коллизии вертолёта
             if (window.showCollisionTest) {
@@ -431,8 +430,9 @@ pipes = {
     update: function(delta) {
         if(state.current != state.game) return;
 
-        const spriteW = 360;
-        const drawW = Math.round(spriteW / 1.5) * 0.8 * 1.1 * 0.8;
+        // Новый масштаб: ширина как доля от ширины канваса
+        const drawW = cvs.width * helicopterWidthRatio;
+        const drawH = drawW * (helicopterSpriteH / helicopterSpriteW);
         this.spawnTimer += delta;
         let interval = this.spawnInterval + (Math.random() - 0.5) * 0.4; // небольшой разброс
         if (this.spawnTimer >= interval) {
@@ -459,9 +459,6 @@ pipes = {
                 }
                 y = Math.random() * (cvs.height - pipes.h);
             }
-            const frameHeight = 394;
-            const spriteH = 306;
-            const drawH = Math.round(spriteW / 1.5) * 0.8 * 1.1 * 0.8;
             this.position.push({
                 x: cvs.width + drawW, // появление заранее, за пределами экрана
                 y: y,
@@ -708,6 +705,12 @@ function getHelicopterScaleY() {
     return 1;
 }
 // Для совместимости: если drawW/drawH вычисляются динамически, можно добавить функции getCurrentHelicopterDrawW/H
+// === КОНЕЦ ДОБАВЛЕНИЯ ===
+
+// === КОНСТАНТЫ ДЛЯ МАСШТАБИРОВАНИЯ ВЕРТОЛЁТА ===
+const helicopterSpriteW = 360;
+const helicopterSpriteH = 306;
+const helicopterWidthRatio = 0.258336; // ширина вертолёта как доля от ширины канваса (ещё +20%)
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
 // === Функция для отрисовки взрыва ===
@@ -1308,4 +1311,4 @@ const coins = {
         this.spawnTimer = 0;
         this.spawnInterval = 2 + Math.random() * 2;
     }
-}; 
+};
