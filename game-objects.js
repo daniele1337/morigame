@@ -323,8 +323,8 @@ pipes = {
         const frameHeight = 394;
         const spriteW = 360;
         const spriteH = 306;
-        const drawW = Math.round(spriteW / 1.5) * 0.8 * 1.1;
-        const drawH = Math.round(spriteH / 1.5) * 0.8 * 1.1;
+        const drawW = Math.round(spriteW / 1.5) * 0.8 * 1.1 * 0.8;
+        const drawH = Math.round(spriteH / 1.5) * 0.8 * 1.1 * 0.8;
         this.w = drawW;
         this.h = drawH;
         for(let i = 0; i < this.position.length; i++) {
@@ -333,7 +333,7 @@ pipes = {
             const frame = this.helicopterFrame || 0;
             const f = helicopterFrames[frame];
             if (!f || !f.sw || !f.sh) continue; // защита от ошибок
-            const localDrawW = Math.round(f.sw / 1.5) * 0.8 * 1.1;
+            const localDrawW = Math.round(f.sw / 1.5) * 0.8 * 1.1 * 0.8;
             const localDrawH = localDrawW * (f.sh / f.sw);
             const topYPos = p.y;
             // === Удаление вертолёта, если он улетел за верх экрана ===
@@ -432,7 +432,7 @@ pipes = {
         if(state.current != state.game) return;
 
         const spriteW = 360;
-        const drawW = Math.round(spriteW / 1.5) * 0.8 * 1.1;
+        const drawW = Math.round(spriteW / 1.5) * 0.8 * 1.1 * 0.8;
         this.spawnTimer += delta;
         let interval = this.spawnInterval + (Math.random() - 0.5) * 0.4; // небольшой разброс
         if (this.spawnTimer >= interval) {
@@ -461,7 +461,7 @@ pipes = {
             }
             const frameHeight = 394;
             const spriteH = 306;
-            const drawH = Math.round(spriteW / 1.5) * 0.8 * 1.1;
+            const drawH = Math.round(spriteW / 1.5) * 0.8 * 1.1 * 0.8;
             this.position.push({
                 x: cvs.width + drawW, // появление заранее, за пределами экрана
                 y: y,
@@ -501,7 +501,7 @@ pipes = {
         }
         // === Проверка близости к Останкино ===
         const spriteW2 = 256;
-        const drawW2 = Math.round(spriteW2 / 1.5) * 0.8 * 1.1;
+        const drawW2 = Math.round(spriteW2 / 1.5) * 0.8 * 1.1 * 0.8;
         if (Array.isArray(ostankinoObstacles)) {
             for(let i = this.position.length - 1; i >= 0; i--) {
                 let p = this.position[i];
@@ -553,14 +553,8 @@ let explosion_dx = 0;
 const mgu_img = new Image();
 mgu_img.src = "img/separated/MGU.png";
 const mguObstacleTemplate = {
-    get width() { 
-        let scale = getGameScale();
-        return Math.round(403 * 1.26 * scale); 
-    },
-    get height() { 
-        let scale = getGameScale();
-        return Math.round(514 * 1.26 * scale); 
-    }
+    get width() { return cvs.width * 0.55; },
+    get height() { return cvs.height * 0.618; }
 };
 let mguObstacles = [];
 let mguSpawnTimer = 0;
@@ -568,38 +562,25 @@ let mguSpawnInterval = 4 + Math.random() * 3; // 4-7 секунд
 let lubyankaSpawnTimer = 0;
 let lubyankaSpawnInterval = 4 + Math.random() * 3; // 4-7 секунд
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ МГУ ===
+// Относительные значения (от 0 до 1)
 const mguCollisionZones = [
-  { 
-    get x() { return Math.round(204 * 1.26 * getGameScale()); },
-    get y() { return Math.round(65 * 1.26 * getGameScale()); },
-    get w() { return Math.round(22 * 1.26 * getGameScale()); },
-    get h() { return Math.round(94 * 1.26 * getGameScale()); }
-  },
-  { 
-    get x() { return Math.round(190.5 * 1.26 * getGameScale()); },
-    get y() { return Math.round(159 * 1.26 * getGameScale()); },
-    get w() { return Math.round(53 * 1.26 * getGameScale()); },
-    get h() { return Math.round(50 * 1.26 * getGameScale()); }
-  },
-  { 
-    get x() { return Math.round(174 * 1.26 * getGameScale()); },
-    get y() { return Math.round(210 * 1.26 * getGameScale()); },
-    get w() { return Math.round(85 * 1.26 * getGameScale()); },
-    get h() { return Math.round(107 * 1.26 * getGameScale()); }
-  },
-  { 
-    get x() { return Math.round(155 * 1.26 * getGameScale()); },
-    get y() { return Math.round(318 * 1.26 * getGameScale()); },
-    get w() { return Math.round(124 * 1.26 * getGameScale()); },
-    get h() { return Math.round(80 * 1.26 * getGameScale()); }
-  },
-  { 
-    get x() { return Math.round(28 * 1.26 * getGameScale()); },
-    get y() { return Math.round(398 * 1.26 * getGameScale()); },
-    get w() { return Math.round(374 * 1.26 * getGameScale()); },
-    get h() { return Math.round(159 * 1.26 * getGameScale()); }
-  }
+  { x: 0.481, y: 0.113, w: 0.052, h: 0.163 },
+  { x: 0.448, y: 0.275, w: 0.125, h: 0.086 },
+  { x: 0.410, y: 0.363, w: 0.201, h: 0.185 },
+  { x: 0.366, y: 0.550, w: 0.292, h: 0.138 },
+  { x: 0.066, y: 0.688, w: 0.882, h: 0.275 }
 ];
+
+// Функция для получения абсолютных координат коллизий МГУ
+function getMguCollisionRects(mgu) {
+  // mgu: {x, y, width, height}
+  return mguCollisionZones.map(zone => ({
+    x: mgu.x + zone.x * mgu.width,
+    y: mgu.y + zone.y * mgu.height,
+    w: zone.w * mgu.width,
+    h: zone.h * mgu.height
+  }));
+}
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
 // === МАССИВ ДИНАМИЧЕСКИХ ЛУБЯНОК ===
@@ -691,32 +672,26 @@ const lubyankaCollisionZones = [
 const ostankino_img = new Image();
 ostankino_img.src = "img/separated/OstankinoTowe1r.png";
 const ostankinoObstacleTemplate = {
-    get width() { return Math.round(256 * 1.05 * getGameScale()); },
-    get height() { return Math.round(878 * 1.05 * getGameScale()); }
+    get width() { return cvs.width * 0.24; },
+    get height() { return cvs.height * 0.96; }
 };
 let ostankinoObstacles = [];
 let ostankinoSpawnTimer = 0;
 let ostankinoSpawnInterval = 4 + Math.random() * 3;
+// Переведённые в относительные координаты (от 0 до 1)
 const ostankinoCollisionZones = [
-    { 
-      get x() { return Math.round(70 * 1.05 * getGameScale()); },
-      get y() { return Math.round(766 * 1.05 * getGameScale()); },
-      get w() { return Math.round(139 * 1.05 * getGameScale()); },
-      get h() { return Math.round(107 * 1.05 * getGameScale()); }
-    },
-    { 
-      get x() { return Math.round(121 * 1.05 * getGameScale()); },
-      get y() { return Math.round(332 * 1.05 * getGameScale()); },
-      get w() { return Math.round(44 * 1.05 * getGameScale()); },
-      get h() { return Math.round(436 * 1.05 * getGameScale()); }
-    },
-    { 
-      get x() { return Math.round(131 * 1.05 * getGameScale()); },
-      get y() { return Math.round(142 * 1.05 * getGameScale()); },
-      get w() { return Math.round(17 * 1.05 * getGameScale()); },
-      get h() { return Math.round(189 * 1.05 * getGameScale()); }
-    }
+    { x: 121/256, y: 332/878, w: 44/256, h: 436/878 },
+    { x: 131/256, y: 142/878, w: 17/256, h: 189/878 }
 ];
+// Функция для получения абсолютных координат коллизий Останкино
+function getOstankinoCollisionRects(ostankino) {
+  return ostankinoCollisionZones.map(zone => ({
+    x: ostankino.x + zone.x * ostankino.width,
+    y: ostankino.y + zone.y * ostankino.height,
+    w: zone.w * ostankino.width,
+    h: zone.h * ostankino.height
+  }));
+}
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ ГЛАВНОГО ГЕРОЯ ===
@@ -813,12 +788,12 @@ function updateExplosion(delta) {
     }
 }
 
-function checkCollisionZones(newX, newY, newW, newH, newZones, existingObstacles, existingTemplate, existingZones) {
+function checkCollisionZones(newX, newY, newW, newH, newZones, existingObstacles, existingTemplate, existingZones, zonesAreAbsolute = false) {
     for (let obj of existingObstacles) {
         for (let ez of existingZones) {
-            // Зоны коллизий уже масштабированы, используем их напрямую
-            let ezX = obj.x + ez.x;
-            let ezY = obj.y + ez.y;
+            // Если зоны абсолютные (МГУ) — не прибавляем obj.x/obj.y
+            let ezX = zonesAreAbsolute ? ez.x : obj.x + ez.x;
+            let ezY = zonesAreAbsolute ? ez.y : obj.y + ez.y;
             let ezW = ez.w;
             let ezH = ez.h;
             for (let nz of newZones) {
@@ -900,7 +875,7 @@ function update(delta) {
             if (state.current == state.game &&
                 checkCollisionZones(
                     bird.x - bird.w/2, bird.y - bird.h/2, bird.w, bird.h, bird.collisionZones,
-                    [mgu], mguObstacleTemplate, mguCollisionZones
+                    [mgu], mguObstacleTemplate, getMguCollisionRects(mgu), true // <--- передаём true для абсолютных зон
                 )
             ) {
                 console.log('Коллизия с МГУ! Птица:', bird.x, bird.y, 'размеры:', bird.w, bird.h, 'МГУ:', mgu.x, mgu.y, 'размеры:', mgu.width, mgu.height);
@@ -942,8 +917,8 @@ function update(delta) {
             }
         }
         let overlaps = checkCollisionZones(
-            x, y, mguObstacleTemplate.width, mguObstacleTemplate.height, mguCollisionZones,
-            onlyBuildings, mguObstacleTemplate, mguCollisionZones
+            x, y, mguObstacleTemplate.width, mguObstacleTemplate.height, getMguCollisionRects({x, y, width: mguObstacleTemplate.width, height: mguObstacleTemplate.height}),
+            onlyBuildings, mguObstacleTemplate, getMguCollisionRects({x, y, width: mguObstacleTemplate.width, height: mguObstacleTemplate.height})
         );
         if (!overlaps && canSpawn) {
             mguObstacles.push({
@@ -1074,7 +1049,7 @@ function update(delta) {
             if (state.current == state.game &&
                 checkCollisionZones(
                     bird.x - bird.w/2, bird.y - bird.h/2, bird.w, bird.h, bird.collisionZones,
-                    [ostankino], ostankinoObstacleTemplate, ostankinoCollisionZones
+                    [ostankino], ostankinoObstacleTemplate, getOstankinoCollisionRects(ostankino), true // абсолютные зоны
                 )
             ) {
                 console.log('Коллизия с Останкино! Птица:', bird.x, bird.y, 'размеры:', bird.w, bird.h, 'Останкино:', ostankino.x, ostankino.y, 'размеры:', ostankino.width, ostankino.height);
@@ -1209,15 +1184,8 @@ function draw() {
         ctx.globalAlpha = 0.3;
         ctx.fillStyle = 'orange';
         for (let mgu of mguObstacles) {
-            for (let zone of mguCollisionZones) {
-                let scaleX = mgu.width ? mgu.width / mguObstacleTemplate.width : 1;
-                let scaleY = mgu.height ? mgu.height / mguObstacleTemplate.height : 1;
-                ctx.fillRect(
-                    mgu.x + zone.x * scaleX,
-                    mgu.y + zone.y * scaleY,
-                    zone.w * scaleX,
-                    zone.h * scaleY
-                );
+            for (let rect of getMguCollisionRects(mgu)) {
+                ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
             }
         }
         ctx.restore();
@@ -1247,15 +1215,8 @@ function draw() {
         ctx.globalAlpha = 0.3;
         ctx.fillStyle = 'orange';
         for (let ostankino of ostankinoObstacles) {
-            for (let zone of ostankinoCollisionZones) {
-                let scaleX = ostankino.width ? ostankino.width / ostankinoObstacleTemplate.width : 1;
-                let scaleY = ostankino.height ? ostankino.height / ostankinoObstacleTemplate.height : 1;
-                ctx.fillRect(
-                    ostankino.x + zone.x * scaleX,
-                    ostankino.y + zone.y * scaleY,
-                    zone.w * scaleX,
-                    zone.h * scaleY
-                );
+            for (let rect of getOstankinoCollisionRects(ostankino)) {
+                ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
             }
         }
         ctx.restore();
