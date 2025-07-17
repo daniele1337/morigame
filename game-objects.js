@@ -553,8 +553,8 @@ let explosion_dx = 0;
 const mgu_img = new Image();
 mgu_img.src = "img/separated/MGU.png";
 const mguObstacleTemplate = {
-    get width() { return cvs.width * 0.55; },
-    get height() { return cvs.height * 0.618; }
+    get width() { return cvs.width * 0.605; }, // 0.55 * 1.1
+    get height() { return cvs.height * 0.6798; } // 0.618 * 1.1
 };
 let mguObstacles = [];
 let mguSpawnTimer = 0;
@@ -587,85 +587,39 @@ function getMguCollisionRects(mgu) {
 const lubyanka_img = new Image();
 lubyanka_img.src = "img/separated/Lubyanka.png";
 const lubyankaObstacleTemplate = {
-    get width() { return Math.round(865 * getGameScale()); },
-    get height() { return Math.round(466 * getGameScale()); }
+    get width() { return cvs.width * 1.28; },
+    get height() { return cvs.height * 0.52; }
 };
 let lubyankaObstacles = [];
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ ЛУБЯНКИ ===
+// Теперь все зоны рассчитываются по исходной ширине текстуры 1381px и высоте 768px
+const lubyankaSpriteWidth = 1381;
+const lubyankaSpriteHeight = 768;
 const lubyankaCollisionZones = [
-  { 
-    get x() { return (23/2) * getGameScale(); },
-    get y() { return (203/2) * getGameScale(); },
-    get w() { return (124/2) * getGameScale(); },
-    get h() { return (774/2) * getGameScale(); }
-  },
-  { 
-    get x() { return (144/2) * getGameScale(); },
-    get y() { return (329/2) * getGameScale(); },
-    get w() { return (1479/2) * getGameScale(); },
-    get h() { return (649/2) * getGameScale(); }
-  },
-  { 
-    get x() { return (1622/2) * getGameScale(); },
-    get y() { return (206/2) * getGameScale(); },
-    get w() { return (117/2) * getGameScale(); },
-    get h() { return (775/2) * getGameScale(); }
-  },
-  { 
-    get x() { return (755/2) * getGameScale(); },
-    get y() { return (243/2) * getGameScale(); },
-    get w() { return (247/2) * getGameScale(); },
-    get h() { return (90/2) * getGameScale(); }
-  },
-  { 
-    get x() { return (809/2) * getGameScale(); },
-    get y() { return (181/2) * getGameScale(); },
-    get w() { return (155/2) * getGameScale(); },
-    get h() { return (62/2) * getGameScale(); }
-  },
-  { 
-    get x() { return (825/2) * getGameScale(); },
-    get y() { return (165/2) * getGameScale(); },
-    get w() { return (114/2) * getGameScale(); },
-    get h() { return (18/2) * getGameScale(); }
-  },
-  { 
-    get x() { return (837/2) * getGameScale(); },
-    get y() { return (155/2) * getGameScale(); },
-    get w() { return (92/2) * getGameScale(); },
-    get h() { return (10/2) * getGameScale(); }
-  },
-  { 
-    get x() { return (844/2) * getGameScale(); },
-    get y() { return (144/2) * getGameScale(); },
-    get w() { return (78/2) * getGameScale(); },
-    get h() { return (11/2) * getGameScale(); }
-  },
-  { 
-    get x() { return (851/2) * getGameScale(); },
-    get y() { return (132/2) * getGameScale(); },
-    get w() { return (60/2) * getGameScale(); },
-    get h() { return (12/2) * getGameScale(); }
-  },
-  { 
-    get x() { return (859/2) * getGameScale(); },
-    get y() { return (113/2) * getGameScale(); },
-    get w() { return (51/2) * getGameScale(); },
-    get h() { return (19/2) * getGameScale(); }
-  },
-  { 
-    get x() { return (865/2) * getGameScale(); },
-    get y() { return (98/2) * getGameScale(); },
-    get w() { return (38/2) * getGameScale(); },
-    get h() { return (15/2) * getGameScale(); }
-  },
-  { 
-    get x() { return (878/2) * getGameScale(); },
-    get y() { return (51/2) * getGameScale(); },
-    get w() { return (6/2) * getGameScale(); },
-    get h() { return (47/2) * getGameScale(); }
-  }
+  { x: 0, y: 203/lubyankaSpriteHeight, w: 124/lubyankaSpriteWidth, h: 774/lubyankaSpriteHeight },   // 1 — у левого края
+  // 2-й фрагмент: растягиваем вверх до верхней границы 4-го
+  { x: 144/lubyankaSpriteWidth, y: 243/lubyankaSpriteHeight, w: 1190/lubyankaSpriteWidth, h: (329-243+439)/lubyankaSpriteHeight }, // 2
+  { x: 1 - 88/lubyankaSpriteWidth, y: 206/lubyankaSpriteHeight, w: 88/lubyankaSpriteWidth, h: 562/lubyankaSpriteHeight },  // 3 — у правого края
+  // Сдвинутые фрагменты:
+  { x: (lubyankaSpriteWidth/2 - 247/2)/lubyankaSpriteWidth, y: 243/lubyankaSpriteHeight, w: 247/lubyankaSpriteWidth, h: 90/lubyankaSpriteHeight },   // 4
+  { x: (lubyankaSpriteWidth/2 - 155/2)/lubyankaSpriteWidth, y: 181/lubyankaSpriteHeight, w: 155/lubyankaSpriteWidth, h: 62/lubyankaSpriteHeight },   // 5
+  { x: (lubyankaSpriteWidth/2 - 114/2)/lubyankaSpriteWidth, y: 165/lubyankaSpriteHeight, w: 114/lubyankaSpriteWidth, h: 18/lubyankaSpriteHeight },   // 6
+  { x: (lubyankaSpriteWidth/2 - 92/2)/lubyankaSpriteWidth, y: 155/lubyankaSpriteHeight, w: 92/lubyankaSpriteWidth, h: 10/lubyankaSpriteHeight },    // 7
+  { x: (lubyankaSpriteWidth/2 - 78/2)/lubyankaSpriteWidth, y: 144/lubyankaSpriteHeight, w: 78/lubyankaSpriteWidth, h: 11/lubyankaSpriteHeight },    // 8
+  { x: (lubyankaSpriteWidth/2 - 60/2)/lubyankaSpriteWidth, y: 132/lubyankaSpriteHeight, w: 60/lubyankaSpriteWidth, h: 12/lubyankaSpriteHeight },    // 9
+  { x: (lubyankaSpriteWidth/2 - 51/2)/lubyankaSpriteWidth, y: 113/lubyankaSpriteHeight, w: 51/lubyankaSpriteWidth, h: 19/lubyankaSpriteHeight },    // 10
+  { x: (lubyankaSpriteWidth/2 - 38/2)/lubyankaSpriteWidth, y: 98/lubyankaSpriteHeight, w: 38/lubyankaSpriteWidth, h: 15/lubyankaSpriteHeight },     // 11
+  { x: (lubyankaSpriteWidth/2 - 6/2)/lubyankaSpriteWidth, y: 51/lubyankaSpriteHeight, w: 6/lubyankaSpriteWidth, h: 47/lubyankaSpriteHeight }        // 12
 ];
+// Функция для получения абсолютных координат коллизий Лубянки
+function getLubyankaCollisionRects(lubyanka) {
+  return lubyankaCollisionZones.map(zone => ({
+    x: lubyanka.x + zone.x * lubyanka.width,
+    y: lubyanka.y + zone.y * lubyanka.height,
+    w: zone.w * lubyanka.width,
+    h: zone.h * lubyanka.height
+  }));
+}
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
 // === ОСТАНКИНСКАЯ БАШНЯ ===
@@ -962,7 +916,7 @@ function update(delta) {
             if (state.current == state.game &&
                 checkCollisionZones(
                     bird.x - bird.w/2, bird.y - bird.h/2, bird.w, bird.h, bird.collisionZones,
-                    [lubyanka], lubyankaObstacleTemplate, lubyankaCollisionZones
+                    [lubyanka], lubyankaObstacleTemplate, getLubyankaCollisionRects(lubyanka), true // абсолютные зоны
                 )
             ) {
                 console.log('Коллизия с Лубянкой! Птица:', bird.x, bird.y, 'размеры:', bird.w, bird.h, 'Лубянка:', lubyanka.x, lubyanka.y, 'размеры:', lubyanka.width, lubyanka.height);
@@ -1196,15 +1150,8 @@ function draw() {
         ctx.globalAlpha = 0.3;
         ctx.fillStyle = 'orange';
         for (let lubyanka of lubyankaObstacles) {
-            for (let zone of lubyankaCollisionZones) {
-                let scaleX = lubyanka.width ? lubyanka.width / lubyankaObstacleTemplate.width : 1;
-                let scaleY = lubyanka.height ? lubyanka.height / lubyankaObstacleTemplate.height : 1;
-                ctx.fillRect(
-                    lubyanka.x + zone.x * scaleX,
-                    lubyanka.y + zone.y * scaleY,
-                    zone.w * scaleX,
-                    zone.h * scaleY
-                );
+            for (let rect of getLubyankaCollisionRects(lubyanka)) {
+                ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
             }
         }
         ctx.restore();
@@ -1361,7 +1308,4 @@ const coins = {
         this.spawnTimer = 0;
         this.spawnInterval = 2 + Math.random() * 2;
     }
-};
-
-// === Сброс монет при старте новой игры ===
-// Найдите все места, где вызывается pipes.pipesReset() или score.scoreReset(), и добавьте coins.reset(); 
+}; 
