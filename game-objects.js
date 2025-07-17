@@ -28,6 +28,19 @@ function checkAndApplySpeedBoost() {
 }
 // === КОНЕЦ ФУНКЦИИ УСКОРЕНИЯ ===
 
+// === ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ МАСШТАБА ===
+function getGameScale() {
+    if (window.gameScale !== undefined) {
+        return window.gameScale;
+    }
+    // Если gameScale ещё не установлен, вычисляем его
+    if (cvs && cvs.height) {
+        return Math.min(1, cvs.height / 800);
+    }
+    return 1; // По умолчанию
+}
+// === КОНЕЦ ДОБАВЛЕНИЯ ===
+
 // Новый дневной фон
 const background_day_img = new Image();
 background_day_img.src = "img/separated/background_day.png";
@@ -413,6 +426,9 @@ pipes = {
         for(let i = this.position.length - 1; i >= 0; i--) {
             let p = this.position[i];
             // === Проверка близости к Останкино ===
+            // Вычисляем размеры вертолёта для всех проверок
+            const spriteW = 256;
+            const drawW = Math.round(spriteW / 1.5) * 0.8 * 1.1;
             if (!p.flyAway && Array.isArray(ostankinoObstacles)) {
                 for (let j = 0; j < ostankinoObstacles.length; j++) {
                     let ost = ostankinoObstacles[j];
@@ -465,32 +481,62 @@ pipes = {
             if (foundCollision) continue;
             
             // === КОЛЛИЗИЯ С ВЕРТОЛЁТОМ (сложные зоны) ===
+            // Проверяем, что вертолёт видим на экране (левая граница должна быть справа от левого края)
+            if (p.x > 0 && p.x + drawW < cvs.width) {
             const frame = this.helicopterFrame || 0;
             const f = helicopterFrames[frame];
             const localDrawW = drawW;
             const localDrawH = drawW * (f.sh / f.sw);
             const topYPos = p.y;
             for (let heliZone of helicopterCollisionZones) {
-                let heliScaleX = localDrawW / f.sw;
-                let heliScaleY = localDrawH / f.sh;
-                let heliAbsX = p.x + heliZone.x * heliScaleX;
-                let heliAbsY = topYPos + heliZone.y * heliScaleY;
-                let heliZoneW = heliZone.w * heliScaleX;
-                let heliZoneH = heliZone.h * heliScaleY;
+                // Масштабируем зоны коллизий вертолёта
+                let scale = getGameScale();
+                let heliAbsX = p.x + heliZone.x * scale;
+                let heliAbsY = topYPos + heliZone.y * scale;
+                let heliZoneW = heliZone.w * scale;
+                let heliZoneH = heliZone.h * scale;
+
                 for (let birdZone of bird.collisionZones) {
-                    let birdScaleX = bird.w / birdSpriteW;
-                    let birdScaleY = (bird.h * 1.452) / birdSpriteH;
-                    let birdAbsX = bird.x - bird.w/2 + birdZone.x * birdScaleX;
-                    let birdAbsY = bird.y - (bird.h * 1.452)/2 + birdZone.y * birdScaleY;
-                    let birdZoneW = birdZone.w * birdScaleX;
-                    let birdZoneH = birdZone.h * birdScaleY;
-                    if (
-                        birdAbsX < heliAbsX + heliZoneW &&
-                        birdAbsX + birdZoneW > heliAbsX &&
-                        birdAbsY < heliAbsY + heliZoneH &&
-                        birdAbsY + birdZoneH > heliAbsY
-                    ) {
+                    // Зоны птицы уже масштабированы через getGameScale(), используем их напрямую
+                    let birdAbsX = bird.x - bird.w/2 + birdZone.x;
+                    let birdAbsY = bird.y - bird.h/2 + birdZone.y;
+                    let birdZoneW = birdZone.w;
+                    let birdZoneH = birdZone.h;
+                    // Проверяем каждое условие отдельно для отладки
+                    let xOverlap = birdAbsX < heliAbsX + heliZoneW && birdAbsX + birdZoneW > heliAbsX;
+                    let yOverlap = birdAbsY < heliAbsY + heliZoneH && birdAbsY + birdZoneH > heliAbsY;
+                    
+                    // Дополнительная проверка: птица не должна быть полностью ниже вертолёта
+                    let birdNotBelowHelicopter = birdAbsY + birdZoneH <= heliAbsY + heliZoneH;
+                    
+                    // Отладка всех условий
+                    console.log('=== ОТЛАДКА КОЛЛИЗИИ ===');
+                    console.log('X пересечение:', xOverlap);
+                    console.log('Y пересечение:', yOverlap);
+                    console.log('Птица не ниже вертолёта:', birdNotBelowHelicopter);
+                    console.log('Все условия:', xOverlap && yOverlap && birdNotBelowHelicopter);
+                    console.log('========================');
+                    
+                    if (xOverlap && yOverlap && birdNotBelowHelicopter) {
+                        console.log('=== ДЕТАЛЬНАЯ КОЛЛИЗИЯ ===');
+                        console.log('Птица зона:', birdAbsX, birdAbsY, birdZoneW, birdZoneH);
+                        console.log('Вертолёт зона:', heliAbsX, heliAbsY, heliZoneW, heliZoneH);
+                        console.log('Пересечение по X:', xOverlap, '(', birdAbsX, '<', heliAbsX + heliZoneW, '&&', birdAbsX + birdZoneW, '>', heliAbsX, ')');
+                        console.log('Пересечение по Y:', yOverlap, '(', birdAbsY, '<', heliAbsY + heliZoneH, '&&', birdAbsY + birdZoneH, '>', heliAbsY, ')');
+                        console.log('Номер зоны вертолёта:', helicopterCollisionZones.indexOf(heliZone));
+                        console.log('Птица X диапазон:', birdAbsX, 'до', birdAbsX + birdZoneW);
+                        console.log('Вертолёт X диапазон:', heliAbsX, 'до', heliAbsX + heliZoneW);
+                        console.log('========================');
                         console.log('GAME OVER: столкновение с вертолётом (сложная зона)');
+                        console.log('Птица позиция:', bird.x, bird.y, 'размеры:', bird.w, bird.h);
+                        const spriteH = 306;
+                        const drawH = Math.round(spriteH / 1.5) * 0.8 * 1.1;
+                        console.log('Вертолёт позиция:', p.x, p.y, 'размеры:', drawW, drawH);
+                        console.log('Зона птицы:', birdAbsX, birdAbsY, birdZoneW, birdZoneH);
+                        console.log('Зона вертолёта:', heliAbsX, heliAbsY, heliZoneW, heliZoneH);
+                        console.log('Масштаб игры:', getGameScale());
+                        console.log('Птица Y диапазон:', birdAbsY, 'до', birdAbsY + birdZoneH);
+                        console.log('Вертолёт Y диапазон:', heliAbsY, 'до', heliAbsY + heliZoneH);
                 state.current = state.gameOver;
                         explosion_dx = this.dx;
                 explosionActive = true;
@@ -513,6 +559,7 @@ pipes = {
                 }
                 if (foundCollision) break;
             }
+            } // Закрываем блок проверки видимости вертолёта
             
             if (p.x + this.w < bird.x - bird.radius_x && !p.scored) {
                 // Убрано начисление очков за прохождение труб
@@ -551,8 +598,14 @@ let explosion_dx = 0;
 const mgu_img = new Image();
 mgu_img.src = "img/separated/MGU.png";
 const mguObstacleTemplate = {
-    get width() { return Math.round(403 * 1.26 * (window.gameScale || 1)); },
-    get height() { return Math.round(514 * 1.26 * (window.gameScale || 1)); }
+    get width() { 
+        let scale = getGameScale();
+        return Math.round(403 * 1.26 * scale); 
+    },
+    get height() { 
+        let scale = getGameScale();
+        return Math.round(514 * 1.26 * scale); 
+    }
 };
 let mguObstacles = [];
 let mguSpawnTimer = 0;
@@ -562,34 +615,34 @@ let lubyankaSpawnInterval = 4 + Math.random() * 3; // 4-7 секунд
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ МГУ ===
 const mguCollisionZones = [
   { 
-    get x() { return Math.round(204 * 1.26 * (window.gameScale || 1)); },
-    get y() { return Math.round(65 * 1.26 * (window.gameScale || 1)); },
-    get w() { return Math.round(22 * 1.26 * (window.gameScale || 1)); },
-    get h() { return Math.round(94 * 1.26 * (window.gameScale || 1)); }
+    get x() { return Math.round(204 * 1.26 * getGameScale()); },
+    get y() { return Math.round(65 * 1.26 * getGameScale()); },
+    get w() { return Math.round(22 * 1.26 * getGameScale()); },
+    get h() { return Math.round(94 * 1.26 * getGameScale()); }
   },
   { 
-    get x() { return Math.round(190.5 * 1.26 * (window.gameScale || 1)); },
-    get y() { return Math.round(159 * 1.26 * (window.gameScale || 1)); },
-    get w() { return Math.round(53 * 1.26 * (window.gameScale || 1)); },
-    get h() { return Math.round(50 * 1.26 * (window.gameScale || 1)); }
+    get x() { return Math.round(190.5 * 1.26 * getGameScale()); },
+    get y() { return Math.round(159 * 1.26 * getGameScale()); },
+    get w() { return Math.round(53 * 1.26 * getGameScale()); },
+    get h() { return Math.round(50 * 1.26 * getGameScale()); }
   },
   { 
-    get x() { return Math.round(174 * 1.26 * (window.gameScale || 1)); },
-    get y() { return Math.round(210 * 1.26 * (window.gameScale || 1)); },
-    get w() { return Math.round(85 * 1.26 * (window.gameScale || 1)); },
-    get h() { return Math.round(107 * 1.26 * (window.gameScale || 1)); }
+    get x() { return Math.round(174 * 1.26 * getGameScale()); },
+    get y() { return Math.round(210 * 1.26 * getGameScale()); },
+    get w() { return Math.round(85 * 1.26 * getGameScale()); },
+    get h() { return Math.round(107 * 1.26 * getGameScale()); }
   },
   { 
-    get x() { return Math.round(155 * 1.26 * (window.gameScale || 1)); },
-    get y() { return Math.round(318 * 1.26 * (window.gameScale || 1)); },
-    get w() { return Math.round(124 * 1.26 * (window.gameScale || 1)); },
-    get h() { return Math.round(80 * 1.26 * (window.gameScale || 1)); }
+    get x() { return Math.round(155 * 1.26 * getGameScale()); },
+    get y() { return Math.round(318 * 1.26 * getGameScale()); },
+    get w() { return Math.round(124 * 1.26 * getGameScale()); },
+    get h() { return Math.round(80 * 1.26 * getGameScale()); }
   },
   { 
-    get x() { return Math.round(28 * 1.26 * (window.gameScale || 1)); },
-    get y() { return Math.round(398 * 1.26 * (window.gameScale || 1)); },
-    get w() { return Math.round(374 * 1.26 * (window.gameScale || 1)); },
-    get h() { return Math.round(159 * 1.26 * (window.gameScale || 1)); }
+    get x() { return Math.round(28 * 1.26 * getGameScale()); },
+    get y() { return Math.round(398 * 1.26 * getGameScale()); },
+    get w() { return Math.round(374 * 1.26 * getGameScale()); },
+    get h() { return Math.round(159 * 1.26 * getGameScale()); }
   }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
@@ -598,83 +651,83 @@ const mguCollisionZones = [
 const lubyanka_img = new Image();
 lubyanka_img.src = "img/separated/Lubyanka.png";
 const lubyankaObstacleTemplate = {
-    get width() { return Math.round(865 * (window.gameScale || 1)); },
-    get height() { return Math.round(466 * (window.gameScale || 1)); }
+    get width() { return Math.round(865 * getGameScale()); },
+    get height() { return Math.round(466 * getGameScale()); }
 };
 let lubyankaObstacles = [];
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ ЛУБЯНКИ ===
 const lubyankaCollisionZones = [
   { 
-    get x() { return (23/2) * (window.gameScale || 1); },
-    get y() { return (203/2) * (window.gameScale || 1); },
-    get w() { return (124/2) * (window.gameScale || 1); },
-    get h() { return (774/2) * (window.gameScale || 1); }
+    get x() { return (23/2) * getGameScale(); },
+    get y() { return (203/2) * getGameScale(); },
+    get w() { return (124/2) * getGameScale(); },
+    get h() { return (774/2) * getGameScale(); }
   },
   { 
-    get x() { return (144/2) * (window.gameScale || 1); },
-    get y() { return (329/2) * (window.gameScale || 1); },
-    get w() { return (1479/2) * (window.gameScale || 1); },
-    get h() { return (649/2) * (window.gameScale || 1); }
+    get x() { return (144/2) * getGameScale(); },
+    get y() { return (329/2) * getGameScale(); },
+    get w() { return (1479/2) * getGameScale(); },
+    get h() { return (649/2) * getGameScale(); }
   },
   { 
-    get x() { return (1622/2) * (window.gameScale || 1); },
-    get y() { return (206/2) * (window.gameScale || 1); },
-    get w() { return (117/2) * (window.gameScale || 1); },
-    get h() { return (775/2) * (window.gameScale || 1); }
+    get x() { return (1622/2) * getGameScale(); },
+    get y() { return (206/2) * getGameScale(); },
+    get w() { return (117/2) * getGameScale(); },
+    get h() { return (775/2) * getGameScale(); }
   },
   { 
-    get x() { return (755/2) * (window.gameScale || 1); },
-    get y() { return (243/2) * (window.gameScale || 1); },
-    get w() { return (247/2) * (window.gameScale || 1); },
-    get h() { return (90/2) * (window.gameScale || 1); }
+    get x() { return (755/2) * getGameScale(); },
+    get y() { return (243/2) * getGameScale(); },
+    get w() { return (247/2) * getGameScale(); },
+    get h() { return (90/2) * getGameScale(); }
   },
   { 
-    get x() { return (809/2) * (window.gameScale || 1); },
-    get y() { return (181/2) * (window.gameScale || 1); },
-    get w() { return (155/2) * (window.gameScale || 1); },
-    get h() { return (62/2) * (window.gameScale || 1); }
+    get x() { return (809/2) * getGameScale(); },
+    get y() { return (181/2) * getGameScale(); },
+    get w() { return (155/2) * getGameScale(); },
+    get h() { return (62/2) * getGameScale(); }
   },
   { 
-    get x() { return (825/2) * (window.gameScale || 1); },
-    get y() { return (165/2) * (window.gameScale || 1); },
-    get w() { return (114/2) * (window.gameScale || 1); },
-    get h() { return (18/2) * (window.gameScale || 1); }
+    get x() { return (825/2) * getGameScale(); },
+    get y() { return (165/2) * getGameScale(); },
+    get w() { return (114/2) * getGameScale(); },
+    get h() { return (18/2) * getGameScale(); }
   },
   { 
-    get x() { return (837/2) * (window.gameScale || 1); },
-    get y() { return (155/2) * (window.gameScale || 1); },
-    get w() { return (92/2) * (window.gameScale || 1); },
-    get h() { return (10/2) * (window.gameScale || 1); }
+    get x() { return (837/2) * getGameScale(); },
+    get y() { return (155/2) * getGameScale(); },
+    get w() { return (92/2) * getGameScale(); },
+    get h() { return (10/2) * getGameScale(); }
   },
   { 
-    get x() { return (844/2) * (window.gameScale || 1); },
-    get y() { return (144/2) * (window.gameScale || 1); },
-    get w() { return (78/2) * (window.gameScale || 1); },
-    get h() { return (11/2) * (window.gameScale || 1); }
+    get x() { return (844/2) * getGameScale(); },
+    get y() { return (144/2) * getGameScale(); },
+    get w() { return (78/2) * getGameScale(); },
+    get h() { return (11/2) * getGameScale(); }
   },
   { 
-    get x() { return (851/2) * (window.gameScale || 1); },
-    get y() { return (132/2) * (window.gameScale || 1); },
-    get w() { return (60/2) * (window.gameScale || 1); },
-    get h() { return (12/2) * (window.gameScale || 1); }
+    get x() { return (851/2) * getGameScale(); },
+    get y() { return (132/2) * getGameScale(); },
+    get w() { return (60/2) * getGameScale(); },
+    get h() { return (12/2) * getGameScale(); }
   },
   { 
-    get x() { return (859/2) * (window.gameScale || 1); },
-    get y() { return (113/2) * (window.gameScale || 1); },
-    get w() { return (51/2) * (window.gameScale || 1); },
-    get h() { return (19/2) * (window.gameScale || 1); }
+    get x() { return (859/2) * getGameScale(); },
+    get y() { return (113/2) * getGameScale(); },
+    get w() { return (51/2) * getGameScale(); },
+    get h() { return (19/2) * getGameScale(); }
   },
   { 
-    get x() { return (865/2) * (window.gameScale || 1); },
-    get y() { return (98/2) * (window.gameScale || 1); },
-    get w() { return (38/2) * (window.gameScale || 1); },
-    get h() { return (15/2) * (window.gameScale || 1); }
+    get x() { return (865/2) * getGameScale(); },
+    get y() { return (98/2) * getGameScale(); },
+    get w() { return (38/2) * getGameScale(); },
+    get h() { return (15/2) * getGameScale(); }
   },
   { 
-    get x() { return (878/2) * (window.gameScale || 1); },
-    get y() { return (51/2) * (window.gameScale || 1); },
-    get w() { return (6/2) * (window.gameScale || 1); },
-    get h() { return (47/2) * (window.gameScale || 1); }
+    get x() { return (878/2) * getGameScale(); },
+    get y() { return (51/2) * getGameScale(); },
+    get w() { return (6/2) * getGameScale(); },
+    get h() { return (47/2) * getGameScale(); }
   }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
@@ -683,30 +736,30 @@ const lubyankaCollisionZones = [
 const ostankino_img = new Image();
 ostankino_img.src = "img/separated/OstankinoTowe1r.png";
 const ostankinoObstacleTemplate = {
-    get width() { return Math.round(256 * 1.05 * (window.gameScale || 1)); },
-    get height() { return Math.round(878 * 1.05 * (window.gameScale || 1)); }
+    get width() { return Math.round(256 * 1.05 * getGameScale()); },
+    get height() { return Math.round(878 * 1.05 * getGameScale()); }
 };
 let ostankinoObstacles = [];
 let ostankinoSpawnTimer = 0;
 let ostankinoSpawnInterval = 4 + Math.random() * 3;
 const ostankinoCollisionZones = [
     { 
-      get x() { return Math.round(70 * 1.05 * (window.gameScale || 1)); },
-      get y() { return Math.round(766 * 1.05 * (window.gameScale || 1)); },
-      get w() { return Math.round(139 * 1.05 * (window.gameScale || 1)); },
-      get h() { return Math.round(107 * 1.05 * (window.gameScale || 1)); }
+      get x() { return Math.round(70 * 1.05 * getGameScale()); },
+      get y() { return Math.round(766 * 1.05 * getGameScale()); },
+      get w() { return Math.round(139 * 1.05 * getGameScale()); },
+      get h() { return Math.round(107 * 1.05 * getGameScale()); }
     },
     { 
-      get x() { return Math.round(121 * 1.05 * (window.gameScale || 1)); },
-      get y() { return Math.round(332 * 1.05 * (window.gameScale || 1)); },
-      get w() { return Math.round(44 * 1.05 * (window.gameScale || 1)); },
-      get h() { return Math.round(436 * 1.05 * (window.gameScale || 1)); }
+      get x() { return Math.round(121 * 1.05 * getGameScale()); },
+      get y() { return Math.round(332 * 1.05 * getGameScale()); },
+      get w() { return Math.round(44 * 1.05 * getGameScale()); },
+      get h() { return Math.round(436 * 1.05 * getGameScale()); }
     },
     { 
-      get x() { return Math.round(131 * 1.05 * (window.gameScale || 1)); },
-      get y() { return Math.round(142 * 1.05 * (window.gameScale || 1)); },
-      get w() { return Math.round(17 * 1.05 * (window.gameScale || 1)); },
-      get h() { return Math.round(189 * 1.05 * (window.gameScale || 1)); }
+      get x() { return Math.round(131 * 1.05 * getGameScale()); },
+      get y() { return Math.round(142 * 1.05 * getGameScale()); },
+      get w() { return Math.round(17 * 1.05 * getGameScale()); },
+      get h() { return Math.round(189 * 1.05 * getGameScale()); }
     }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
@@ -714,16 +767,16 @@ const ostankinoCollisionZones = [
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ ГЛАВНОГО ГЕРОЯ ===
 bird.collisionZones = [
   { 
-    get x() { return 94 * (window.gameScale || 1); },
-    get y() { return 0 * (window.gameScale || 1); },
-    get w() { return 61 * (window.gameScale || 1); },
-    get h() { return 70 * (window.gameScale || 1); }
+    get x() { return 94 * getGameScale(); },
+    get y() { return 0 * getGameScale(); },
+    get w() { return 61 * getGameScale(); },
+    get h() { return 70 * getGameScale(); }
   },
   { 
-    get x() { return 25 * (window.gameScale || 1); },
-    get y() { return 69 * (window.gameScale || 1); },
-    get w() { return 154 * (window.gameScale || 1); },
-    get h() { return 66 * (window.gameScale || 1); }
+    get x() { return 25 * getGameScale(); },
+    get y() { return 69 * getGameScale(); },
+    get w() { return 154 * getGameScale(); },
+    get h() { return 66 * getGameScale(); }
   }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
@@ -737,16 +790,10 @@ const helicopterFrames = [
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ ВЕРТОЛЁТА ===
 const helicopterCollisionZones = [
     { 
-      get x() { return 0 * (window.gameScale || 1); },
-      get y() { return 0 * (window.gameScale || 1); },
-      get w() { return 360 * (window.gameScale || 1); },
-      get h() { return 140 * (window.gameScale || 1); }
+      x: 0, y: 0, w: 360, h: 140
     },
     { 
-      get x() { return 44 * (window.gameScale || 1); },
-      get y() { return 141 * (window.gameScale || 1); },
-      get w() { return 112 * (window.gameScale || 1); },
-      get h() { return 167 * (window.gameScale || 1); }
+      x: 44, y: 141, w: 112, h: 167
     }
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
@@ -840,7 +887,6 @@ function update(delta) {
     coins.update(delta); // монеты не трогаем
     bird.update(delta);
     foreground.update(delta);
-    pipes.update(delta);
     // === ДВИЖЕНИЕ И СПАВН МГУ ===
     for (let i = mguObstacles.length - 1; i >= 0; i--) {
         let mgu = mguObstacles[i];
@@ -856,7 +902,8 @@ function update(delta) {
                     [mgu], mguObstacleTemplate, mguCollisionZones
                 )
             ) {
-                console.log('Коллизия с МГУ! Птица:', bird.x, bird.y, 'МГУ:', mgu.x, mgu.y);
+                console.log('Коллизия с МГУ! Птица:', bird.x, bird.y, 'размеры:', bird.w, bird.h, 'МГУ:', mgu.x, mgu.y, 'размеры:', mgu.width, mgu.height);
+                console.log('Масштаб игры:', getGameScale());
                 state.current = state.gameOver;
                 explosionActive = true;
                 explosion_dx = pipes.dx;
@@ -911,7 +958,8 @@ function update(delta) {
                     [lubyanka], lubyankaObstacleTemplate, lubyankaCollisionZones
                 )
             ) {
-                console.log('Коллизия с Лубянкой! Птица:', bird.x, bird.y, 'Лубянка:', lubyanka.x, lubyanka.y);
+                console.log('Коллизия с Лубянкой! Птица:', bird.x, bird.y, 'размеры:', bird.w, bird.h, 'Лубянка:', lubyanka.x, lubyanka.y, 'размеры:', lubyanka.width, lubyanka.height);
+                console.log('Масштаб игры:', getGameScale());
                 state.current = state.gameOver;
                 explosionActive = true;
                 explosion_dx = pipes.dx;
@@ -966,7 +1014,8 @@ function update(delta) {
                     [ostankino], ostankinoObstacleTemplate, ostankinoCollisionZones
                 )
             ) {
-                console.log('Коллизия с Останкино! Птица:', bird.x, bird.y, 'Останкино:', ostankino.x, ostankino.y);
+                console.log('Коллизия с Останкино! Птица:', bird.x, bird.y, 'размеры:', bird.w, bird.h, 'Останкино:', ostankino.x, ostankino.y, 'размеры:', ostankino.width, ostankino.height);
+                console.log('Масштаб игры:', getGameScale());
                 state.current = state.gameOver;
                 explosionActive = true;
                 explosion_dx = pipes.dx;
@@ -1007,6 +1056,7 @@ function update(delta) {
     }
     background.update(delta); // Обновляем фон
     home.update(delta);
+    pipes.update(delta); // Обновляем вертолёты ПОСЛЕ зданий
     coins.trySpawnCoinAfterObstacles();
 }
 
@@ -1195,8 +1245,8 @@ coin_img.src = "img/separated/coins.png";
 
 const coins = {
     position: [],
-    get w() { return Math.round(32 * (window.gameScale || 1)); },
-    get h() { return Math.round(32 * (window.gameScale || 1)); },
+    get w() { return Math.round(32 * getGameScale()); },
+    get h() { return Math.round(32 * getGameScale()); },
     spawnTimer: 0,
     spawnInterval: 2 + Math.random() * 2, // 2-4 секунды
     dx: 2, // скорость движения монеты
@@ -1245,7 +1295,7 @@ const coins = {
         let y = Math.random() * (cvs.height - this.h * 2) + this.h;
         let x = cvs.width;
         // Проверяем радиус 300px от всех препятствий
-        let minDist = Math.max(300, cvs.width * 0.15) * (window.gameScale || 1); // минимум 300px или 15% от ширины экрана, масштабируется
+        let minDist = Math.max(300, cvs.width * 0.15) * getGameScale(); // минимум 300px или 15% от ширины экрана, масштабируется
         let allObstacles = getAllObstacles();
         // Добавим вертолёты
         if (Array.isArray(pipes.position)) {
