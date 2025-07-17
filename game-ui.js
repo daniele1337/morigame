@@ -422,7 +422,7 @@ canvasScale = function() {
     cvs.width = screenHeight * 0.72;
 
     // === ОБНОВЛЕНИЕ ГЛОБАЛЬНОГО МАСШТАБА ===
-    window.gameScale = Math.min(1, cvs.height / 800);
+    window.gameScale = cvs.height / 800;
     console.log('=== ОТЛАДКА МАСШТАБА ===');
     console.log('Высота экрана:', cvs.height);
     console.log('Установленный gameScale:', window.gameScale);
