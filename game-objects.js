@@ -154,12 +154,12 @@ bird = {
         
         this.autoFlightTimer = 0;
         this.engineThrust = this.maxThrust;
-        this.targetRotation = -8 * Math.PI/180;
+        this.targetRotation = this.minUpRotation;
     },
     
     release: function() {
         this.engineThrust = 0;
-        this.targetRotation = 8 * Math.PI/180;
+        this.targetRotation = this.maxDownRotation;
     },
 
     update: function(delta) {
@@ -227,15 +227,15 @@ bird = {
 
             if (engineHeld && state.current == state.game) {
                 if (this.velocityY < this.minSpeed * 0.5) {
-                    this.targetRotation = -8 * Math.PI/180;
+                    this.targetRotation = this.minUpRotation;
                 } else {
-                    this.targetRotation = -4 * Math.PI/180;
+                    this.targetRotation = this.maxUpRotation;
                 }
             } else if (state.current == state.game) {
                 if (this.velocityY > this.maxSpeed * 0.3) {
-                    this.targetRotation = 8 * Math.PI/180;
+                    this.targetRotation = this.maxDownRotation;
                 } else {
-                    this.targetRotation = 4 * Math.PI/180;
+                    this.targetRotation = this.minDownRotation;
                 }
             } else {
                 this.targetRotation = 0;
@@ -294,6 +294,18 @@ bird = {
         explosionTimer = 0;         // сброс таймера взрыва
     }
 };
+
+// === ПАРАМЕТРЫ ДЛЯ ПЛАВНОГО НАКЛОНА И МЯГКОГО ПОДЪЕМА ===
+bird.rotationSpeed = 0.06; // ещё медленнее
+bird.maxRotationInertia = 0.09; // ещё мягче
+bird.maxThrust = 0.15; // thrust ещё мягче
+bird.thrustDecay = 0.90; // thrust дольше затухает
+// Ещё меньше диапазон наклона
+bird.minUpRotation = -2 * Math.PI/180;
+bird.maxUpRotation = -1 * Math.PI/180;
+bird.minDownRotation = 1 * Math.PI/180;
+bird.maxDownRotation = 2 * Math.PI/180;
+// === КОНЕЦ ДОБАВЛЕНИЯ ===
 
 // Вертолеты (оптимизированные)
 pipes = {
