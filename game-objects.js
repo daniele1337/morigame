@@ -1263,12 +1263,20 @@ const coins = {
         for (let i = this.position.length - 1; i >= 0; i--) {
             let c = this.position[i];
             c.x -= pipes.dx * (delta || 1); // теперь монеты двигаются как трубы/вертолёты
-            // Проверка коллизии с птицей
+            // Проверка коллизии с птицей с учётом носа
+            let frame = bird.animation[bird.frame];
+            let scaleX = bird.w / frame.spriteW;
+            let scaleY = bird.h / frame.spriteH;
+            let birdRectX = bird.x - frame.noseX * scaleX;
+            let birdRectY = bird.y - frame.noseY * scaleY;
+            let birdRectW = bird.w;
+            let birdRectH = bird.h;
+
             if (!c.collected &&
-                bird.x + bird.w/2 > c.x &&
-                bird.x - bird.w/2 < c.x + this.w &&
-                bird.y + bird.h/2 > c.y &&
-                bird.y - bird.h/2 < c.y + this.h
+                birdRectX < c.x + this.w &&
+                birdRectX + birdRectW > c.x &&
+                birdRectY < c.y + this.h &&
+                birdRectY + birdRectH > c.y
             ) {
                 c.collected = true;
                 score.game_score++;
