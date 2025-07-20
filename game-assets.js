@@ -37,13 +37,10 @@ mori_model_sprite.src = "img/separated/mori_model.png";
 
 // LOAD SOUNDS
 DIE = new Audio();
-DIE.src = "audio/die.wav";
+DIE.src = "audio/explosion.wav";
 
 FLAP = new Audio();
 FLAP.src = "audio/flap.wav";
-
-HIT = new Audio();
-HIT.src = "audio/hit.wav";
 
 POINT = new Audio();
 POINT.src = "audio/point.wav";
@@ -51,11 +48,55 @@ POINT.src = "audio/point.wav";
 SWOOSH = new Audio();
 SWOOSH.src = "audio/swooshing.wav";
 
+// === Двойное наложение фонового звука ракеты ===
+let ROCKET_BG_A = new Audio("audio/rocket1.wav");
+let ROCKET_BG_B = new Audio("audio/rocket1.wav");
+ROCKET_BG_A.loop = false;
+ROCKET_BG_B.loop = false;
+ROCKET_BG_A.volume = 0.2;
+ROCKET_BG_B.volume = 0.2;
+let rocketLoopActive = false;
+let rocketOverlapTimeout = null;
+
+function playRocketLoop() {
+    if (rocketLoopActive) return;
+    rocketLoopActive = true;
+    ROCKET_BG_A.currentTime = 0;
+    ROCKET_BG_A.play();
+    scheduleRocketOverlap();
+}
+
+function scheduleRocketOverlap() {
+    // Ждём до конца первого звука минус overlap (0.2 сек)
+    let overlap = 0.2;
+    let duration = ROCKET_BG_A.duration || 3.5; // fallback если duration не определён
+    rocketOverlapTimeout = setTimeout(() => {
+        if (!rocketLoopActive) return;
+        ROCKET_BG_B.currentTime = 0;
+        ROCKET_BG_B.play();
+        ROCKET_BG_A.onended = () => {
+            if (!rocketLoopActive) return;
+            ROCKET_BG_A.currentTime = 0;
+            ROCKET_BG_A.play();
+            scheduleRocketOverlap();
+        };
+        ROCKET_BG_B.onended = () => {};
+    }, (duration - overlap) * 1000);
+}
+
+function stopRocketLoop() {
+    rocketLoopActive = false;
+    if (rocketOverlapTimeout) clearTimeout(rocketOverlapTimeout);
+    ROCKET_BG_A.pause();
+    ROCKET_BG_B.pause();
+    ROCKET_BG_A.currentTime = 0;
+    ROCKET_BG_B.currentTime = 0;
+}
+
 // === Функция для установки громкости всех звуков ===
 function setAllSoundsVolume(vol) {
     DIE.volume = vol;
     FLAP.volume = vol;
-    HIT.volume = vol;
     POINT.volume = vol;
     SWOOSH.volume = vol;
     // Добавьте сюда другие звуки, если появятся

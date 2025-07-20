@@ -72,7 +72,10 @@ cvs.addEventListener("mousedown", function(event)
             }
             birdFlapped = true;            
             state.current = state.game;
-            
+            // Вместо ROCKET_BG.play() используем playRocketLoop()
+            if (!mute) {
+                playRocketLoop();
+            }
             // Скрываем кнопку Telegram при начале игры
             if (tg) {
                 tg.MainButton.hide();
@@ -84,6 +87,11 @@ cvs.addEventListener("mousedown", function(event)
                 clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
             {
                 gamePaused = !gamePaused;
+                if (gamePaused) {
+                    stopRocketLoop();
+                } else if (!mute && state.current === state.game) {
+                    playRocketLoop();
+                }
                 // console.log('Пауза переключена (mouse):', gamePaused);
             }
             // Управление ракетой - включаем двигатель при нажатии ЛКМ
@@ -234,7 +242,10 @@ cvs.addEventListener("touchstart", function(event)
             }
             birdFlapped = true;            
             state.current = state.game;
-            
+            // Вместо ROCKET_BG.play() используем playRocketLoop()
+            if (!mute) {
+                playRocketLoop();
+            }
             // Скрываем кнопку Telegram при начале игры
             if (tg) {
                 tg.MainButton.hide();
@@ -246,6 +257,11 @@ cvs.addEventListener("touchstart", function(event)
                 clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
             {
                 gamePaused = !gamePaused;
+                if (gamePaused) {
+                    stopRocketLoop();
+                } else if (!mute && state.current === state.game) {
+                    playRocketLoop();
+                }
                 // console.log('Пауза переключена (touch):', gamePaused);
             }
             // Управление ракетой - включаем двигатель при нажатии пальца
@@ -350,6 +366,10 @@ document.addEventListener("keydown", function(event)
                 }
                 birdFlapped = true;
                 state.current = state.game;
+                // Вместо ROCKET_BG.play() используем playRocketLoop()
+                if (!mute) {
+                    playRocketLoop();
+                }
                 break;
             case state.game:
                 if (!gamePaused) 

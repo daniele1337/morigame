@@ -256,6 +256,9 @@ bird = {
                 if(state.current == state.game) {
                     console.log('GAME OVER: столкновение с землёй');
                     state.current = state.gameOver;
+                    if (!mute) {
+                        stopRocketLoop();
+                    }
                     // === ВЗРЫВ ===
                     explosion_dx = pipes.dx;
                     explosionActive = true;
@@ -265,11 +268,10 @@ bird = {
                     birdVisible = true; // Сброс видимости птицы при взрыве
                     // === КОНЕЦ ===
                     if(!mute) {
-                        HIT.play();
-                        setTimeout(function() {
-                            SWOOSH.currentTime = 0;
-                            SWOOSH.play();
-                        }, 500)
+                        SWOOSH.currentTime = 0;
+                        SWOOSH.play();
+                        DIE.currentTime = 0;
+                        DIE.play();
                     }
                 }
             }
@@ -380,6 +382,9 @@ pipes = {
                             console.log('Птица:', {x: bird.x, y: bird.y, w: bird.w, h: bird.h});
                             console.log('Вертолёт:', {x: p.x, y: p.y, w: localDrawW, h: localDrawH});
                             state.current = state.gameOver;
+                            if (!mute) {
+                                stopRocketLoop();
+                            }
                             explosion_dx = this.dx;
                             explosionActive = true;
                             explosionX = bird.x;
@@ -387,13 +392,10 @@ pipes = {
                             explosionTimer = 0;
                             birdVisible = false;
                             if(!mute) {
-                                HIT.play();
-                                setTimeout(function() {
-                                    if (state.current == state.gameOver) {
-                                        DIE.currentTime = 0;
-                                        DIE.play();
-                                    }
-                                }, 500)
+                                SWOOSH.currentTime = 0;
+                                SWOOSH.play();
+                                DIE.currentTime = 0;
+                                DIE.play();
                             }
                             foundCollision = true;
                             // === ЛОГ ДЛЯ ВЗРЫВА ===
@@ -547,21 +549,12 @@ pipes = {
                         if (Math.abs(heliCenterX - ostTopX) < 300 && Math.abs(heliCenterY - ostTopY) < 300) {
                             // ВЗРЫВ ВЕРТОЛЁТА
                             if (!p.exploding) {
-                                // Добавляем взрыв в массив взрывов
-                                helicopterExplosions.push({
-                                    x: p.x,
-                                    y: p.y,
-                                    w: drawW2 * 1.15,
-                                    h: this.h * 1.15,
-                                    baseW: drawW2,
-                                    baseH: this.h,
-                                    timer: 0,
-                                    dx: this.dx, // скорость движения препятствия на момент взрыва
-                                    duration: EXPLOSION_DURATION + 1 // индивидуальная длительность для вертолёта
-                                });
-                                // Удаляем вертолёт сразу
-                                this.position.splice(i, 1);
-                                break;
+                                p.exploding = true;
+                                p.explosionTimer = 0;
+                                if (!mute && typeof DIE !== 'undefined') {
+                                    DIE.currentTime = 0;
+                                    DIE.play();
+                                }
                             }
                         }
                     }
@@ -891,19 +884,19 @@ function update(delta) {
                 console.log('Коллизия с МГУ! Птица:', bird.x, bird.y, 'размеры:', bird.w, bird.h, 'МГУ:', mgu.x, mgu.y, 'размеры:', mgu.width, mgu.height);
                 console.log('Масштаб игры:', getGameScale());
                 state.current = state.gameOver;
+                if (!mute) {
+                    stopRocketLoop();
+                }
                 explosionActive = true;
                 explosion_dx = pipes.dx;
                 explosionX = bird.x;
                 explosionY = bird.y;
                 explosionTimer = 0;
                 if(!mute) {
-                    HIT.play();
-                    setTimeout(function() {
-                        if (state.current == state.gameOver) {
-                            DIE.currentTime = 0;
-                            DIE.play();
-                        }
-                    }, 500)
+                    SWOOSH.currentTime = 0;
+                    SWOOSH.play();
+                    DIE.currentTime = 0;
+                    DIE.play();
                 }
                 // === ЛОГ ДЛЯ ВЗРЫВА ===
                 console.log('ВЗРЫВ: столкновение с МГУ');
@@ -978,19 +971,19 @@ function update(delta) {
                 console.log('Коллизия с Лубянкой! Птица:', bird.x, bird.y, 'размеры:', bird.w, bird.h, 'Лубянка:', lubyanka.x, lubyanka.y, 'размеры:', lubyanka.width, lubyanka.height);
                 console.log('Масштаб игры:', getGameScale());
                 state.current = state.gameOver;
+                if (!mute) {
+                    stopRocketLoop();
+                }
                 explosionActive = true;
                 explosion_dx = pipes.dx;
                 explosionX = bird.x;
                 explosionY = bird.y;
                 explosionTimer = 0;
                 if(!mute) {
-                    HIT.play();
-                    setTimeout(function() {
-                        if (state.current == state.gameOver) {
-                            DIE.currentTime = 0;
-                            DIE.play();
-                        }
-                    }, 500)
+                    SWOOSH.currentTime = 0;
+                    SWOOSH.play();
+                    DIE.currentTime = 0;
+                    DIE.play();
                 }
                 // === ЛОГ ДЛЯ ВЗРЫВА ===
                 console.log('ВЗРЫВ: столкновение с ЛУБЯНКОЙ');
@@ -1065,19 +1058,19 @@ function update(delta) {
                 console.log('Коллизия с Останкино! Птица:', bird.x, bird.y, 'размеры:', bird.w, bird.h, 'Останкино:', ostankino.x, ostankino.y, 'размеры:', ostankino.width, ostankino.height);
                 console.log('Масштаб игры:', getGameScale());
                 state.current = state.gameOver;
+                if (!mute) {
+                    stopRocketLoop();
+                }
                 explosionActive = true;
                 explosion_dx = pipes.dx;
                 explosionX = bird.x;
                 explosionY = bird.y;
                 explosionTimer = 0;
                 if(!mute) {
-                    HIT.play();
-                    setTimeout(function() {
-                        if (state.current == state.gameOver) {
-                            DIE.currentTime = 0;
-                            DIE.play();
-                        }
-                    }, 500)
+                    SWOOSH.currentTime = 0;
+                    SWOOSH.play();
+                    DIE.currentTime = 0;
+                    DIE.play();
                 }
                 // === ЛОГ ДЛЯ ВЗРЫВА ===
                 console.log('ВЗРЫВ: столкновение с ОСТАНКИНО');
@@ -1429,3 +1422,25 @@ bird.collisionZones = [
 
 // === ДОБАВЛЯЮ МАССИВ ВЗРЫВОВ ДЛЯ ВЕРТОЛЁТОВ ===
 let helicopterExplosions = [];
+
+// === Запуск фонового звука при старте игры ===
+function startGame() {
+    // ... существующий код старта игры ...
+    if (!mute) {
+        playRocketLoop();
+    }
+}
+
+// === Остановка фонового звука при взрыве/смерти ===
+function stopRocketSound() {
+    stopRocketLoop();
+    ROCKET_BG.currentTime = 0;
+}
+
+// В местах, где происходит смерть персонажа (game over), после state.current = state.gameOver:
+state.current = state.gameOver;
+stopRocketSound();
+// ... существующий код ...
+
+// В обработчике рестарта игры (например, при нажатии на кнопку рестарт или старте новой игры):
+startGame();

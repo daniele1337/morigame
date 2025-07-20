@@ -171,9 +171,6 @@ DIE.src = "audio/die.wav";
 const FLAP = new Audio();
 FLAP.src = "audio/flap.wav";
 
-const HIT = new Audio();
-HIT.src = "audio/hit.wav";
-
 const POINT = new Audio();
 POINT.src = "audio/point.wav";
 
@@ -913,7 +910,7 @@ const bird =
                     state.current = state.gameOver;
                     if(!mute)
                     {
-                        HIT.play();
+                        SWOOSH.play();
                         setTimeout(function()
                         {
                             SWOOSH.currentTime = 0;
@@ -1050,7 +1047,7 @@ const pipes =
                 state.current = state.gameOver;
                 if(!mute)
                 {
-                    HIT.play();
+                    SWOOSH.play();
                     setTimeout(function() 
                     {
                         if (state.current == state.gameOver) 
@@ -1068,7 +1065,7 @@ const pipes =
                 state.current = state.gameOver;
                 if(!mute)
                 {
-                    HIT.play();
+                    SWOOSH.play();
                     setTimeout(function() 
                     {
                         if (state.current == state.gameOver) 
