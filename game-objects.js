@@ -99,9 +99,9 @@ foreground = {
 // Ракета (оптимизированная)
 bird = {
     animation: [
-        {spriteX: 0, spriteY: 0, spriteW: 180, spriteH: 136},
-        {spriteX: 0, spriteY: 174, spriteW: 180, spriteH: 136},
-        {spriteX: 0, spriteY: 342, spriteW: 180, spriteH: 136}
+        {spriteX: 71 - 5, spriteY: 95, spriteW: 227, spriteH: 143},   // 1 кадр (сдвинут на 5п влево)
+        {spriteX: 69, spriteY: 324, spriteW: 229, spriteH: 132},         // 2 кадр
+        {spriteX: 91 - 5, spriteY: 549, spriteW: 206, spriteH: 136}      // 3 кадр (сдвинут на 5п влево)
     ],
     x: 0, y: 0, w: 0, h: 0,
     frame: 0, gravity: 0, jump: 0, speed: 0, rotation: 0,
@@ -122,19 +122,20 @@ bird = {
     draw: function() {
         if (!birdVisible) return;
         if (typeof explosionActive !== 'undefined' && explosionActive) return;
-        let bird = this.animation[this.frame];
+        let birdFrame = this.animation[this.frame];
         ctx.save();
-        
         let wobbleX = Math.sin(frames * this.wobbleSpeed) * this.wobbleAmount;
         if (this.engineThrust > 0) {
             wobbleX += Math.sin(frames * 0.3) * this.wobbleAmount * 0.5;
         }
-        
         ctx.translate(this.x + wobbleX, this.y);
         ctx.rotate(this.rotation);
-
         if(state.current != state.home) {
-            ctx.drawImage(mori_model_sprite, bird.spriteX, bird.spriteY, bird.spriteW, bird.spriteH, -this.w/2, -this.h/2, this.w, this.h * 1.452);
+            ctx.drawImage(
+                mori_model_sprite,
+                birdFrame.spriteX, birdFrame.spriteY, birdFrame.spriteW, birdFrame.spriteH,
+                -this.w/2, -this.h/2, this.w, this.h
+            );
         }
         ctx.restore();
     },
@@ -175,7 +176,7 @@ bird = {
         
         // Анимация кадров птицы по времени
         this.frameTime += delta;
-        let framePeriod = 0.08; // 0.08 сек = 12.5 кадров/сек (подберите под нужную скорость)
+        let framePeriod = 0.104; // 0.08 сек * 1.3 = 0.104 сек (замедление на 30%)
         if (this.frameTime > framePeriod) {
             this.frame = (this.frame + 1) % this.animation.length;
             this.frameTime = 0;
@@ -659,18 +660,13 @@ function getOstankinoCollisionRects(ostankino) {
 
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ ГЛАВНОГО ГЕРОЯ ===
 bird.collisionZones = [
-  { 
-    get x() { return 94 * getGameScale(); },
-    get y() { return 0 * getGameScale(); },
-    get w() { return 61 * getGameScale(); },
-    get h() { return 70 * getGameScale(); }
-  },
-  { 
-    get x() { return 25 * getGameScale(); },
-    get y() { return 69 * getGameScale(); },
-    get w() { return 154 * getGameScale(); },
-    get h() { return 66 * getGameScale(); }
-  }
+  { x: (209-69-30)*0.9, y: (323-324)*0.9 + 20, w: 50*0.9, h: 65*0.9 - 10 }, // 1
+  { x: (154-69-30)*0.9, y: (373-324)*0.9 + 20 - 10, w: 55*0.9, h: 83*0.9 - 10 - 10 }, // 2
+  { x: (210-69-30)*0.9, y: (388-324)*0.9, w: 59*0.9, h: 53*0.9 }, // 3
+  { x: (269-69-30)*0.9, y: (398-324)*0.9, w: 7*0.9, h: 34*0.9 },  // 4
+  { x: (275-69-30)*0.9, y: (401-324)*0.9, w: 7*0.9, h: 28*0.9 },  // 5
+  { x: (282-69-30)*0.9, y: (404-324)*0.9, w: 7*0.9, h: 22*0.9 },  // 6
+  { x: (288-69-30)*0.9, y: (408-324)*0.9, w: 8*0.9, h: 13*0.9 }   // 7
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
@@ -1324,3 +1320,7 @@ const coins = {
         this.spawnInterval = 2 + Math.random() * 2;
     }
 };
+
+// === ЗАМЕНА СПРАЙТА ГЛАВНОГО ГЕРОЯ ===
+const mori_model_sprite = new Image();
+mori_model_sprite.src = "img/separated/CharacterNew.png";
