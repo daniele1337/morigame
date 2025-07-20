@@ -306,7 +306,14 @@ home = {
             ctx.fillStyle = blueGrad;
             ctx.fill();
             ctx.restore();
-            ctx.drawImage(mori_model_sprite, bird.spriteX, bird.spriteY, bird.spriteW, bird.spriteH, this.bird.x, this.bird.y, this.bird.w, this.bird.h);
+            let frame = (bird.animation && typeof bird.frame === 'number' && bird.animation.length > 0) ? bird.animation[bird.frame % bird.animation.length] : null;
+            if (frame && home && home.bird) {
+                ctx.drawImage(
+                    mori_model_sprite,
+                    frame.spriteX, frame.spriteY, frame.spriteW, frame.spriteH,
+                    home.bird.x, home.bird.y, home.bird.w, home.bird.h
+                );
+            }
         }
     },
     update: function() {
@@ -486,7 +493,7 @@ canvasScale = function() {
     pipes.maxYPos = -(cvs.height * 0.350); // Оставляем зависимость для генерации препятствий
     pipes.dx = 180;                // было 120
 
-    // HOME
+    // HOME (теперь после объявления home)
     home.logo.x = cvs.width * 0.098;
     home.logo.y = cvs.height * 0.279;
     home.logo.w = cvs.width * 0.665;
@@ -494,10 +501,10 @@ canvasScale = function() {
     home.logo.MAXY = cvs.height * 0.279 - home.logo.h/7;
     home.logo.MINY = cvs.height * 0.279 + home.logo.h/7;
     home.logo.dy = cvs.width * 0.0012;
-    home.bird.x = cvs.width * 0.803;
-    home.bird.y = cvs.height * 0.294;
-    home.bird.w = cvs.width * 0.117;
-    home.bird.h = cvs.height * 0.059;
+    home.bird.x = cvs.width * 0.290;
+    home.bird.y = cvs.height * 0.395;
+    home.bird.w = cvs.width * 0.16; // как в игре
+    home.bird.h = cvs.height * 0.059; // как в игре
 
     // GET READY
     getReady.get_ready.x = cvs.width * 0.197;
