@@ -1045,7 +1045,7 @@ function update(delta) {
     ostankinoSpawnTimer += delta;
     if (ostankinoSpawnTimer >= ostankinoSpawnInterval) {
         let x = cvs.width;
-        let y = cvs.height - ostankinoObstacleTemplate.height;
+        let y = cvs.height - ostankinoObstacleTemplate.height + 10; // опускаем нижнюю границу на 10п
         let onlyBuildings = [...mguObstacles, ...lubyankaObstacles, ...ostankinoObstacles];
         // Проверка минимального расстояния между зданиями
         let canSpawn = true;
@@ -1067,7 +1067,7 @@ function update(delta) {
                 x: x,
                 y: y,
                 width: ostankinoObstacleTemplate.width,
-                height: ostankinoObstacleTemplate.height
+                height: ostankinoObstacleTemplate.height + 10 // увеличиваем высоту на 10п
             });
         }
         ostankinoSpawnTimer = 0;
