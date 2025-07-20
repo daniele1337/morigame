@@ -359,12 +359,15 @@ home = {
 // Экран готовности
 getReady = {
     get_ready: {spriteX: 552, spriteY: 321, spriteW: 349, spriteH: 87, x: 0, y: 0, w: 0, h: 0},
-    tap: {spriteX: 0, spriteY: 0, spriteW: 155, spriteH: 196, x: 0, y: 0, w: 0, h: 0},
+    tap: {x: 0, y: 0, w: 0, h: 0}, // убираем spriteX, spriteY, spriteW, spriteH
 
     draw: function() {
         if(state.current == state.getReady) {
             ctx.drawImage(getReadyImg, this.get_ready.x, this.get_ready.y, this.get_ready.w, this.get_ready.h);
-            ctx.drawImage(sprite_sheet, this.tap.spriteX, this.tap.spriteY, this.tap.spriteW, this.tap.spriteH, this.tap.x, this.tap.y, this.tap.w, this.tap.h);
+            ctx.drawImage(
+                tapImg,
+                this.tap.x, this.tap.y, this.tap.w, this.tap.h
+            );
         }
     }
 };
@@ -408,6 +411,11 @@ const btnStartImg = new Image(); btnStartImg.src = "img/separated/buttons/start.
 // === Загрузка отдельного изображения для логотипа ===
 const mainLogoImg = new Image();
 mainLogoImg.src = "img/separated/main_logo_text.png";
+
+// === ДОБАВИТЬ В НАЧАЛО ФАЙЛА ===
+const tapImg = new Image();
+tapImg.src = "img/separated/tap.png";
+// === КОНЕЦ ДОБАВЛЕНИЯ ===
 
 // === ГЛОБАЛЬНАЯ ПЕРЕМЕННАЯ ДЛЯ МАСШТАБА ===
 window.gameScale = 1;
@@ -454,8 +462,8 @@ canvasScale = function() {
     // BIRD
     bird.x = cvs.width * 0.290;
     bird.y = cvs.height * 0.395;
-    bird.w = cvs.width * 0.16;
-    bird.h = cvs.height * 0.059;
+    bird.w = cvs.width * 0.16 + 10;
+    bird.h = cvs.height * 0.059 + 20;
     
     // ФИКСИРОВАННЫЕ ПАРАМЕТРЫ НЕ ЗАВИСЯТ ОТ РАЗМЕРА ОКНА
     bird.gravity = 500;
