@@ -268,8 +268,6 @@ bird = {
                     birdVisible = true; // Сброс видимости птицы при взрыве
                     // === КОНЕЦ ===
                     if(!mute) {
-                        SWOOSH.currentTime = 0;
-                        SWOOSH.play();
                         DIE.currentTime = 0;
                         DIE.play();
                     }
@@ -392,8 +390,6 @@ pipes = {
                             explosionTimer = 0;
                             birdVisible = false;
                             if(!mute) {
-                                SWOOSH.currentTime = 0;
-                                SWOOSH.play();
                                 DIE.currentTime = 0;
                                 DIE.play();
                             }
@@ -548,14 +544,26 @@ pipes = {
                         // Проверка попадания в квадрат 300x300 вокруг вершины Останкино
                         if (Math.abs(heliCenterX - ostTopX) < 300 && Math.abs(heliCenterY - ostTopY) < 300) {
                             // ВЗРЫВ ВЕРТОЛЁТА
-                            if (!p.exploding) {
-                                p.exploding = true;
-                                p.explosionTimer = 0;
-                                if (!mute && typeof DIE !== 'undefined') {
-                                    DIE.currentTime = 0;
-                                    DIE.play();
-                                }
+                            // Добавляем взрыв в массив взрывов
+                            helicopterExplosions.push({
+                                x: p.x,
+                                y: p.y,
+                                w: drawW2 * 1.15,
+                                h: this.h * 1.15,
+                                baseW: drawW2,
+                                baseH: this.h,
+                                timer: 0,
+                                dx: this.dx, // скорость движения препятствия на момент взрыва
+                                duration: EXPLOSION_DURATION + 1 // индивидуальная длительность для вертолёта
+                            });
+                            // Воспроизводим звук
+                            if (!mute && typeof DIE !== 'undefined') {
+                                DIE.currentTime = 0;
+                                DIE.play();
                             }
+                            // Удаляем вертолёт сразу
+                            this.position.splice(i, 1);
+                            break;
                         }
                     }
                 }
@@ -893,8 +901,6 @@ function update(delta) {
                 explosionY = bird.y;
                 explosionTimer = 0;
                 if(!mute) {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
                     DIE.currentTime = 0;
                     DIE.play();
                 }
@@ -980,8 +986,6 @@ function update(delta) {
                 explosionY = bird.y;
                 explosionTimer = 0;
                 if(!mute) {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
                     DIE.currentTime = 0;
                     DIE.play();
                 }
@@ -1067,8 +1071,6 @@ function update(delta) {
                 explosionY = bird.y;
                 explosionTimer = 0;
                 if(!mute) {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
                     DIE.currentTime = 0;
                     DIE.play();
                 }

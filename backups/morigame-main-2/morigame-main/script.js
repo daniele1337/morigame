@@ -168,14 +168,8 @@ mori_model_sprite.src = "img/separated/mori_model.png";
 const DIE = new Audio();
 DIE.src = "audio/die.wav";
 
-const FLAP = new Audio();
-FLAP.src = "audio/flap.wav";
-
 const POINT = new Audio();
 POINT.src = "audio/point.wav";
-
-const SWOOSH = new Audio();
-SWOOSH.src = "audio/swooshing.wav";
 
 // GAME STATES
 const state = 
@@ -220,8 +214,8 @@ cvs.addEventListener("mousedown", function(event)
                 mute = !mute;
                 if(!mute)
                 {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
+                    // SWOOSH.currentTime = 0;
+                    // SWOOSH.play();
                 }
             }
             // Night or Day button
@@ -231,8 +225,8 @@ cvs.addEventListener("mousedown", function(event)
                 night = !night;
                 if(!mute)
                 {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
+                    // SWOOSH.currentTime = 0;
+                    // SWOOSH.play();
                 }
             }  
             // Start button
@@ -242,8 +236,8 @@ cvs.addEventListener("mousedown", function(event)
                 state.current = state.getReady;
                 if(!mute)
                 {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
+                    // SWOOSH.currentTime = 0;
+                    // SWOOSH.play();
                 }
                 
                 // Скрываем кнопку Telegram при начале игры
@@ -254,10 +248,6 @@ cvs.addEventListener("mousedown", function(event)
             break;
         case state.getReady:
             bird.flap();
-            if(!mute)
-            {
-                FLAP.play();
-            }
             birdFlapped = true;            
             state.current = state.game;
             
@@ -279,8 +269,8 @@ cvs.addEventListener("mousedown", function(event)
                 bird.flap();
                 if(!mute)
                 {
-                    FLAP.currentTime = 0;
-                    FLAP.play();
+                    // SWOOSH.currentTime = 0;
+                    // SWOOSH.play();
                 }
             }
             break;
@@ -297,8 +287,8 @@ cvs.addEventListener("mousedown", function(event)
                 state.current = state.getReady;
                 if(!mute)
                 {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
+                    // SWOOSH.currentTime = 0;
+                    // SWOOSH.play();
                 }
                 // Скрываем кнопки Telegram, если поддерживаются
                 if (tg && tg.MainButton && typeof tg.MainButton.hide === 'function') {
@@ -319,8 +309,8 @@ cvs.addEventListener("mousedown", function(event)
                 state.current = state.home;
                 if(!mute)
                 {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
+                    // SWOOSH.currentTime = 0;
+                    // SWOOSH.play();
                 }
                 // Показываем главную кнопку Telegram, если поддерживается
                 if (tg && tg.MainButton && typeof tg.MainButton.setText === 'function') {
@@ -369,8 +359,8 @@ cvs.addEventListener("touchstart", function(event)
                 mute = !mute;
                 if(!mute)
                 {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
+                    // SWOOSH.currentTime = 0;
+                    // SWOOSH.play();
                 }
             }
             // Night or Day button
@@ -380,8 +370,8 @@ cvs.addEventListener("touchstart", function(event)
                 night = !night;
                 if(!mute)
                 {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
+                    // SWOOSH.currentTime = 0;
+                    // SWOOSH.play();
                 }
             }  
             // Start button
@@ -391,8 +381,8 @@ cvs.addEventListener("touchstart", function(event)
                 state.current = state.getReady;
                 if(!mute)
                 {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
+                    // SWOOSH.currentTime = 0;
+                    // SWOOSH.play();
                 }
                 
                 // Скрываем кнопку Telegram при начале игры
@@ -403,10 +393,6 @@ cvs.addEventListener("touchstart", function(event)
             break;
         case state.getReady:
             bird.flap();
-            if(!mute)
-            {
-                FLAP.play();
-            }
             birdFlapped = true;            
             state.current = state.game;
             
@@ -428,8 +414,8 @@ cvs.addEventListener("touchstart", function(event)
                 bird.flap();
                 if(!mute)
                 {
-                    FLAP.currentTime = 0;
-                    FLAP.play();
+                    // SWOOSH.currentTime = 0;
+                    // SWOOSH.play();
                 }
             }
             break;
@@ -446,8 +432,8 @@ cvs.addEventListener("touchstart", function(event)
                 state.current = state.getReady;
                 if(!mute)
                 {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
+                    // SWOOSH.currentTime = 0;
+                    // SWOOSH.play();
                 }
                 
                 // Скрываем кнопки Telegram
@@ -467,8 +453,8 @@ cvs.addEventListener("touchstart", function(event)
                 state.current = state.home;
                 if(!mute)
                 {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
+                    // SWOOSH.currentTime = 0;
+                    // SWOOSH.play();
                 }
                 
                 // Показываем главную кнопку Telegram
@@ -491,10 +477,6 @@ document.addEventListener("keydown", function(event)
         {
             case state.getReady:                
                 bird.flap();
-                if(!mute)
-                {
-                    FLAP.play();
-                }
                 birdFlapped = true;
                 state.current = state.game;
                 break;
@@ -503,11 +485,6 @@ document.addEventListener("keydown", function(event)
                 {
                     engineHeld = true;
                     bird.flap();
-                    if(!mute)
-                    {
-                        FLAP.currentTime = 0;
-                        FLAP.play();
-                    }
                 }
                 break;
         } 
@@ -518,11 +495,6 @@ document.addEventListener("keydown", function(event)
         {
             engineHeld = true;
             bird.flap();
-            if(!mute)
-            {
-                FLAP.currentTime = 0;
-                FLAP.play();
-            }
         }
     }
     else if (event.key === "p" || event.key === "P") 
@@ -908,15 +880,12 @@ const bird =
                 if(state.current == state.game)
                 {
                     state.current = state.gameOver;
-                    if(!mute)
-                    {
-                        SWOOSH.play();
-                        setTimeout(function()
-                        {
-                            SWOOSH.currentTime = 0;
-                            SWOOSH.play();
-                        }, 500)
-                    }
+                    // SWOOSH.play();
+                    // setTimeout(function()
+                    // {
+                    //     SWOOSH.currentTime = 0;
+                    //     SWOOSH.play();
+                    // }, 500)
                 }
             }
 
@@ -1045,36 +1014,30 @@ const pipes =
                bird.y + bird.radius_y > p.y && bird.y - bird.radius_y < p.y + this.h)
             {
                 state.current = state.gameOver;
-                if(!mute)
-                {
-                    SWOOSH.play();
-                    setTimeout(function() 
-                    {
-                        if (state.current == state.gameOver) 
-                        {
-                            DIE.currentTime = 0;
-                            DIE.play();
-                        }
-                    }, 500)
-                }
+                // SWOOSH.play();
+                // setTimeout(function() 
+                // {
+                //     if (state.current == state.gameOver) 
+                //     {
+                //         DIE.currentTime = 0;
+                //         DIE.play();
+                //     }
+                // }, 500)
             }
             // Top pipe if bird is out of canvas
             if(bird.x + bird.radius_x > p.x && bird.x - bird.radius_x < p.x + this.w &&
                bird.y <= 0)
             {
                 state.current = state.gameOver;
-                if(!mute)
-                {
-                    SWOOSH.play();
-                    setTimeout(function() 
-                    {
-                        if (state.current == state.gameOver) 
-                        {
-                            DIE.currentTime = 0;
-                            DIE.play();
-                        }
-                    }, 500)   
-                }   
+                // SWOOSH.play();
+                // setTimeout(function() 
+                // {
+                //     if (state.current == state.gameOver) 
+                //     {
+                //         DIE.currentTime = 0;
+                //         DIE.play();
+                //     }
+                // }, 500)   
             }
 
             // Moving the pipes

@@ -30,22 +30,12 @@ cvs.addEventListener("mousedown", function(event)
                 clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
             {
                 mute = !mute;
-                if(!mute)
-                {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
-                }
             }
             // Night or Day button
             else if (clickX >= gameButtons.night_button.x && clickX <= gameButtons.night_button.x + gameButtons.w &&
                      clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
             {
                 night = !night;
-                if(!mute)
-                {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
-                }
             }  
             // Start button
             if(clickX >= gameButtons.start_button.x && clickX <= gameButtons.start_button.x + gameButtons.start_button.w &&
@@ -53,11 +43,6 @@ cvs.addEventListener("mousedown", function(event)
             {
                 gameButtons.start_button.pressTime = performance.now();
                 state.current = state.getReady;
-                if(!mute)
-                {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
-                }
                 // Скрываем кнопку Telegram при начале игры
                 if (tg) {
                     tg.MainButton.hide();
@@ -66,11 +51,6 @@ cvs.addEventListener("mousedown", function(event)
             break;
         case state.getReady:
             bird.flap();
-            if(!mute)
-            {
-                FLAP.play();
-            }
-            birdFlapped = true;            
             state.current = state.game;
             // Вместо ROCKET_BG.play() используем playRocketLoop()
             if (!mute) {
@@ -98,11 +78,6 @@ cvs.addEventListener("mousedown", function(event)
             else if (!gamePaused) {
                 engineHeld = true;
                 bird.flap();
-                if(!mute)
-                {
-                    FLAP.currentTime = 0;
-                    FLAP.play();
-                }
             }
             break;
         case state.gameOver:
@@ -119,11 +94,6 @@ cvs.addEventListener("mousedown", function(event)
                 gameButtons.restart_button.isPressed = false;
                 gameOver.scoreSaved = false; // Сбрасываем флаг сохранения
                 state.current = state.getReady;
-                if(!mute)
-                {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
-                }
                 // Скрываем кнопки Telegram, если поддерживаются
                 if (tg && tg.MainButton && typeof tg.MainButton.hide === 'function') {
                     tg.MainButton.hide();
@@ -147,11 +117,6 @@ cvs.addEventListener("mousedown", function(event)
                 coins.reset();
                 gameButtons.home_button.isPressed = false;
                 state.current = state.home;
-                if(!mute)
-                {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
-                }
                 // Показываем главную кнопку Telegram, если поддерживается
                 if (tg && tg.MainButton && typeof tg.MainButton.setText === 'function') {
                     tg.MainButton.setText('🎮 ИГРАТЬ');
@@ -200,22 +165,12 @@ cvs.addEventListener("touchstart", function(event)
                 clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
             {
                 mute = !mute;
-                if(!mute)
-                {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
-                }
             }
             // Night or Day button
             else if (clickX >= gameButtons.night_button.x && clickX <= gameButtons.night_button.x + gameButtons.w &&
                      clickY >= gameButtons.y && clickY <= gameButtons.y + gameButtons.h) 
             {
                 night = !night;
-                if(!mute)
-                {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
-                }
             }  
             // Start button
             if(clickX >= gameButtons.start_button.x && clickX <= gameButtons.start_button.x + gameButtons.start_button.w &&
@@ -223,11 +178,6 @@ cvs.addEventListener("touchstart", function(event)
             {
                 gameButtons.start_button.pressTime = performance.now();
                 state.current = state.getReady;
-                if(!mute)
-                {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
-                }
                 // Скрываем кнопку Telegram при начале игры
                 if (tg) {
                     tg.MainButton.hide();
@@ -236,11 +186,6 @@ cvs.addEventListener("touchstart", function(event)
             break;
         case state.getReady:
             bird.flap();
-            if(!mute)
-            {
-                FLAP.play();
-            }
-            birdFlapped = true;            
             state.current = state.game;
             // Вместо ROCKET_BG.play() используем playRocketLoop()
             if (!mute) {
@@ -268,11 +213,6 @@ cvs.addEventListener("touchstart", function(event)
             else if (!gamePaused) {
                 engineHeld = true;
                 bird.flap();
-                if(!mute)
-                {
-                    FLAP.currentTime = 0;
-                    FLAP.play();
-                }
             }
             break;
         case state.gameOver:
@@ -289,11 +229,6 @@ cvs.addEventListener("touchstart", function(event)
                 gameButtons.restart_button.isPressed = false;
                 gameOver.scoreSaved = false; // Сбрасываем флаг сохранения
                 state.current = state.getReady;
-                if(!mute)
-                {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
-                }
                 
                 // Скрываем кнопки Telegram
                 if (tg) {
@@ -316,11 +251,6 @@ cvs.addEventListener("touchstart", function(event)
                 coins.reset();
                 gameButtons.home_button.isPressed = false;
                 state.current = state.home;
-                if(!mute)
-                {
-                    SWOOSH.currentTime = 0;
-                    SWOOSH.play();
-                }
                 
                 // Показываем главную кнопку Telegram
                 if (tg) {
@@ -360,11 +290,6 @@ document.addEventListener("keydown", function(event)
         {
             case state.getReady:                
                 bird.flap();
-                if(!mute)
-                {
-                    FLAP.play();
-                }
-                birdFlapped = true;
                 state.current = state.game;
                 // Вместо ROCKET_BG.play() используем playRocketLoop()
                 if (!mute) {
@@ -376,11 +301,6 @@ document.addEventListener("keydown", function(event)
                 {
                     engineHeld = true;
                     bird.flap();
-                    if(!mute)
-                    {
-                        FLAP.currentTime = 0;
-                        FLAP.play();
-                    }
                 }
                 break;
         } 
@@ -391,11 +311,6 @@ document.addEventListener("keydown", function(event)
         {
             engineHeld = true;
             bird.flap();
-            if(!mute)
-            {
-                FLAP.currentTime = 0;
-                FLAP.play();
-            }
         } 
     }
     else if (event.key === "p" || event.key === "P") 

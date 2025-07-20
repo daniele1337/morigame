@@ -39,14 +39,8 @@ mori_model_sprite.src = "img/separated/mori_model.png";
 DIE = new Audio();
 DIE.src = "audio/explosion.wav";
 
-FLAP = new Audio();
-FLAP.src = "audio/flap.wav";
-
 POINT = new Audio();
 POINT.src = "audio/point.wav";
-
-SWOOSH = new Audio();
-SWOOSH.src = "audio/swooshing.wav";
 
 // === Двойное наложение фонового звука ракеты ===
 let ROCKET_BG_A = new Audio("audio/rocket1.wav");
@@ -96,8 +90,6 @@ function stopRocketLoop() {
 // === Функция для установки громкости всех звуков ===
 function setAllSoundsVolume(vol) {
     DIE.volume = vol;
-    FLAP.volume = vol;
     POINT.volume = vol;
-    SWOOSH.volume = vol;
     // Добавьте сюда другие звуки, если появятся
 } 
