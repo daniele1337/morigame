@@ -99,9 +99,9 @@ foreground = {
 // Ракета (оптимизированная)
 bird = {
     animation: [
-        {spriteX: 71 - 5, spriteY: 95, spriteW: 227, spriteH: 143},   // 1 кадр (сдвинут на 5п влево)
-        {spriteX: 69, spriteY: 324, spriteW: 229, spriteH: 132},         // 2 кадр
-        {spriteX: 91 - 5, spriteY: 549, spriteW: 206, spriteH: 136}      // 3 кадр (сдвинут на 5п влево)
+        {spriteX: 66, spriteY: 95 - 20, spriteW: 232, spriteH: 148 + 20, noseX: 298-66, noseY: 178-(95-20)},   // 1 кадр
+        {spriteX: 69, spriteY: 324 - 20, spriteW: 232, spriteH: 148 + 20, noseX: 298-69, noseY: 397-(324-20)}, // 2 кадр
+        {spriteX: 86, spriteY: 549 - 20, spriteW: 232, spriteH: 148 + 20, noseX: 298-86, noseY: 625-(549-20)}  // 3 кадр
     ],
     x: 0, y: 0, w: 0, h: 0,
     frame: 0, gravity: 0, jump: 0, speed: 0, rotation: 0,
@@ -122,7 +122,9 @@ bird = {
     draw: function() {
         if (!birdVisible) return;
         if (typeof explosionActive !== 'undefined' && explosionActive) return;
-        let birdFrame = this.animation[this.frame];
+        let frame = this.animation[this.frame];
+        let scaleX = this.w / frame.spriteW;
+        let scaleY = this.h / frame.spriteH;
         ctx.save();
         let wobbleX = Math.sin(frames * this.wobbleSpeed) * this.wobbleAmount;
         if (this.engineThrust > 0) {
@@ -133,8 +135,9 @@ bird = {
         if(state.current != state.home) {
             ctx.drawImage(
                 mori_model_sprite,
-                birdFrame.spriteX, birdFrame.spriteY, birdFrame.spriteW, birdFrame.spriteH,
-                -this.w/2, -this.h/2, this.w, this.h
+                frame.spriteX, frame.spriteY, frame.spriteW, frame.spriteH,
+                -frame.noseX * scaleX, -frame.noseY * scaleY, // центрирование по носу
+                this.w, this.h
             );
         }
         ctx.restore();
@@ -660,13 +663,13 @@ function getOstankinoCollisionRects(ostankino) {
 
 // === ЗОНЫ КОЛЛИЗИИ ДЛЯ ГЛАВНОГО ГЕРОЯ ===
 bird.collisionZones = [
-  { x: (209-69-30)*0.9, y: (323-324)*0.9 + 20, w: 50*0.9, h: 65*0.9 - 10 }, // 1
-  { x: (154-69-30)*0.9, y: (373-324)*0.9 + 20 - 10, w: 55*0.9, h: 83*0.9 - 10 - 10 }, // 2
-  { x: (210-69-30)*0.9, y: (388-324)*0.9, w: 59*0.9, h: 53*0.9 }, // 3
-  { x: (269-69-30)*0.9, y: (398-324)*0.9, w: 7*0.9, h: 34*0.9 },  // 4
-  { x: (275-69-30)*0.9, y: (401-324)*0.9, w: 7*0.9, h: 28*0.9 },  // 5
-  { x: (282-69-30)*0.9, y: (404-324)*0.9, w: 7*0.9, h: 22*0.9 },  // 6
-  { x: (288-69-30)*0.9, y: (408-324)*0.9, w: 8*0.9, h: 13*0.9 }   // 7
+  { x: (209-69-30-60-20-10), y: (323-324+20-5)*0.9, w: 50*0.9, h: 65*0.9 }, // 1
+  { x: (154-69-30-60-20), y: (373-324)*0.9, w: 55*0.9, h: 83*0.9 - 30 }, // 2
+  { x: (154-69-30-60-20) + 55*0.9, y: (373-324+10)*0.9, w: 55*0.9, h: 83*0.9 - 30 - 15 }, // 3 (h-15)
+  { x: (269-69-30-60-40-10+5), y: (398-324-20+5)*0.9, w: 7*0.9, h: 34*0.9 },  // 4
+  { x: (275-69-30-60-40-10+5), y: (401-324-20+5)*0.9, w: 7*0.9, h: 28*0.9 },  // 5
+  { x: (282-69-30-60-40-10+5), y: (404-324-20+5)*0.9, w: 7*0.9, h: 22*0.9 },  // 6
+  { x: (288-69-30-60-40-10+5), y: (408-324-20+5)*0.9, w: 8*0.9, h: 13*0.9 }   // 7
 ];
 // === КОНЕЦ ДОБАВЛЕНИЯ ===
 
@@ -1324,3 +1327,27 @@ const coins = {
 // === ЗАМЕНА СПРАЙТА ГЛАВНОГО ГЕРОЯ ===
 const mori_model_sprite = new Image();
 mori_model_sprite.src = "img/separated/CharacterNew.png";
+
+// Получаем размеры первого кадра
+const firstSpriteW = 232;
+const firstSpriteH = 148;
+bird.animation = [
+    {spriteX: 66, spriteY: 95 - 20, spriteW: 232, spriteH: 148 + 20, noseX: 298-66, noseY: 178-(95-20)},   // 1 кадр
+    {spriteX: 69, spriteY: 324 - 20, spriteW: 232, spriteH: 148 + 20, noseX: 298-69, noseY: 397-(324-20)}, // 2 кадр
+    {spriteX: 86, spriteY: 549 - 20, spriteW: 232, spriteH: 148 + 20, noseX: 298-86, noseY: 625-(549-20)}  // 3 кадр
+];
+
+// Сохраняем параметры второго фрагмента для использования в третьем
+const zone2_x = (154-69-30-60-20);
+const zone2_y = (373-324)*0.9;
+const zone2_w = 55*0.9;
+const zone2_h = 83*0.9 - 30;
+bird.collisionZones = [
+  { x: (209-69-30-60-20-10), y: (323-324+20-5)*0.9, w: 50*0.9, h: 65*0.9 }, // 1
+  { x: (154-69-30-60-20), y: (373-324)*0.9, w: 55*0.9, h: 83*0.9 - 30 }, // 2
+  { x: (154-69-30-60-20) + 55*0.9, y: (373-324+10)*0.9, w: 55*0.9, h: 83*0.9 - 30 - 15 }, // 3 (h-15)
+  { x: (269-69-30-60-40-10+5), y: (398-324-20+5)*0.9, w: 7*0.9, h: 34*0.9 },  // 4
+  { x: (275-69-30-60-40-10+5), y: (401-324-20+5)*0.9, w: 7*0.9, h: 28*0.9 },  // 5
+  { x: (282-69-30-60-40-10+5), y: (404-324-20+5)*0.9, w: 7*0.9, h: 22*0.9 },  // 6
+  { x: (288-69-30-60-40-10+5), y: (408-324-20+5)*0.9, w: 8*0.9, h: 13*0.9 }   // 7
+];
