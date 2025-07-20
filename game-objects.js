@@ -407,12 +407,28 @@ pipes = {
             if (foundCollision) continue;
             
             // Нарисовать спрайт вертолёта (если есть изображение)
-            if (typeof helicopter_sprite !== 'undefined' && helicopter_sprite.complete) {
+            if (!p.exploding) {
+                if (typeof helicopter_sprite !== 'undefined' && helicopter_sprite.complete) {
+                    ctx.drawImage(
+                        helicopter_sprite,
+                        f.sx, f.sy, f.sw, f.sh,
+                        p.x, p.y, localDrawW, localDrawH
+                    );
+                }
+            } else {
+                // Взрыв
+                const sx = 659, sy = 177, sw = 459, sh = 442;
+                let alpha = 0.8 * (1 - (p.explosionTimer || 0) / EXPLOSION_DURATION);
+                if (alpha < 0) alpha = 0;
+                ctx.save();
+                ctx.globalAlpha = alpha;
                 ctx.drawImage(
-                    helicopter_sprite,
-                    f.sx, f.sy, f.sw, f.sh,
-                    p.x, p.y, localDrawW, localDrawH
+                    explosion_img,
+                    sx, sy, sw, sh,
+                    p.x, p.y,
+                    localDrawW, localDrawH
                 );
+                ctx.restore();
             }
 
             // Удаляю/комментирую отрисовку красных рамок вокруг вертолётов
@@ -487,7 +503,9 @@ pipes = {
                 circleSpeed: circleSpeed,
                 circleRadius: circleRadius,
                 circleCenterY: circleCenterY,
-                flyAway: false // флаг улёта
+                flyAway: false, // флаг улёта
+                exploding: false, // новый флаг для взрыва
+                explosionTimer: 0 // новый таймер для взрыва
             });
             this.spawnTimer = 0;
         }
@@ -525,14 +543,38 @@ pipes = {
                         let heliCenterY = p.y + this.h / 2;
                         let ostTopX = ost.x + ost.width / 2;
                         let ostTopY = ost.y;
-                        // Проверка попадания в квадрат 300х300 вокруг вершины Останкино
+                        // Проверка попадания в квадрат 300x300 вокруг вершины Останкино
                         if (Math.abs(heliCenterX - ostTopX) < 300 && Math.abs(heliCenterY - ostTopY) < 300) {
-                            p.flyAway = true;
-                            p.flyAwaySpeed = 400 + Math.random() * 100; // px/sec
-                            break;
+                            // ВЗРЫВ ВЕРТОЛЁТА
+                            if (!p.exploding) {
+                                // Добавляем взрыв в массив взрывов
+                                helicopterExplosions.push({
+                                    x: p.x,
+                                    y: p.y,
+                                    w: drawW2 * 1.15,
+                                    h: this.h * 1.15,
+                                    baseW: drawW2,
+                                    baseH: this.h,
+                                    timer: 0,
+                                    dx: this.dx, // скорость движения препятствия на момент взрыва
+                                    duration: EXPLOSION_DURATION + 1 // индивидуальная длительность для вертолёта
+                                });
+                                // Удаляем вертолёт сразу
+                                this.position.splice(i, 1);
+                                break;
+                            }
                         }
                     }
                 }
+            }
+        }
+        // === Удаление взорвавшихся вертолётов ===
+        // Обновление и удаление взрывов вертолётов
+        for (let i = helicopterExplosions.length - 1; i >= 0; i--) {
+            let e = helicopterExplosions[i];
+            e.timer += delta;
+            if (e.timer > (e.duration || EXPLOSION_DURATION)) {
+                helicopterExplosions.splice(i, 1);
             }
         }
     },
@@ -1187,6 +1229,31 @@ function draw() {
         drawCollisionCheckbox(ctx);
     }
     // === КОНЕЦ draw ===
+
+    // === ОТРИСОВКА ВЗРЫВОВ ВЕРТОЛЁТОВ ===
+    if (typeof helicopterExplosions !== 'undefined' && helicopterExplosions.length > 0) {
+        for (let i = 0; i < helicopterExplosions.length; i++) {
+            let e = helicopterExplosions[i];
+            const sx = 659, sy = 177, sw = 459, sh = 442;
+            let alpha = 0.8 * (1 - e.timer / (e.duration || EXPLOSION_DURATION));
+            if (alpha < 0) alpha = 0;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            // Смещение взрыва назад с той же скоростью, что и препятствие
+            let dx = - (e.dx || 0) * e.timer;
+            // Центрируем увеличенный взрыв относительно исходного положения
+            let baseW = e.baseW || e.w / 1.15;
+            let baseH = e.baseH || e.h / 1.15;
+            ctx.drawImage(
+                explosion_img,
+                sx, sy, sw, sh,
+                e.x + dx - (e.w - baseW) / 2,
+                e.y - (e.h - baseH) / 2,
+                e.w, e.h
+            );
+            ctx.restore();
+        }
+    }
 }
 
 // === ПРОВЕРКА КОЛЛИЗИЙ ПТИЦЫ СО ВСЕМИ ЗДАНИЯМИ ===
@@ -1359,3 +1426,6 @@ bird.collisionZones = [
   { x: (282-69-30-60-40-10+5), y: (404-324-20+5)*0.9, w: 7*0.9, h: 22*0.9 },  // 6
   { x: (288-69-30-60-40-10+5), y: (408-324-20+5)*0.9, w: 8*0.9, h: 13*0.9 }   // 7
 ];
+
+// === ДОБАВЛЯЮ МАССИВ ВЗРЫВОВ ДЛЯ ВЕРТОЛЁТОВ ===
+let helicopterExplosions = [];
